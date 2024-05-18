@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Text, Pressable, TextInput, ScrollView } from 'react-native';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import { getAuth } from '../firebase';
 import styles from './components/styles';
 import Keyboard from './components/Keyboard';
@@ -14,6 +14,7 @@ const RegisterUser= ({navigation}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
+  const [noUser, setNoUser] = useState("No User");
 
 
   const [firstNameError, setError1] = useState('');
@@ -22,6 +23,7 @@ const RegisterUser= ({navigation}) => {
   const [pwError, setError4] = useState('');
   const [confirmPwError, setError5] = useState('');
 
+  const [currentUserEmail, setCurrentUserEmail] = useState('');
 
   const userData = {
     firstName: firstName,
@@ -31,6 +33,15 @@ const RegisterUser= ({navigation}) => {
     password,
   };
 
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setCurrentUserEmail(user.email);
+      }
+    });
+    return unsubscribe;
+  }, []);
 
   const handleRegistration = async () => {
     let valid = true;

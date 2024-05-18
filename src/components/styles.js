@@ -240,6 +240,54 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        alignItems: 'center'
+    },
+    modalContent: {
+        backgroundColor: 'white',
+        padding: 20,
+        borderRadius: 10,
+        width: '80%',
+        alignItems: 'center'
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 10
+    },
+    forumDescStyle: {
+        padding: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: "#ddd",
+        marginBottom: 10
+    },
+    modalButton: {
+        backgroundColor: '#eee',
+        padding: 10,
+        borderRadius: 5,
+        alignItems: 'center',
+        width: '100%',
+        marginTop: 10
+    },
+    modalButtonText: {
+        fontWeight: 'bold'
+    },
+    forumPostContainer: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 10,
+        padding: 50,
+        marginBottom: 15,
+        borderWidth: 3,
+        borderColor: '#eee',
+        marginTop: 150
+      },
+      forumPostUser: {
+        fontWeight: 'bold',
+        textAlign: 'center'
+      }
   });
 
 

@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import { Text, Pressable, TextInput, ScrollView} from 'react-native';
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import styles from './components/styles';
 import axios from 'axios';
 import url from "./components/config";
@@ -43,6 +44,7 @@ const Login = ({navigation}) => {
       }
 
       if (valid) {
+        /*
         const response = await axios.post(`${url}/login`, { email, password });
 
         // Check response for errors
@@ -58,6 +60,22 @@ const Login = ({navigation}) => {
         } else {
           // Navigate to the home screen upon successful login
           navigation.navigate("RegisteredHome");
+        }
+        */
+
+        const auth = getAuth();
+        try {
+          await signInWithEmailAndPassword(auth, email, password);
+          // Navigate to the home screen upon successful login
+          navigation.navigate("RegisteredHome");
+        } catch (authError) {
+          if (authError.code === 'auth/user-not-found') {
+            setError1('* User does not exist');
+          } else if (authError.code === 'auth/wrong-password') {
+            setError2('* Incorrect password');
+          } else {
+            console.error('Firebase login error:', authError.message);
+          }
         }
       }
     } catch (error) {

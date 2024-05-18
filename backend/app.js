@@ -16,6 +16,8 @@ mongoose.connect(mongoUrl).then(()=> {
 })
 require('./UserDetails');
 const User = mongoose.model("userInfo");
+//const ForumPost = mongoose.model("forumPost")
+const ForumPost = require('./ForumPost');
 
 
 app.get("/", (req, res) => {
@@ -86,6 +88,71 @@ app.post("/logout", (req, res) => {
     // Perform logout actions (e.g., clear session, etc.)
     // Respond with success message or appropriate status code
     res.send({ message: "Logout successful" });
+});
+
+//Create forum post
+// server.js or index.js
+/*
+app.post("/createForumPost", async (req, res) => {
+    const { token, description } = req.body;
+
+    try {
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        const user = await User.findOne({ uid: decodedToken.uid });
+
+        if (!user) {
+            return res.status(404).send({ error: "User not found" });
+        }
+
+        const newForumPost = new ForumPost({
+            description,
+            user: user._id,
+        });
+
+        await newForumPost.save();
+        res.send({ status: "ok", forumPost: newForumPost });
+    } catch (error) {
+        console.error("Error creating forum post:", error);
+        res.status(500).send({ error: "Internal server error" });
+    }
+});
+*/
+app.post('/createForumPost', async (req, res) => {
+    const { user, description } = req.body;
+
+    try {
+        const forumPost = new ForumPost({
+            user,
+            description
+        });
+
+        await forumPost.save();
+        res.send({ status: 'ok', forumPost });
+    } catch (error) {
+        res.status(500).send({ status: 'error', error: 'Error creating forum post' });
+    }
+});
+
+
+//Get forum post
+/*
+app.get("/getForumPosts", async (req, res) => {
+    try {
+        const forumPosts = await ForumPost.find().populate('user', 'email');
+        res.send({ status: "ok", forumPosts });
+    } catch (error) {
+        console.error("Error fetching forum posts:", error);
+        res.status(500).send({ error: "Internal server error" });
+    }
+});
+*/
+app.get('/getForumPosts', async (req, res) => {
+    try {
+        const forumPosts = await ForumPost.find().sort({ date: -1 });
+        res.send({ status: 'ok', forumPosts });
+    } catch (error) {
+        res.status(500).send({ status: 'error', error: 'Error fetching forum posts' });
+    }
 });
 
 
