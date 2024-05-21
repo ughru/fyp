@@ -7,7 +7,6 @@ app.use(express.json());
 
 const mongoUrl = "mongodb+srv://ru:admin@cluster0.dawierb.mongodb.net/bloom?retryWrites=true&w=majority&appName=Cluster0";
 
-
 mongoose.connect(mongoUrl).then(()=> {
     console.log("Database Connected.");
 })
@@ -15,16 +14,56 @@ mongoose.connect(mongoUrl).then(()=> {
     console.log(e);
 })
 require('./UserDetails');
+require('./ResourceDetail');
+
 const User = mongoose.model("userInfo");
+const ResourceCategory = mongoose.model("resourceCategory");
+const Resource = mongoose.model("resourceInfo");
 
-
+// Check db connection status
 app.get("/", (req, res) => {
     res.send({status: "Started"})
 });
 
+// get user info 
+app.get('/userinfo', async (req, res) => {
+    const { email } = req.query;
+  
+    try {
+      const userInfo = await User.findOne({ email }); 
+      if (userInfo) {
+        res.json(userInfo);
+      } else {
+        res.status(404).json({ message: 'User not found' });
+      }
+    } catch (error) {
+      console.error('Error retrieving user info:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// get categories
+app.get('/categories', async (req, res) => {
+  try {
+    const categories = await ResourceCategory.find({});
+    res.json(categories);
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
+
+// get resources
+app.get('/resource', async (req, res) => {
+  try {
+    const resource = await Resource.find({});
+    res.json(resource);
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
 
 app.post("/register", async(req, res)=> {
-    const {firstName, lastName, type, email, password} = req.body;
+    const {firstName, lastName, type, status, email, password} = req.body;
 
 
     const oldUser = await User.findOne({email: email});
@@ -44,6 +83,7 @@ app.post("/register", async(req, res)=> {
             firstName: firstName,
             lastName: lastName,
             type,
+            status,
             email: email,
             password: hashedPassword,
         });
@@ -86,6 +126,27 @@ app.post("/logout", (req, res) => {
     // Perform logout actions (e.g., clear session, etc.)
     // Respond with success message or appropriate status code
     res.send({ message: "Logout successful" });
+});
+
+app.post('/updateStatus', async (req, res) => {
+    const { email, status } = req.body;
+  
+    try {
+      const user = await User.findOneAndUpdate(
+        { email },
+        { status },
+        { new: true } // Return the updated document
+      );
+  
+      if (user) {
+        res.json({ message: 'Status updated successfully', status: user.status });
+      } else {
+        res.status(404).json({ message: 'User not found' });
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
 });
 
 

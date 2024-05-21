@@ -1,0 +1,23 @@
+const mongoose = require("mongoose");
+
+const ResourceDetailSchema = new mongoose.Schema(
+{
+    categoryName: String,
+},
+{
+    collection: "ResourceCategory"
+});
+
+const ResourceInfoSchema = new mongoose.Schema(
+{
+    title: String,
+    category: String,
+    description: String,
+},
+{
+    collection: "Resource"
+});
+
+
+mongoose.model("resourceCategory", ResourceDetailSchema);
+mongoose.model("resourceInfo", ResourceInfoSchema);

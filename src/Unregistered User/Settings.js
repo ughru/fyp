@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import styles from './components/styles';
+import styles from '../components/styles';
 
 // Fetch User Selection from Personalisation.js
 const Settings = ({navigation, selectedStatus, setSelectedStatus}) => {

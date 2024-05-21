@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet} from 'react-native';
+import { StyleSheet } from 'react-native';
 
 // Style Definitions
 const styles = StyleSheet.create({
@@ -7,7 +7,6 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingBottom: 920,
     },
     iconContainer: {
         position: 'absolute',
@@ -18,6 +17,11 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
         justifyContent: 'flex-start',
     },
+    buttonContainer: {
+        position: 'absolute',
+        alignItems: 'flex-start',
+        justifyContent: 'flex-start',
+      },
     textTitle: {
         position: 'absolute',
         fontSize: 24,
@@ -69,7 +73,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingVertical: 5,
         borderRadius: 20,
-        backgroundColor: '#D39FC0',
+        backgroundColor: '#E3C2D7',
     },
     button4: {
         position: 'absolute',
@@ -193,10 +197,6 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#6BB4DE',
     },
-    buttonText2: {
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
     // for error message
     error: {
         color: 'red',
@@ -235,10 +235,54 @@ const styles = StyleSheet.create({
     textInputWithIcon: {
         paddingLeft: 40, 
     },
+    textInputWithIcon2: {
+        paddingLeft: 60, 
+    },
     search: {
         position: 'absolute',
         flexDirection: 'row',
         alignItems: 'center',
+    },
+    categoryBtn: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 15,
+        paddingVertical: 10,
+        borderRadius: 20,
+        borderWidth: 1,
+      },
+      categoryBtnActive: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#E3C2D7",
+        paddingHorizontal: 15,
+        paddingVertical: 10,
+        borderRadius: 20,
+      },
+      categoryBtnTxt: {
+        marginLeft: 5,
+        color: "black",
+      },
+      resourceBtn: {
+        borderWidth: 1,
+        width: 100,
+        height: 150,
+        paddingHorizontal: 10,
+        paddingVertical: 10,
+        borderRadius: 10,
+      },
+      resourceInfo: {
+        position: 'absolute',
+      },
+      resourceCategoryButton: {
+        position: 'absolute',
+        width: 170,
+        height: 30,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 5,
+        borderRadius: 20,
+        backgroundColor: '#E3C2D7',
     },
   });
 

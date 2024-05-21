@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import { Text, Pressable, TextInput, ScrollView} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from './components/styles';
 import axios from 'axios';
 import url from "./components/config";
@@ -56,6 +57,8 @@ const Login = ({navigation}) => {
             console.error('Login error:', response.data.error);
           }
         } else {
+          await AsyncStorage.setItem('user', email);
+
           // Navigate to the home screen upon successful login
           navigation.navigate("RegisteredHome");
         }

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Text, Pressable, TextInput, ScrollView } from 'react-native';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAuth } from '../firebase';
 import styles from './components/styles';
 import Keyboard from './components/Keyboard';
@@ -15,26 +16,43 @@ const RegisterUser= ({navigation}) => {
   const [password, setPassword] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
 
-
   const [firstNameError, setError1] = useState('');
   const [lastNameError, setError2] = useState('');
   const [emailError, setError3] = useState('');
   const [pwError, setError4] = useState('');
   const [confirmPwError, setError5] = useState('');
 
+  const [selectedStatus, setSelectedStatus] = useState(null);
+  const [registrationInProgress, setRegistrationInProgress] = useState(false);
 
-  const userData = {
-    firstName: firstName,
-    lastName: lastName,
-    type: "user",
-    email,
-    password,
-  };
+  useEffect(() => {
+    // Retrieve selected status from AsyncStorage
+    const fetchSelectedStatus = async () => {
+      try {
+        const storedStatus = await AsyncStorage.getItem('selectedStatus');
+        if (storedStatus !== null) {
+          setSelectedStatus(storedStatus);
+        }
+      } catch (error) {
+        console.error('Error retrieving selected status:', error);
+      }
+    };
 
+    fetchSelectedStatus();
+  }, []);
 
   const handleRegistration = async () => {
     let valid = true;
+    setRegistrationInProgress(true);
 
+    const userData = {
+      firstName: firstName,
+      lastName: lastName,
+      type: "user",
+      email,
+      password,
+      status: selectedStatus, 
+    };
 
     try {
       // Handle Name Errors
@@ -74,7 +92,6 @@ const RegisterUser= ({navigation}) => {
         setError2('');
       }
 
-
       // Handle Email Errors
       const response = await axios.post(`${url}/register`, userData);
       if (!email) {
@@ -107,6 +124,14 @@ const RegisterUser= ({navigation}) => {
         setError5('* Password do not match');
         valid = false;
       }
+      else if (password.length < 6 ) {
+        setError4('* Password must be at least 6 characters');
+        valid = false;
+      }
+      else if (confirmPw.length < 6 ) {
+        setError5('* Password must be at least 6 characters');
+        valid = false;
+      }
       else {
         setError4('');
         setError5('');
@@ -114,37 +139,43 @@ const RegisterUser= ({navigation}) => {
 
 
       if (valid) {
-        // Call Firebase function to create user with email and password
         const auth = getAuth();
-
 
         try {
           await createUserWithEmailAndPassword(auth, email, password);
-         
+
+          // Store user information in AsyncStorage
+          await AsyncStorage.setItem('user', JSON.stringify({ email }));
+
           // Submit data to backend
-          axios.post("http://{url}}/register", userData)
-          .then((res) => console.log(res.data))
-          .catch(e => console.log(e));
-         
+          const response = await axios.post(`${url}/register`, userData);
+
+          // Check if user already exists
+          if (response.data && response.data.error === 'User already exists!') {
+            // Handle case where user already exists
+            setError3('* User already exists');
+            return; // Stop further execution
+          }
+
           // Navigate to the home screen if registration is successful
           navigation.navigate("RegisteredHome");
         } catch (authError) {
           if (authError.code === 'auth/email-already-in-use') {
             setError3('* Email already in use');
           } else {
-            // Handle other Firebase authentication errors
             console.error('Firebase authentication error:', authError.message);
           }
         }
       }
-    }
-    catch (error) {
+    } catch (error) {
       if (error.code === 'auth/email-already-in-use') {
         setError3('* Email already in use');
       } else {
-        // Handle other errors
         console.error('Registration error:', error.message);
       }
+    } finally {
+      // Reset registration in progress
+      setRegistrationInProgress(false);
     }
   };
 
@@ -175,7 +206,7 @@ const RegisterUser= ({navigation}) => {
 
 
       <Text style= {[styles.formText, {top: 570, left: 30}]}> Confirm Password {confirmPwError ? <Text style={styles.error}>{confirmPwError}</Text> : null} </Text>
-      <TextInput style={[styles.input, {top: 600, left: 30}]} value = {confirmPw} onChangeText = {setConfirmPw}secureTextEntry={true}/>
+      <TextInput style={[styles.input, {top: 600, left: 30}]} value = {confirmPw} onChangeText = {setConfirmPw} secureTextEntry={true}/>
 
 
       {/* Button */}

@@ -40,6 +40,10 @@ const AccountType = ({navigation}) => {
         </View>
       </Pressable>
 
+      <Pressable style={[styles.formText, { top: 580 }]} onPress={() => navigation.navigate("Login")}>
+        <Text>Already have an account? <Text style={styles.buttonText}>Login</Text></Text>
+      </Pressable>
+
     </View>
   );
 };
