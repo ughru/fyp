@@ -63,6 +63,9 @@ const Settings = ({navigation, selectedStatus, setSelectedStatus}) => {
       <Pressable style={[styles.button5, {top: 450}]} onPress={() =>navigation.navigate("AccountType")}>
         <Text style= {styles.questionText}> Register </Text>
       </Pressable>
+      <Pressable style={[styles.button5, {top: 500}]} onPress={() =>navigation.navigate("Login")}>
+        <Text style= {styles.questionText}> Login </Text>
+      </Pressable>
     </View>
   );
 };

@@ -4,10 +4,17 @@ import { StyleSheet} from 'react-native';
 // Style Definitions
 const styles = StyleSheet.create({
     container: {
+        /*
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingBottom: 920,
+        paddingBottom: 900,
+        */
+        flexGrow: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 40,
     },
     iconContainer: {
         position: 'absolute',
@@ -262,7 +269,8 @@ const styles = StyleSheet.create({
         padding: 10,
         borderBottomWidth: 1,
         borderBottomColor: "#ddd",
-        marginBottom: 10
+        marginBottom: 10,
+        width: '100%'
     },
     modalButton: {
         backgroundColor: '#eee',
@@ -275,19 +283,55 @@ const styles = StyleSheet.create({
     modalButtonText: {
         fontWeight: 'bold'
     },
+    forumDescriptionBox: {
+        width: '100%',
+        marginTop: 120
+    },
     forumPostContainer: {
-        backgroundColor: '#FFFFFF',
+        padding: 5,
+        backgroundColor: '#fff',
         borderRadius: 10,
-        padding: 50,
         marginBottom: 15,
-        borderWidth: 3,
-        borderColor: '#eee',
-        marginTop: 150
-      },
-      forumPostUser: {
+        borderColor: '#ddd',
+        borderWidth: 1
+    },
+    forumPostUser: {
         fontWeight: 'bold',
-        textAlign: 'center'
-      }
+        fontSize: 15,
+        color: 'black',
+        margin: 10
+    },
+    forumPostDescription: {
+        fontWeight: 'bold',
+        fontSize: 15,
+        margin: 10
+    },
+    forumPostDate: {
+        margin: 10,
+        fontWeight: 'bold',
+        fontSize: 15
+    },
+    commentsIcon: {
+        margin: 10,
+        color: 'grey'
+    },
+    commentCount: {
+        marginLeft: 1,
+        color: 'grey'
+    },
+    reportForumButton: {
+        backgroundColor: '#D22B2B',
+        borderWidth: 0,
+        borderRadius: 10,
+        padding: 8,
+        marginLeft: 100
+    },
+    reportForumPost: {
+        fontWeight: 'bold',
+        color: '#fff'
+    }
+      
+
   });
 
 
