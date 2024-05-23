@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import styles from '../components/styles';
 import Keyboard from '../components/Keyboard';
+import url from '../components/config';
 
 const formatDate = (date) => {
   const options = { weekday: 'long', day: 'numeric', month: 'long' };
@@ -29,15 +30,35 @@ const getWeek = () => {
   return { weekDays, weekDates, currentDay };
 };
 
-const PreHome = ({navigation}) => {
+const UserPreHome = ({navigation}) => {
   const [currentDate, setCurrentDate] = useState(null);
   const { weekDays, weekDates, currentDay } = getWeek();
-  const [userName, setUserName] = useState('Welcome to Bloom!');
+  const [userInfo, setUserInfo] = useState({
+    firstName: '',
+    lastName: '',
+    email: ''
+  });
 
   useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const storedEmail = await AsyncStorage.getItem('user');
+        if (storedEmail) {
+          const response = await axios.get(`${url}/userinfo?email=${storedEmail}`);
+          if (response.data) {
+            setUserInfo(response.data);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+    };
+    
     const date = new Date();
     const formattedDate = formatDate(date);
     setCurrentDate(formattedDate);
+
+    fetchUserInfo();
   }, []);
 
   // Page Displays
@@ -48,7 +69,7 @@ const PreHome = ({navigation}) => {
         <Ionicons name="notifications-outline" size={24} color="black" />
       </View>
       <Text style={[styles.date, {top: 80, left: 20}]}> {currentDate} </Text>
-      <Text style={[styles.textTitle, { top: 120, left: 20 }]}>{userName}</Text>
+      <Text style={[styles.textTitle, { top: 120, left: 20 }]}>Welcome, {userInfo.firstName}!</Text>
 
       {/* Legend */}
       <Pressable style={[styles.button7, {top: 170, left: 30}]}>
@@ -100,4 +121,4 @@ const PreHome = ({navigation}) => {
   );
 };
 
-export default PreHome;
+export default UserPreHome;

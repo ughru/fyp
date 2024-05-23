@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable} from 'react-native';
+import { View, Text, Pressable, Image, StyleSheet} from 'react-native';
 import styles from './components/styles';
 
 const Welcome = ({navigation}) => {

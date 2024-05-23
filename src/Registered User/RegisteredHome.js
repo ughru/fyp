@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 import UserSettings from './UserSettings';
-import PreHome from '../Nav Screens/PreHome';
-import DuringHome from '../Nav Screens/DuringHome';
-import PostHome from '../Nav Screens/PostHome';
-import Resource from '../Nav Screens/Resource';
-import Forum from '../Nav Screens/Forum';
-import Appointments from '../Nav Screens/Appointments';
+import UserPreHome from './UserPreHome';
+import UserDuringHome from './UserDuringHome';
+import UserPostHome from './UserPostHome';
+import UserResource from './UserResource';
+import UserForum from './UserForum';
+import UserAppointments from './UserAppointments';
+import url from "../components/config";
 
 // Bottom Navigation bar
 const Tab = createBottomTabNavigator();
@@ -19,33 +20,37 @@ export default function RegisteredHome() {
   const [selectedStatus, setSelectedStatus] = useState(null);
 
   useEffect(() => {
-    // Retrieve selected status from AsyncStorage
-    const fetchSelectedStatus = async () => {
+    // Retrieve user info from the database
+    const fetchUserInfo = async () => {
       try {
-        const storedStatus = await AsyncStorage.getItem('selectedStatus');
-        if (storedStatus !== null) {
-          setSelectedStatus(storedStatus);
+        const storedEmail = await AsyncStorage.getItem('user');
+        if (storedEmail) {
+          const response = await axios.get(`${url}/userinfo?email=${storedEmail}`);
+          if (response.data) {
+            setSelectedStatus(response.data.status);
+          }
         }
       } catch (error) {
-        console.error('Error retrieving selected status:', error);
+        console.error('Error retrieving user info:', error);
       }
     };
 
-    fetchSelectedStatus();
+    fetchUserInfo();
   }, []);
   
   // Navigate to Home screen based on pregnancy stage
   const getHomeScreen = () => {
-    switch (selectedStatus) {
-      case 'Pre':
-        return PreHome;
-      case 'During':
-        return DuringHome;
-      case 'Post':
-        return PostHome;
-      default:
-        return PreHome;
-    }
+    if (selectedStatus === "Pre")
+      {
+        return UserPreHome;
+      }
+      else if (selectedStatus === "During")
+      {
+        return UserDuringHome;
+      }
+      else{
+        return UserPostHome;
+      }
   };
 
   return (
@@ -73,9 +78,9 @@ export default function RegisteredHome() {
       })}
     >
       <Tab.Screen name="Home" component={getHomeScreen()} options={{ headerShown: false }} />
-      <Tab.Screen name="Resources" component={Resource} options={{ headerShown: false }} />
-      <Tab.Screen name="Forum" component={Forum} options={{ headerShown: false }} />
-      <Tab.Screen name="Appointments" component={Appointments} options={{ headerShown: false }} />
+      <Tab.Screen name="Resources" component={UserResource} options={{ headerShown: false }} />
+      <Tab.Screen name="Forum" component={UserForum} options={{ headerShown: false }} />
+      <Tab.Screen name="Appointments" component={UserAppointments} options={{ headerShown: false }} />
       <Tab.Screen name="Settings" options={{ headerShown: false }}>
         {({ navigation }) => ( // Ensure to destructure the navigation prop here
         <UserSettings navigation={navigation} selectedStatus={selectedStatus} setSelectedStatus={setSelectedStatus} />

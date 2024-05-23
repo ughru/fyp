@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Settings from './Settings';
-import PreHome from './Nav Screens/PreHome';
-import DuringHome from './Nav Screens/DuringHome';
-import PostHome from './Nav Screens/PostHome';
-import Resource from './Nav Screens/Resource';
-import Forum from './Nav Screens/Forum';
-import Appointments from './Nav Screens/Appointments';
+import PreHome from './PreHome';
+import DuringHome from './DuringHome';
+import PostHome from './PostHome';
+import Resource from './Resource';
+import Forum from './Forum';
+import Appointments from './Appointments';
 
 // Bottom Navigation bar
 const Tab = createBottomTabNavigator();

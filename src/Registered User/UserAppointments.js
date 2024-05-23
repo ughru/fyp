@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../components/styles';
 import Keyboard from '../components/Keyboard';
 
-const Appointments = ({navigation}) => {
+const UserAppointments = ({navigation}) => {
  
   // Page Displays
   return (
@@ -16,4 +16,4 @@ const Appointments = ({navigation}) => {
   );
 };
 
-export default Appointments;
+export default UserAppointments;
