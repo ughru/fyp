@@ -4,7 +4,6 @@ const UserDetailSchema = new mongoose.Schema(
 {
     firstName: String,
     lastName: String,
-    type: String,
     status: String,
     email: { type: String, unique: true },
     password: String,
@@ -15,3 +14,32 @@ const UserDetailSchema = new mongoose.Schema(
 
 
 mongoose.model("userInfo", UserDetailSchema);
+
+const SpecialistDetailSchema = new mongoose.Schema(
+    {
+        firstName: String,
+        lastName: String,
+        uen: String,
+        email: { type: String, unique: true },
+        password: String,
+    },
+    {
+        collection: "SpecialistInfo"
+    });
+    
+    
+mongoose.model("specialistInfo", SpecialistDetailSchema);
+
+const AdminDetailSchema = new mongoose.Schema(
+    {
+        firstName: String,
+        lastName: String,
+        email: { type: String, unique: true },
+        password: String,
+    },
+    {
+        collection: "AdminInfo"
+    });
+    
+    
+mongoose.model("adminInfo", AdminDetailSchema);

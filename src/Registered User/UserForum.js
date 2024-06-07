@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, ScrollView, TextInput } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../components/styles';
 import Keyboard from '../components/Keyboard';
 import { Feather } from '@expo/vector-icons';
@@ -11,9 +10,12 @@ const UserForum = ({navigation}) => {
   return (
     <Keyboard>
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style= {[styles.pageTitle, {top: 80, left: 20}]}> Community Forum </Text>
-      <View style={[styles.iconContainer, {top: 80, left: 330}]}>
-        <Feather name="edit" size={24} color="black" />
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', 
+                    top: 50, marginBottom: 20 }}>
+        <Text style= {[styles.pageTitle]}> Community Forum </Text>
+        <View style={[styles.iconContainer]}>
+          <Feather name="edit" size={24} color="black" />
+        </View>
       </View>
     </ScrollView>
     </Keyboard>

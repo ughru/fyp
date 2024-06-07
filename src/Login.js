@@ -1,9 +1,11 @@
 import React, {useState} from 'react';
-import { Text, Pressable, TextInput, ScrollView} from 'react-native';
+import { Text, Pressable, TextInput, ScrollView, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from './components/styles';
+import Keyboard from './components/Keyboard';
 import axios from 'axios';
 import url from "./components/config";
+import { AntDesign } from '@expo/vector-icons';
 
 const Login = ({navigation}) => {
   const [email, setEmail] = useState('');
@@ -59,8 +61,14 @@ const Login = ({navigation}) => {
         } else {
           await AsyncStorage.setItem('user', email);
 
-          // Navigate to the home screen upon successful login
-          navigation.navigate("RegisteredHome");
+          // Navigate based on user type
+          if (response.data.type === 'user') {
+            navigation.navigate("RegisteredHome");
+          } else if (response.data.type === 'specialist') {
+            navigation.navigate("SpecialistHomePage");
+          } else if (response.data.type === 'admin') {
+            navigation.navigate("AdminHomePage");
+          }
         }
       }
     } catch (error) {
@@ -68,33 +76,50 @@ const Login = ({navigation}) => {
       // Handle other errors
     }
   };
-
+  
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <Keyboard>
+    <ScrollView contentContainerStyle={[styles.container]}>
+      {/* Back Button */}
+      <View style={[styles.container3, {justifyContent: 'center'}]}>
+        <View style = {{ flexDirection: 'row', alignItems: 'center', bottom: 120 }}>
+          <AntDesign name="left" size={24} color="black" />
+          <Pressable style={[styles.formText]} onPress={() => navigation.goBack()}>
+            <Text style={styles.text}> back </Text>
+          </Pressable>
+        </View>
+
       {/* Title */}
-      <Text style={[styles.pageTitle, {top: 200, left: 30}]}> Login </Text>
-      <Text style= {[styles.titleNote, {top: 240, left: 30,}]}> Login to continue </Text>
+        <Text style={[styles.pageTitle,  { marginLeft: 10, marginBottom: 20 }]}> Login </Text>
+        <Text style= {[styles.titleNote, { marginLeft: 10, marginBottom: 40}]}> Login to continue </Text>
 
-      <Text style= {[styles.formText, {top: 300, left: 30}]}> Email  {emailError ? <Text style={styles.error}>{emailError}</Text> : null} </Text>
-      <TextInput style={[styles.input, {top: 330, left: 30}]} value = {email} onChangeText = {setEmail}
-        keyboardType="email-address" />
+      {/* Form */}
+        <View style={{ marginBottom: 30, alignSelf: 'center' }}>
+          <Text style= {[styles.formText, {marginBottom: 10}]}> Email  {emailError ? <Text style={styles.error}>{emailError}</Text> : null} </Text>
+          <TextInput style={[styles.input]} value = {email} onChangeText = {setEmail}
+            keyboardType="email-address" />
+        </View>
 
-      <Text style= {[styles.formText, {top: 400, left: 30}]}> Password {pwError ? <Text style={styles.error}>{pwError}</Text> : null} </Text>
-      <TextInput style={[styles.input, {top: 430, left: 30}]} value = {password} onChangeText = {setPassword} secureTextEntry={true}/>
+        <View style={{ marginBottom: 30, alignSelf: 'center' }}>
+          <Text style= {[styles.formText, {marginBottom: 10}]}> Password {pwError ? <Text style={styles.error}>{pwError}</Text> : null} </Text>
+          <TextInput style={[styles.input]} value = {password} onChangeText = {setPassword} secureTextEntry={true}/>
+        </View>
 
-      <Pressable style={[styles.formText, { top: 480, left: 30}]}>
-        <Text  style={styles.buttonText}> Forgot Password? </Text>
-      </Pressable>
+        <Pressable style={[styles.formText, {marginLeft: 10, marginBottom: 20}]} onPress={() => navigation.navigate("ForgetPw")}>
+          <Text  style={styles.buttonText}> Forgot Password? </Text>
+        </Pressable>
 
-      {/* Button */}
-      <Pressable style={[styles.button, {top: 530}]} onPress={handleLogin}>
-        <Text style={styles.text}> Login </Text>
-      </Pressable>
+        {/* Button */}
+        <Pressable style={[styles.button, { marginBottom: 20, alignSelf: 'center' }]} onPress={handleLogin}>
+          <Text style={styles.text}> Login </Text>
+        </Pressable>
 
-      <Pressable style={[styles.formText, { top: 580 }]} onPress={() => navigation.navigate("AccountType")}>
-        <Text>Don't have an account? <Text style={styles.buttonText}>Sign up</Text></Text>
-      </Pressable>
+        <Pressable style={[styles.formText, { alignSelf: 'center' }]} onPress={() => navigation.navigate("AccountType")}>
+          <Text>Don't have an account? <Text style={styles.buttonText}>Sign up</Text></Text>
+        </Pressable>
+      </View>
     </ScrollView>
+    </Keyboard>
   );
 };
 

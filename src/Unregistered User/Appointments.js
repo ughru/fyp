@@ -1,17 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, ScrollView, TextInput } from 'react-native';
 import styles from '../components/styles';
-import Keyboard from '../components/Keyboard';
 
 const Appointments = ({navigation}) => {
  
   // Page Displays
   return (
-    <Keyboard>
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style= {[styles.pageTitle, {top: 80, left: 20}]}> Appointments </Text>
+      <View style = {[styles.container3, {top: 50}]}>
+        <Text style={[styles.pageTitle, {marginBottom: 570, marginRight: 120}]}> Appointments</Text>
+      </View>
     </ScrollView>
-    </Keyboard>
   );
 };
 

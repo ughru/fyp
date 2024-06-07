@@ -4,7 +4,7 @@ import styles from '../components/styles';
 import Keyboard from '../components/Keyboard';
 import { Feather } from '@expo/vector-icons';
 
-const Forum = ({navigation}) => {
+const AdminForum = ({navigation}) => {
  
   // Page Displays
   return (
@@ -13,13 +13,10 @@ const Forum = ({navigation}) => {
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', 
                     top: 50, marginBottom: 20 }}>
         <Text style= {[styles.pageTitle]}> Community Forum </Text>
-        <View style={[styles.iconContainer]}>
-          <Feather name="edit" size={24} color="black" />
-        </View>
       </View>
     </ScrollView>
     </Keyboard>
   );
 };
 
-export default Forum;
+export default AdminForum;

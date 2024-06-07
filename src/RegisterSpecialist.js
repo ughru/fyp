@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Text, Pressable, TextInput, ScrollView } from 'react-native';
+import { Text, Pressable, TextInput, ScrollView, View } from 'react-native';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { getAuth } from '../firebase';
 import styles from './components/styles';
 import Keyboard from './components/Keyboard';
+import { AntDesign } from '@expo/vector-icons';
 
 const RegisterSpecialist= ({navigation}) => {
   const [firstName, setFirstName] = useState('');
@@ -128,40 +129,62 @@ const RegisterSpecialist= ({navigation}) => {
 
   return (
     <Keyboard>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: 70}]}>
+        {/* Back button */}
+        <View style = {{ flexDirection: 'row', alignItems: 'center', top: 50, marginBottom: 20 }}>
+          <AntDesign name="left" size={24} color="black" />
+          <Pressable style={[styles.formText]} onPress={() => navigation.goBack()}>
+            <Text style={styles.text}> back </Text>
+          </Pressable>
+        </View>
+
         {/* Title */}
-        <Text style={[styles.pageTitle, {top: 80, left: 20}]}> Get Started </Text>
-        <Text style= {[styles.titleNote, {top: 120, left: 20}]}> Register as a specialist </Text>
+        <Text style={[styles.pageTitle, { top: 50, marginBottom: 20 }]}> Get Started </Text>
+        <Text style={[styles.titleNote, { marginTop: 40, marginBottom: 30}]}> Register as a specialist </Text>
 
-        <Text style= {[styles.formText, {top: 170, left: 30}]}> First Name {firstNameError ? <Text style={styles.error}>{firstNameError}</Text> : null} </Text>
-        <TextInput style={[styles.input, {top: 200, left: 30}]} value = {firstName} onChangeText = {setFirstName} />
+        {/* Form */}
+        <View style={[styles.container3, {alignItems: 'center'}]}>
+          <View style={{ marginBottom: 30 }}>
+            <Text style={[styles.formText, {marginBottom: 10}]}> First Name {firstNameError ? <Text style={styles.error}>{firstNameError}</Text> : null} </Text>
+            <TextInput style={[styles.input]} value={firstName} onChangeText={setFirstName} />
+          </View>
+    
+          <View style={{ marginBottom: 30 }}>
+            <Text style={[styles.formText, {marginBottom: 10}]}> Last Name {lastNameError ? <Text style={styles.error}>{lastNameError}</Text> : null} </Text>
+            <TextInput style={[styles.input]} value={lastName} onChangeText={setLastName} />
+          </View>
+    
+          <View style={{ marginBottom: 30 }}>
+            <Text style={[styles.formText, {marginBottom: 10}]}> Email {emailError ? <Text style={styles.error}>{emailError}</Text> : null} </Text>
+            <TextInput style={[styles.input]} value={email} onChangeText={setEmail} keyboardType="email-address" />
+          </View>
 
-        <Text style= {[styles.formText, {top: 270, left: 30}]} > Last Name {lastNameError ? <Text style={styles.error}>{lastNameError}</Text> : null} </Text>
-        <TextInput style={[styles.input, {top: 300, left: 30}]} value = {lastName} onChangeText = {setLastName}/>
-
-        <Text style= {[styles.formText, {top: 370, left: 30}]}> Email {emailError ? <Text style={styles.error}>{emailError}</Text> : null} </Text>
-        <TextInput style={[styles.input, {top: 400, left: 30}]} value = {email} onChangeText = {setEmail}
-          keyboardType="email-address"/>
-
-        <Text style= {[styles.formText, {top: 470, left: 30}]}> UEN {uenError ? <Text style={styles.error}>{uenError}</Text> : null} </Text>
-        <TextInput style={[styles.input, {top: 500, left: 30}]} value = {uen} onChangeText = {setUEN}/>
-
-        <Text style= {[styles.formText, {top: 570, left: 30}]}> Password {pwError ? <Text style={styles.error}>{pwError}</Text> : null} </Text>
-        <TextInput style={[styles.input, {top: 600, left: 30}]} value = {password} onChangeText = {setPassword} secureTextEntry={true}/>
-
-        <Text style= {[styles.formText, {top: 670, left: 30}]}> Confirm Password {confirmPwError ? <Text style={styles.error}>{confirmPwError}</Text> : null} </Text>
-        <TextInput style={[styles.input, {top: 700, left: 30}]} value = {confirmPw} onChangeText = {setConfirmPw}secureTextEntry={true}/>
+          <View style={{ marginBottom: 30 }}>
+            <Text style= {[styles.formText, {marginBottom: 10}]}> UEN {uenError ? <Text style={styles.error}>{uenError}</Text> : null} </Text>
+            <TextInput style={[styles.input]} value = {uen} onChangeText = {setUEN}/>
+          </View>
+    
+          <View style={{ marginBottom: 30 }}>
+            <Text style={[styles.formText, {marginBottom: 10}]}> Password {pwError ? <Text style={styles.error}>{pwError}</Text> : null} </Text>
+            <TextInput style={[styles.input]} value={password} onChangeText={setPassword} secureTextEntry={true} />
+          </View>
+    
+          <View style={{ marginBottom: 30 }}>
+            <Text style={[styles.formText, {marginBottom: 10}]}> Confirm Password {confirmPwError ? <Text style={styles.error}>{confirmPwError}</Text> : null} </Text>
+            <TextInput style={[styles.input]} value={confirmPw} onChangeText={setConfirmPw} secureTextEntry={true} />
+          </View>
+        </View>
 
         {/* Button */}
-        <Pressable style={[styles.button4, {top: 770}]} onPress={handleRegistration}>
+        <Pressable style={[styles.button4, { marginBottom: 20, alignSelf: 'center' }]} onPress={handleRegistration}>
           <Text style={styles.text}> Register </Text>
         </Pressable>
 
-        <Pressable style={[styles.formText, { top: 830 }]} onPress={() => navigation.navigate("AccountType")}>
+        <Pressable style={[styles.formText, { marginBottom: 20, alignSelf: 'center' }]} onPress={() => navigation.navigate("AccountType")}>
           <Text style={styles.buttonText}> Register as different user </Text>
         </Pressable>
 
-        <Pressable style={[styles.formText, { top: 860 }]} onPress={() => navigation.navigate("Login")}>
+        <Pressable style={[styles.formText, { marginBottom: 20, alignSelf: 'center' }]} onPress={() => navigation.navigate("Login")}>
           <Text>Already have an account? <Text style={styles.buttonText}>Login</Text></Text>
         </Pressable>
       </ScrollView>

@@ -4,7 +4,7 @@ import styles from '../components/styles';
 import Keyboard from '../components/Keyboard';
 import { Feather } from '@expo/vector-icons';
 
-const Forum = ({navigation}) => {
+const SpecialistForum = ({navigation}) => {
  
   // Page Displays
   return (
@@ -22,4 +22,4 @@ const Forum = ({navigation}) => {
   );
 };
 
-export default Forum;
+export default SpecialistForum;

@@ -1,57 +1,90 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, ScrollView} from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, Pressable, ScrollView, TouchableOpacity } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import styles from '../components/styles';
-import Keyboard from '../components/Keyboard';
+import { fetchResources } from '../components/manageResource';
+import ModalStyle from '../components/ModalStyle';
 
 const formatDate = (date) => {
   const options = { weekday: 'long', day: 'numeric', month: 'long' };
   return date.toLocaleDateString('en-GB', options);
-};  
+};
 
-const PostHome = ({navigation}) => {
+const PostHome = ({ navigation }) => {
   const [currentDate, setCurrentDate] = useState(null);
+  const [resources, setResources] = useState([]);
+  const scrollRef = useRef();
+  const [isModalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     const date = new Date();
     const formattedDate = formatDate(date);
+
+    const fetchAndSetResources = async () => {
+      const fetchedResources = await fetchResources();
+      setResources(fetchedResources);
+    };
+
+    fetchAndSetResources();
     setCurrentDate(formattedDate);
   }, []);
- 
-  // Page Displays
+
+  const toggleModal = () => {
+    setModalVisible(!isModalVisible);
+  };
+
   return (
-    <Keyboard>
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={[styles.iconContainer, {top: 80, left: 330}]}>
-        <Ionicons name="notifications-outline" size={24} color="black" />
-      </View>
-      <Text style={[styles.date, {top: 80, left: 20}]}> {currentDate} </Text>
-      <Text style={[styles.textTitle, { top: 120, left: 20 }]}> Welcome to Bloom! </Text>
-
-      <Text style={[styles.text, {top: 170, left: 20}]}> Upcoming Appointments </Text>
-      <View style={[styles.search, {top: 240, left: 30}]}>
-        <Pressable style={styles.button4}>
-            <View style={[styles.iconContainer, {left: 20}]}>
-              <Feather name="calendar" size={24} color="black" />
-            </View>
-        </Pressable>
-        <Text style={styles.textInputWithIcon2}> No Appointments Yet </Text>
+      <View style={[styles.container3, { marginTop: 50 }]}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          <Text style={styles.date}>{currentDate}</Text>
+          <Ionicons name="notifications-outline" size={24} color="black" />
+        </View>
+        <Text style={[styles.textTitle, { marginTop: 20 }]}>Welcome to Bloom!</Text>
       </View>
 
-      <View style={[styles.iconContainer, {top: 320, left: 20}]}>
-        <Ionicons name="scale-outline" size={24} color="black" />
+      <View style={[styles.container3, { marginBottom: 50 }]}>
+        <Text style={[styles.text, { marginBottom: 20 }]}>Upcoming Appointments</Text>
+        <View style={[styles.button4, {marginTop: 20, flexDirection: 'row', alignItems: 'center', alignContent: 'center'}]}>
+          <Feather name="calendar" size={24} color="black" style= {{}} />
+          <Text style={styles.textInputWithIcon2}>No Appointments Yet</Text>
+        </View>
+
+        <View style={[styles.container3, { flexDirection: 'row', alignItems: 'center', marginBottom: 20, marginTop: 40 }]}>
+          <Ionicons name="scale-outline" size={24} color="black" style={{ marginRight: 10 }} />
+          <Pressable onPress={toggleModal}>
+            <Text style={styles.questionText}>Weight Tracker</Text>
+          </Pressable>
+        </View>
+
+        <View style={[styles.container3, { marginBottom: 20 }]}>
+          <Text style={[styles.titleNote, { marginBottom: 20 }]}>Suggested for you</Text>
+        </View>
       </View>
-      <Pressable style={[styles.formText, {top: 322, left: 50}]}>
-        <Text style={styles.questionText}> Weight Tracker </Text>
+
+      <View>
+        <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 20, paddingVertical: 10, marginBottom: 20 }}>
+          {resources.map(
+            (resource, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.resourceBtn}
+                onPress={toggleModal}
+              >
+                <Text>{resource.title}</Text>
+              </TouchableOpacity>
+            )
+          )}
+        </ScrollView>
+      </View>
+
+      <Pressable style={[styles.button, { alignSelf: 'center' }]} onPress={() => navigation.navigate("Resources")}>
+        <Text style={styles.text}>See more</Text>
       </Pressable>
 
-      <Text style={[styles.titleNote, {top: 370, left: 20}]}> Suggested for you </Text>
-
-      <Pressable style={[styles.button, {top: 700}]}>
-        <Text style={styles.text}> See more </Text>
-      </Pressable>
+      <ModalStyle  isVisible={isModalVisible} onClose={toggleModal} navigation={navigation} />
     </ScrollView>
-    </Keyboard>
   );
 };
 

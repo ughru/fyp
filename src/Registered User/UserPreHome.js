@@ -1,18 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, Pressable, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import styles from '../components/styles';
-import Keyboard from '../components/Keyboard';
 import url from '../components/config';
+import { fetchResources } from '../components/manageResource';
 
 const formatDate = (date) => {
   const options = { weekday: 'long', day: 'numeric', month: 'long' };
   return date.toLocaleDateString('en-GB', options);
-};  
+};
 
-// Calendar
 const getWeek = () => {
   const weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
   const today = new Date();
@@ -30,14 +29,16 @@ const getWeek = () => {
   return { weekDays, weekDates, currentDay };
 };
 
-const UserPreHome = ({navigation}) => {
+const UserPreHome = ({ navigation }) => {
   const [currentDate, setCurrentDate] = useState(null);
   const { weekDays, weekDates, currentDay } = getWeek();
+  const [resources, setResources] = useState([]);
   const [userInfo, setUserInfo] = useState({
     firstName: '',
     lastName: '',
     email: ''
   });
+  const scrollRef = useRef(null);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -53,35 +54,41 @@ const UserPreHome = ({navigation}) => {
         console.error('Error fetching user info:', error);
       }
     };
-    
-    const date = new Date();
-    const formattedDate = formatDate(date);
-    setCurrentDate(formattedDate);
+
+    const fetchAndSetResources = async () => {
+      const fetchedResources = await fetchResources();
+      setResources(fetchedResources);
+    };
+
+    const setCurrentDateFormatted = () => {
+      const date = new Date();
+      const formattedDate = formatDate(date);
+      setCurrentDate(formattedDate);
+    };
 
     fetchUserInfo();
+    fetchAndSetResources();
+    setCurrentDateFormatted();
   }, []);
 
-  // Page Displays
   return (
-    <Keyboard>
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={[styles.iconContainer, {top: 80, left: 330}]}>
-        <Ionicons name="notifications-outline" size={24} color="black" />
+      <View style = {[styles.container3, {top: 50, marginBottom: 20}]}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          <Text style={styles.date}>{currentDate}</Text>
+          <Ionicons name="notifications-outline" size={24} color="black" />
+        </View>
+        <Text style={[styles.textTitle, {marginTop: 20}]}>Welcome, {userInfo.firstName}!</Text>
       </View>
-      <Text style={[styles.date, {top: 80, left: 20}]}> {currentDate} </Text>
-      <Text style={[styles.textTitle, { top: 120, left: 20 }]}>Welcome, {userInfo.firstName}!</Text>
 
-      {/* Legend */}
-      <Pressable style={[styles.button7, {top: 170, left: 30}]}>
-      </Pressable>
-      <Text style={[styles.text, {top: 172, left: 60}]}> Today </Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 40 }}>
+        <Pressable style={styles.button7} />
+        <Text style={[styles.text, { marginLeft: 10 }]}>Today</Text>
+        <Pressable style={[styles.button8, { marginLeft: 30 }]} />
+        <Text style={[styles.text, { marginLeft: 10 }]}>Ovulation</Text>
+      </View>
 
-      <Pressable style={[styles.button8, {top: 170, left: 120}]}>
-      </Pressable>
-      <Text style={[styles.text, {top: 172, left: 150}]}> Ovulation </Text>
-
-      {/* Calendar */}
-      <View style={[styles.calendarContainer, {top: 220, left: 20}]}>
+      <View style={[styles.calendarContainer]}>
         <View style={styles.header}>
           {weekDays.map((day, index) => (
             <Text key={index} style={styles.dayLabel}>{day}</Text>
@@ -94,30 +101,47 @@ const UserPreHome = ({navigation}) => {
         </View>
       </View>
 
-      <Pressable style={[styles.button, {top: 300}]} onPress={() => navigation.navigate("LogPeriod")}>
-        <Text style={styles.text}> Log Period </Text>
+      <Pressable style={[styles.button, { alignSelf: 'center', marginTop: 20, marginBottom: 20 }]} onPress={() => navigation.navigate("LogPeriod")}>
+        <Text style={styles.text}>Log Period</Text>
       </Pressable>
 
-      <View style={[styles.iconContainer, {top: 370, left: 20}]}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
         <MaterialIcons name="history" size={24} color="black" />
+        <Pressable onPress={() => navigation.navigate("CycleHistory")} style={{ marginLeft: 10 }}>
+          <Text style={styles.questionText}>Cycle History</Text>
+        </Pressable>
       </View>
-      <Pressable style={[styles.formText, {top: 372, left: 50}]} onPress={() => navigation.navigate("CycleHistory")}>
-        <Text style={styles.questionText}> Cycle History</Text>
-      </Pressable>
-      <View style={[styles.iconContainer, {top: 420, left: 20}]}>
+
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
         <Ionicons name="scale-outline" size={24} color="black" />
+        <Pressable onPress={() => navigation.navigate("WeightTracker")} style={{ marginLeft: 10 }}>
+          <Text style={styles.questionText}>Weight Tracker</Text>
+        </Pressable>
       </View>
-      <Pressable style={[styles.formText, {top: 422, left: 50}]} onPress={() => navigation.navigate("WeightTracker")}>
-        <Text style={styles.questionText}> Weight Tracker </Text>
-      </Pressable>
 
-      <Text style={[styles.titleNote, {top: 470, left: 20}]}> Suggested for you </Text>
+      <Text style={[styles.titleNote, { marginBottom: 20 }]}>Suggested for you</Text>
 
-      <Pressable style={[styles.button, {top: 900}]}>
-        <Text style={styles.text}> See more </Text>
+      <View>
+        <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 20, paddingVertical: 10, marginBottom: 20 }}>
+          {resources.map(
+            (resource, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.resourceBtn}
+                onPress={() => navigation.navigate('UserResourceInfo', { title: resource.title })}
+              >
+                <Text>{resource.title}</Text>
+              </TouchableOpacity>
+            )
+          )}
+        </ScrollView>
+      </View>
+
+      <Pressable style={[styles.button, { alignSelf: 'center' }]} onPress={() => navigation.navigate("Resources")}>
+        <Text style={styles.text}>See more</Text>
       </Pressable>
     </ScrollView>
-    </Keyboard>
   );
 };
 
