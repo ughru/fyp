@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     },
     forumDescriptionBox: {
         width: '100%',
-        marginTop: 120
+        marginTop: 10
     },
     forumPostContainer: {
         padding: 5,
@@ -374,9 +374,29 @@ const styles = StyleSheet.create({
     reportForumPost: {
         fontWeight: 'bold',
         color: '#fff'
+    },
+    forumRow: {
+        flexDirection: 'row'
+    },
+    threeDotVert: {
+        padding: 15,
+        marginLeft: 150
+    },
+    adImageContainer: {
+        marginTop: 100,
+        padding: 10
+    },
+    adImage: {
+        width: 300,
+        height: 250,
+        resizeMode: 'stretch'
+    },
+    sortForumContainer: {
+        flexDirection: 'row',
+        padding: 5,
+        alignItems: 'center',
+        marginRight: 120,
     }
-      
-
   });
 
 

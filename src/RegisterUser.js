@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import React, { useState, useEffect } from 'react';
 import { Text, Pressable, TextInput, ScrollView } from 'react-native';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import { getAuth } from '../firebase';
@@ -10,15 +8,13 @@ import Keyboard from './components/Keyboard';
 import axios from 'axios';
 import url from "./components/config";
 
-
-const RegisterUser= ({navigation}) => {
+const RegisterUser = ({ navigation }) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
   const [noUser, setNoUser] = useState("No User");
-
 
   const [firstNameError, setError1] = useState('');
   const [lastNameError, setError2] = useState('');
@@ -28,6 +24,7 @@ const RegisterUser= ({navigation}) => {
 
   const [selectedStatus, setSelectedStatus] = useState(null);
   const [registrationInProgress, setRegistrationInProgress] = useState(false);
+  const [currentUserEmail, setCurrentUserEmail] = useState('');
 
   useEffect(() => {
     // Retrieve selected status from AsyncStorage
@@ -45,27 +42,6 @@ const RegisterUser= ({navigation}) => {
     fetchSelectedStatus();
   }, []);
 
-  const handleRegistration = async () => {
-    let valid = true;
-    setRegistrationInProgress(true);
-  const [currentUserEmail, setCurrentUserEmail] = useState('');
-
-    const userData = {
-      firstName: firstName,
-      lastName: lastName,
-      type: "user",
-      email,
-      password,
-      status: selectedStatus, 
-    };
-  const userData = {
-    firstName: firstName,
-    lastName: lastName,
-    type: "user",
-    email,
-    password,
-  };
-
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -78,7 +54,16 @@ const RegisterUser= ({navigation}) => {
 
   const handleRegistration = async () => {
     let valid = true;
+    setRegistrationInProgress(true);
 
+    const userData = {
+      firstName,
+      lastName,
+      type: "user",
+      email,
+      password,
+      status: selectedStatus,
+    };
 
     try {
       // Handle Name Errors
@@ -86,35 +71,27 @@ const RegisterUser= ({navigation}) => {
         // Check if empty
         setError1('* Required field');
         valid = false;
-      }
-      else if ((!/^[a-zA-Z ]+$/.test(firstName))) {
+      } else if (!/^[a-zA-Z ]+$/.test(firstName)) {
         setError1('* Invalid First Name');
         valid = false;
-      }
-      else if (firstName.length < 2 ) {
+      } else if (firstName.length < 2) {
         setError1('* Minimum 2 characters');
         valid = false;
-      }
-      else {
+      } else {
         setError1('');
       }
 
-
-      // Handle Name Errors
       if (!lastName) {
         // Check if empty
         setError2('* Required field');
         valid = false;
-      }
-      else if ((!/^[a-zA-Z\-]+$/.test(lastName))) {
+      } else if (!/^[a-zA-Z\-]+$/.test(lastName)) {
         setError2('* Invalid Last Name');
         valid = false;
-      }
-      else if (lastName.length < 2 ) {
+      } else if (lastName.length < 2) {
         setError2('* Minimum 2 characters');
         valid = false;
-      }
-      else {
+      } else {
         setError2('');
       }
 
@@ -123,46 +100,36 @@ const RegisterUser= ({navigation}) => {
       if (!email) {
         setError3('* Required field');
         valid = false;
-      }
-      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         setError3('* Invalid email format');
         valid = false;
-      }
-      else if (response && response.data && response.data.error === 'User already exists!') {
+      } else if (response && response.data && response.data.error === 'User already exists!') {
         setError3('* User already exists');
         valid = false;
-      }
-      else {
+      } else {
         setError3('');
       }
 
-
-      // Handle Password Errors
       if (!password || !confirmPw) {
-         // Check if empty
+        // Check if empty
         setError4('* Required field');
         setError5('* Required field');
         valid = false;
-      }
-      else if (password !== confirmPw) {
+      } else if (password !== confirmPw) {
         // Check if passwords match
-        setError4('* Password do not match');
-        setError5('* Password do not match');
+        setError4('* Passwords do not match');
+        setError5('* Passwords do not match');
         valid = false;
-      }
-      else if (password.length < 6 ) {
+      } else if (password.length < 6) {
         setError4('* Password must be at least 6 characters');
         valid = false;
-      }
-      else if (confirmPw.length < 6 ) {
+      } else if (confirmPw.length < 6) {
         setError5('* Password must be at least 6 characters');
         valid = false;
-      }
-      else {
+      } else {
         setError4('');
         setError5('');
       }
-
 
       if (valid) {
         const auth = getAuth();
@@ -205,55 +172,43 @@ const RegisterUser= ({navigation}) => {
     }
   };
 
-
   return (
     <Keyboard>
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Title */}
-      <Text style={[styles.pageTitle, {top: 80, left: 20}]}> Get Started </Text>
-      <Text style= {[styles.titleNote, {top: 120, left: 20}]}> Register as a user </Text>
+      <ScrollView contentContainerStyle={styles.container}>
+        {/* Title */}
+        <Text style={[styles.pageTitle, { top: 80, left: 20 }]}> Get Started </Text>
+        <Text style={[styles.titleNote, { top: 120, left: 20 }]}> Register as a user </Text>
 
+        <Text style={[styles.formText, { top: 170, left: 30 }]}> First Name {firstNameError ? <Text style={styles.error}>{firstNameError}</Text> : null} </Text>
+        <TextInput style={[styles.input, { top: 200, left: 30 }]} value={firstName} onChangeText={setFirstName} />
 
-      <Text style= {[styles.formText, {top: 170, left: 30}]}> First Name {firstNameError ? <Text style={styles.error}>{firstNameError}</Text> : null} </Text>
-      <TextInput style={[styles.input, {top: 200, left: 30}]} value = {firstName} onChangeText = {setFirstName} />
+        <Text style={[styles.formText, { top: 270, left: 30 }]} > Last Name {lastNameError ? <Text style={styles.error}>{lastNameError}</Text> : null} </Text>
+        <TextInput style={[styles.input, { top: 300, left: 30 }]} value={lastName} onChangeText={setLastName} />
 
+        <Text style={[styles.formText, { top: 370, left: 30 }]}> Email {emailError ? <Text style={styles.error}>{emailError}</Text> : null} </Text>
+        <TextInput style={[styles.input, { top: 400, left: 30 }]} value={email} onChangeText={setEmail} keyboardType="email-address" />
 
-      <Text style= {[styles.formText, {top: 270, left: 30}]} > Last Name {lastNameError ? <Text style={styles.error}>{lastNameError}</Text> : null} </Text>
-      <TextInput style={[styles.input, {top: 300, left: 30}]} value = {lastName} onChangeText = {setLastName}/>
+        <Text style={[styles.formText, { top: 470, left: 30 }]}> Password {pwError ? <Text style={styles.error}>{pwError}</Text> : null} </Text>
+        <TextInput style={[styles.input, { top: 500, left: 30 }]} value={password} onChangeText={setPassword} secureTextEntry={true} />
 
+        <Text style={[styles.formText, { top: 570, left: 30 }]}> Confirm Password {confirmPwError ? <Text style={styles.error}>{confirmPwError}</Text> : null} </Text>
+        <TextInput style={[styles.input, { top: 600, left: 30 }]} value={confirmPw} onChangeText={setConfirmPw} secureTextEntry={true} />
 
-      <Text style= {[styles.formText, {top: 370, left: 30}]}> Email {emailError ? <Text style={styles.error}>{emailError}</Text> : null} </Text>
-      <TextInput style={[styles.input, {top: 400, left: 30}]} value = {email} onChangeText = {setEmail}
-        keyboardType="email-address"/>
+        {/* Button */}
+        <Pressable style={[styles.button4, { top: 670 }]} onPress={handleRegistration}>
+          <Text style={styles.text}> Register </Text>
+        </Pressable>
 
+        <Pressable style={[styles.formText, { top: 730 }]} onPress={() => navigation.navigate("AccountType")}>
+          <Text style={styles.buttonText}> Register as different user </Text>
+        </Pressable>
 
-      <Text style= {[styles.formText, {top: 470, left: 30}]}> Password {pwError ? <Text style={styles.error}>{pwError}</Text> : null} </Text>
-      <TextInput style={[styles.input, {top: 500, left: 30}]} value = {password} onChangeText = {setPassword} secureTextEntry={true}/>
-
-
-      <Text style= {[styles.formText, {top: 570, left: 30}]}> Confirm Password {confirmPwError ? <Text style={styles.error}>{confirmPwError}</Text> : null} </Text>
-      <TextInput style={[styles.input, {top: 600, left: 30}]} value = {confirmPw} onChangeText = {setConfirmPw} secureTextEntry={true}/>
-
-
-      {/* Button */}
-      <Pressable style={[styles.button4, {top: 670}]} onPress={handleRegistration}>
-        <Text style={styles.text}> Register </Text>
-      </Pressable>
-
-
-      <Pressable style={[styles.formText, { top: 730 }]} onPress={() => navigation.navigate("AccountType")}>
-        <Text style={styles.buttonText}> Register as different user </Text>
-      </Pressable>
-     
-      <Pressable style={[styles.formText, { top: 760 }]} onPress={() => navigation.navigate("Login")}>
-        <Text>Already have an account? <Text style={styles.buttonText}>Login</Text></Text>
-      </Pressable>
-
-    </ScrollView>
+        <Pressable style={[styles.formText, { top: 760 }]} onPress={() => navigation.navigate("Login")}>
+          <Text>Already have an account? <Text style={styles.buttonText}>Login</Text></Text>
+        </Pressable>
+      </ScrollView>
     </Keyboard>
   );
 };
 
-
 export default RegisterUser;
- 

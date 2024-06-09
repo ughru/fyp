@@ -216,6 +216,29 @@ app.get('/getForumPosts', async (req, res) => {
     }
 });
 
+// Report Post endpoint
+app.post('/reportPost', async (req, res) => {
+  const { postID } = req.body;
+
+  try {
+    // Find the post by ID
+    const post = await ForumPost.findById(postID);
+
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    // Mark the post as reported
+    post.reported = true;
+    await post.save();
+
+    return res.status(200).json({ status: 'ok', message: 'Post reported successfully' });
+  } catch (error) {
+    console.error('Error reporting post:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 
 app.listen(5001, ()=> {
     console.log("Node js server started.");

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, ScrollView, TextInput, TouchableOpacity, Alert, Modal, TouchableHighlight } from 'react-native';
+import { View, Text, Pressable, ScrollView, TextInput, TouchableOpacity, Alert, Modal, TouchableHighlight, Image } from 'react-native';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../components/styles';
@@ -7,6 +7,8 @@ import Keyboard from '../components/Keyboard';
 import { Feather } from '@expo/vector-icons';
 import backendUrl from '../components/config.js';
 import axios from 'axios';
+import Entypo from 'react-native-vector-icons/Entypo';
+import { Picker } from '@react-native-picker/picker';
 
 const Forum = ({navigation}) => {
   //Variables to ask user for forum input
@@ -17,6 +19,9 @@ const Forum = ({navigation}) => {
   const [forumPost, setForumPost] = useState([]);
   const [forumPostsWithComments, setForumPostsWithComments] = useState([]);
   const [visibleComments, setVisibleComments] = useState([]);
+  const [reportModalVisible, setReportModalVisible] = useState(false);
+  const [postToReport, setPostToReport] = useState(null);
+  const [sortOrder, setSortOrder] = useState('newest');
 
   useEffect(() => {
     const auth = getAuth();
@@ -110,6 +115,17 @@ const Forum = ({navigation}) => {
     setForumDesc('');
 };
 
+//Sort post
+const sortForumPosts = (posts, order) => {
+  if (order === 'newest') {
+    return posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+  } else {
+    return posts.sort((a, b) => new Date(a.date) - new Date(b.date));
+  }
+};
+
+const sortedPosts = sortForumPosts(forumPostsWithComments, sortOrder);
+
 // Hardcoded forum posts
 const hardcodedPosts = [
   {
@@ -162,6 +178,31 @@ const toggleCommentsVisibility = (postID) => {
   });
 };
 
+// Function to handle report
+const handleReportPost = async (postID) => {
+    if (!currentUser) {
+      Alert.alert("Error", "You must be logged in to report a post");
+      return;
+  }
+
+  try {
+    const response = await axios.post(`${backendUrl}/reportPost`, {
+      postID: postID,
+      reporter: currentUserEmail,
+    });
+
+    if (response.data.status === "ok") {
+      Alert.alert("Success", "Post reported successfully");
+    } else {
+      Alert.alert("Error", response.data.error || "Unknown error occurred");
+    }
+  } catch (error) {
+    console.error("Error reporting post:", error);
+    Alert.alert("Error", "An error occurred while reporting the post");
+  }
+  setReportModalVisible(false);
+};
+
   // Page Displays
   return (
     <Keyboard>
@@ -178,12 +219,37 @@ const toggleCommentsVisibility = (postID) => {
           <Text style={[styles.formText, { top: 50, left: 20 }]}>Logged in as: {currentUserEmail}</Text>
         ) : <Text style={[styles.formText, { top: 50, left: 20 }]}>You are not logged in</Text>}
 
+      {/* Display advertisement */ }
+      <View style={styles.adImageContainer}>
+        <Image source={require('../../assets/ad/pregnancyAd1.jpeg')} style={styles.adImage} />
+      </View>
+
+      {/* Sort Dropdown */}
+      <View style={styles.sortForumContainer}>
+          <Text style={{ marginRight: 10 }}>Sort by:</Text>
+          <Picker
+            selectedValue={sortOrder}
+            style={{ height: 50, width: 150 }}
+            onValueChange={(itemValue) => setSortOrder(itemValue)}
+          >
+            <Picker.Item label="Newest" value="newest" />
+            <Picker.Item label="Oldest" value="oldest" />
+          </Picker>
+        </View>
+
       {/* Forum Posts */}
       <View style={styles.forumDescriptionBox}>
           {forumPostsWithComments.map((post, index) => (
           //{hardcodedPosts.map((post, index) => (
             <View key={index} style={styles.forumPostContainer}>
-              <Text style={styles.forumPostUser}>User: {post.user}</Text>
+              <View style={styles.forumRow}>
+                <Text style={styles.forumPostUser}>User: {post.user}</Text>
+
+                <TouchableHighlight style={styles.threeDotVert} onPress={() => { setReportModalVisible(true); setPostToReport(post.forumPostID); }}>
+                  <Entypo name='dots-three-vertical' size={10}/>
+                </TouchableHighlight>
+              </View>
+
               <Text style={styles.forumPostDescription}>Description: {post.description}</Text>
               <Text style={styles.forumPostDate}>Date: {post.date}</Text>
 
@@ -193,11 +259,7 @@ const toggleCommentsVisibility = (postID) => {
                 </TouchableHighlight>
 
                 <Text style={styles.commentCount}>{post.commentCount}</Text>
-                
 
-                <TouchableHighlight underlayColor={'#cccccc'} style={styles.reportForumButton} onPress={handleCloseModal}>
-                  <Text style={styles.reportForumPost}>Report Post</Text>
-                </TouchableHighlight>
               </View>
 
               {visibleComments[post.forumPostID] && (
@@ -243,6 +305,27 @@ const toggleCommentsVisibility = (postID) => {
           </View>
         </View>
       </Modal>
+
+      {/* Report Post Modal */}
+      <Modal
+          animationType="slide"
+          transparent={true}
+          visible={reportModalVisible}
+          onRequestClose={() => setReportModalVisible(false)}>
+
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Report Post</Text>
+              <Text>Are you sure you want to report this post?</Text>
+              <Pressable style={styles.modalButton} onPress={() => handleReportPost(postToReport)}>
+                <Text style={styles.modalButtonText}>Yes, Report</Text>
+              </Pressable>
+              <Pressable style={styles.modalButton} onPress={() => setReportModalVisible(false)}>
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
     </ScrollView>
     </Keyboard>
   );
