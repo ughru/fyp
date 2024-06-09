@@ -21,6 +21,7 @@ const ResourceCategory = mongoose.model("resourceCategory");
 const Resource = mongoose.model("resourceInfo");
 //const ForumPost = mongoose.model("forumPost")
 const ForumPost = require('./ForumPost');
+const ForumReport = require('./ForumReport')
 
 // Check db connection status
 app.get("/", (req, res) => {
@@ -218,8 +219,22 @@ app.get('/getForumPosts', async (req, res) => {
 
 // Report Post endpoint
 app.post('/reportPost', async (req, res) => {
-  const { postID } = req.body;
+  const { postID, currentUserEmail } = req.body;
 
+  
+  try {
+    const forumReport = new ForumReport({
+        postID,
+        currentUserEmail
+    });
+
+    await forumReport.save();
+    res.send({ status: 'ok', forumReport });
+} catch (error) {
+    res.status(500).send({ status: 'error', error: 'Error reporting forum post' });
+}
+  
+  /*
   try {
     // Find the post by ID
     const post = await ForumPost.findById(postID);
@@ -237,6 +252,7 @@ app.post('/reportPost', async (req, res) => {
     console.error('Error reporting post:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
+  */
 });
 
 

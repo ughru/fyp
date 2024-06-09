@@ -344,7 +344,8 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 15,
         color: 'black',
-        margin: 10
+        margin: 10,
+        flex: 1
     },
     forumPostDescription: {
         fontWeight: 'bold',
@@ -376,11 +377,13 @@ const styles = StyleSheet.create({
         color: '#fff'
     },
     forumRow: {
-        flexDirection: 'row'
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between'
     },
     threeDotVert: {
         padding: 15,
-        marginLeft: 150
+        alignSelf: 'flex-end'
     },
     adImageContainer: {
         marginTop: 100,
