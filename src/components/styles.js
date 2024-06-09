@@ -340,6 +340,12 @@ const styles = StyleSheet.create({
         borderColor: '#ddd',
         borderWidth: 1
     },
+    forumPostID: {
+        fontWeight: 'bold',
+        fontSize: 15,
+        color: 'black',
+        margin: 10
+    },
     forumPostUser: {
         fontWeight: 'bold',
         fontSize: 15,
@@ -353,9 +359,10 @@ const styles = StyleSheet.create({
         margin: 10
     },
     forumPostDate: {
-        margin: 10,
-        fontWeight: 'bold',
-        fontSize: 15
+        padding: 5,
+        fontSize: 13,
+        color: 'grey',
+
     },
     commentsIcon: {
         margin: 10,
@@ -364,6 +371,10 @@ const styles = StyleSheet.create({
     commentCount: {
         marginLeft: 1,
         color: 'grey'
+    },
+    commentsContainer: {
+        padding: 10,
+        marginTop: 100
     },
     reportForumButton: {
         backgroundColor: '#D22B2B',
@@ -399,6 +410,20 @@ const styles = StyleSheet.create({
         padding: 5,
         alignItems: 'center',
         marginRight: 120,
+    },
+    addForumComment: {
+        flexDirection: 'row',
+        borderRadius: 30,
+        backgroundColor: '#ddd'
+    },
+    uploadCommentButton: {
+        padding: 20,
+        alignSelf: 'flex-end',
+        
+    },
+    addCommentInput: {
+        padding: 10,
+        flex: 1
     }
   });
 

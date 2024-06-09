@@ -21,7 +21,9 @@ const ResourceCategory = mongoose.model("resourceCategory");
 const Resource = mongoose.model("resourceInfo");
 //const ForumPost = mongoose.model("forumPost")
 const ForumPost = require('./ForumPost');
-const ForumReport = require('./ForumReport')
+const ForumReport = require('./forumReport')
+const Counter = require('./Counter')
+const ForumComment = require('./ForumComment')
 
 // Check db connection status
 app.get("/", (req, res) => {
@@ -152,38 +154,28 @@ app.post('/updateStatus', async (req, res) => {
     }
 });
 
-//Create forum post
-// server.js or index.js
-/*
-app.post("/createForumPost", async (req, res) => {
-    const { token, description } = req.body;
-
+//Function to create unique postID
+async function getNextPostID() {
     try {
-        const decodedToken = await admin.auth().verifyIdToken(token);
-        const user = await User.findOne({ uid: decodedToken.uid });
-
-        if (!user) {
-            return res.status(404).send({ error: "User not found" });
-        }
-
-        const newForumPost = new ForumPost({
-            description,
-            user: user._id,
-        });
-
-        await newForumPost.save();
-        res.send({ status: "ok", forumPost: newForumPost });
+        const counter = await Counter.findOneAndUpdate(
+            { _id: 'postID' },
+            { $inc: { count: 1 } },
+            { new: true, upsert: true }
+        );
+        return counter.count;
     } catch (error) {
-        console.error("Error creating forum post:", error);
-        res.status(500).send({ error: "Internal server error" });
+        throw new Error('Error getting next post ID');
     }
-});
-*/
+}
+
+//Create forum post
 app.post('/createForumPost', async (req, res) => {
     const { user, description } = req.body;
 
     try {
+        const postID = await getNextPostID();
         const forumPost = new ForumPost({
+            postID,
             user,
             description
         });
@@ -191,29 +183,19 @@ app.post('/createForumPost', async (req, res) => {
         await forumPost.save();
         res.send({ status: 'ok', forumPost });
     } catch (error) {
-        res.status(500).send({ status: 'error', error: 'Error creating forum post' });
+        res.status(500).send({ status: 'error', error: 'Internal server error' });
     }
 });
 
 
 //Get forum post
-/*
-app.get("/getForumPosts", async (req, res) => {
-    try {
-        const forumPosts = await ForumPost.find().populate('user', 'email');
-        res.send({ status: "ok", forumPosts });
-    } catch (error) {
-        console.error("Error fetching forum posts:", error);
-        res.status(500).send({ error: "Internal server error" });
-    }
-});
-*/
 app.get('/getForumPosts', async (req, res) => {
     try {
         const forumPosts = await ForumPost.find().sort({ date: -1 });
         res.send({ status: 'ok', forumPosts });
     } catch (error) {
-        res.status(500).send({ status: 'error', error: 'Error fetching forum posts' });
+        console.error('Error reporting forum post:', error);
+        res.status(500).send({ status: 'error', error: 'Internal server error' });
     }
 });
 
@@ -231,29 +213,64 @@ app.post('/reportPost', async (req, res) => {
     await forumReport.save();
     res.send({ status: 'ok', forumReport });
 } catch (error) {
-    res.status(500).send({ status: 'error', error: 'Error reporting forum post' });
+    console.error('Error reporting post: ', error)
+    res.status(500).send({ status: 'error', error: 'Internal server error' });
 }
-  
-  /*
-  try {
-    // Find the post by ID
-    const post = await ForumPost.findById(postID);
+});
 
-    if (!post) {
-      return res.status(404).json({ error: 'Post not found' });
+//Add forum comment
+app.post('/addComment', async(req, res) => {
+  const { postID, user, text } = req.body;
+
+  try{
+    //Find forum post by postID
+    //let forumComment = await ForumComment.findOne({postID});
+    let forumPostExist = await ForumPost.exists({ postID });
+
+    //If forum post does not exist
+    if (!forumPostExist) {
+      return res.status(404).send({ status: 'error', error: 'Forum post does not exist' });
     }
 
-    // Mark the post as reported
-    post.reported = true;
-    await post.save();
+    // Find forum comment by postID
+    let forumComment = await ForumComment.findOne({ postID });
 
-    return res.status(200).json({ status: 'ok', message: 'Post reported successfully' });
-  } catch (error) {
-    console.error('Error reporting post:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    // If no comments for this post, create a new document
+    if (!forumComment) {
+      forumComment = new ForumComment({
+        postID,
+        comments: [{ user, text }]
+      });
+    } else {
+      forumComment.comments.push({ user, text });
+    }
+
+    await forumComment.save();
+    res.send({ status: 'ok', forumComment });
   }
-  */
+
+  catch(error){
+    console.error('Error adding comments', error)
+    res.status(500).send({ status: 'error', error: 'Internal server error' });
+  }
 });
+
+// Get comments for a forum post
+app.get('/getComments', async (req, res) => {
+  const { postID } = req.query;
+
+  try {
+      const forumComment = await ForumComment.findOne({ postID });
+
+      if (forumComment) {
+          res.send({ status: 'ok', comments: forumComment.comments });
+      } else {
+          res.send({ status: 'ok', comments: [] });
+      }
+  } catch (error) {
+      res.status(500).send({ status: 'error', error: 'Error fetching comments' });
+  }
+})
 
 
 app.listen(5001, ()=> {

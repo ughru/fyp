@@ -16,11 +16,5 @@ const ForumReportSchema = new mongoose.Schema(
 });
 
 //This creates a model to interact with database in react native
-//mongoose.model("forumPost", ForumPostSchema);
-/*
-const ForumPost = mongoose.model('forumPost', ForumPostSchema);
-
-module.exports = ForumPost;
-*/
 
 module.exports = mongoose.model("forumReport", ForumReportSchema);

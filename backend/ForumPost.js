@@ -6,13 +6,15 @@ const ForumPostSchema = new mongoose.Schema(
 {
     //email: { type: String, unique: true}, required: true,
     //user: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
+    postID: {type: Number, required: true},
     user: { type: String, required: true },
     description: { type: String, required: true },
-    date: { type: Date, default: Date.now }
+    date: { type: Date, default: Date.now },
+    comments: {type: Array, default: []}
     
 },
 {
-    timestamps: true,
+    //timestamps: true,
     collection: "ForumPost"
 });
 

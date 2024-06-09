@@ -335,7 +335,6 @@ const handleReportPost = async (postID) => {
 
 export default Forum;
 */
-
 import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, ScrollView, TextInput, TouchableOpacity, Alert, Modal, TouchableHighlight, Image } from 'react-native';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
@@ -348,6 +347,21 @@ import axios from 'axios';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { Picker } from '@react-native-picker/picker';
 
+// Helper function to format date
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const today = new Date();
+
+  // Calculate the time difference in milliseconds
+  const timeDifference = today - date;
+
+  // Convert time difference from milliseconds to days
+  const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+
+  //return date.toLocaleDateString();
+  return daysDifference;
+};
+
 const Forum = ({ navigation }) => {
   const [forumDesc, setForumDesc] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -359,6 +373,7 @@ const Forum = ({ navigation }) => {
   const [reportModalVisible, setReportModalVisible] = useState(false);
   const [postToReport, setPostToReport] = useState(null);
   const [sortOrder, setSortOrder] = useState('newest');
+  const [commentText, setCommentText] = useState('');
 
   useEffect(() => {
     const auth = getAuth();
@@ -392,6 +407,22 @@ const Forum = ({ navigation }) => {
       }
     } catch (error) {
       console.error("Error fetching forum posts:", error);
+    }
+  };
+
+  const fetchComments = async (postID) => {
+    try {
+      const response = await axios.get(`${backendUrl}/getComments`, { params: { postID } });
+      if (response.data.status === "ok") {
+        setVisibleComments(prevState => ({
+          ...prevState,
+          [postID]: response.data.comments,
+        }));
+      } else {
+        console.error("Error fetching comments:", response.data.error);
+      }
+    } catch (error) {
+      console.error("Error fetching comments:", error);
     }
   };
 
@@ -441,7 +472,8 @@ const Forum = ({ navigation }) => {
 
   const countComments = () => {
     const postsWithComments = forumPost.map((post) => {
-      const commentCount = hardcodedComments.filter(comment => comment.forumPostID === post.forumPostID).length;
+      //const commentCount = hardcodedComments.filter(comment => comment.forumPostID === post.forumPostID).length;
+      const commentCount = post.comments.length;
       return { ...post, commentCount };
     });
     setForumPostsWithComments(postsWithComments);
@@ -466,13 +498,17 @@ const Forum = ({ navigation }) => {
   ];
 
   const toggleCommentsVisibility = (postID) => {
-    setVisibleComments(prevState => ({
-      ...prevState,
-      [postID]: !prevState[postID],
-    }));
+    if (visibleComments[postID]) {
+      setVisibleComments(prevState => ({
+        ...prevState,
+        [postID]: false,
+      }));
+    } else {
+      fetchComments(postID);
+    }
   };
 
-  const handleReportPost = async (postID) => {
+  const handleReportPost = async (postID, currentUserEmail) => {
     const auth = getAuth();
     const currentUser = auth.currentUser;
 
@@ -499,6 +535,45 @@ const Forum = ({ navigation }) => {
     setReportModalVisible(false);
   };
 
+  const handleAddComment = async(postID) => {
+    console.log("Adding comment to postID: ", postID)
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      Alert.alert("Error", "You must be logged in to comment");
+      return;
+    }
+
+    if (!commentText.trim()){
+      Alert.alert("Error", "You cannot add an empty comment");
+      return;
+    }
+
+    try{
+      const response = await axios.post(`${backendUrl}/addComment`, {
+        postID: postID,
+        comments: [{currentUserEmail, commentText}]
+        //user: currentUserEmail,
+        //text: commentText
+      });
+
+      if(response.data.status == 'ok'){
+        Alert.alert("Success", "Comment added successfully");
+        fetchForumPosts(postID);
+      }
+
+      else{
+        Alert.alert("Error", response.data.error || "Unknown error occurred");
+      }
+    } catch(error){
+      console.error("Error adding comment: ", error);
+      Alert.alert("Error", "An error occurred while adding comment")
+    }
+
+    setCommentText('');
+  };
+  
   return (
     <Keyboard>
       <ScrollView contentContainerStyle={styles.container}>
@@ -532,38 +607,61 @@ const Forum = ({ navigation }) => {
         <View style={styles.forumDescriptionBox}>
           {sortedPosts.map((post, index) => (
             <View key={index} style={styles.forumPostContainer}>
+              {/*<Text style={styles.forumPostID}>Post ID: {post.postID}</Text>*/}
               <View style={styles.forumRow}>
                 <Text style={styles.forumPostUser}>User: {post.user}</Text>
+                <Text style={styles.forumPostDate}>{formatDate(post.date)}d</Text>
                 <TouchableHighlight style={styles.threeDotVert} onPress={() => { setReportModalVisible(true); setPostToReport(post.forumPostID); }}>
                   <Entypo name='dots-three-vertical' size={10} />
                 </TouchableHighlight>
               </View>
 
               <Text style={styles.forumPostDescription}>Description: {post.description}</Text>
-              <Text style={styles.forumPostDate}>Date: {post.date}</Text>
+              
 
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <TouchableHighlight underlayColor={'#cccccc'} style={styles.commentsIcon} onPress={() => toggleCommentsVisibility(post.forumPostID)}>
+                <TouchableHighlight underlayColor={'#cccccc'} style={styles.commentsIcon} onPress={() => toggleCommentsVisibility(post.postID)}>
                   <Feather name="message-circle" size={24} color="black" style={styles.commentsIcon} />
                 </TouchableHighlight>
-                <Text style={styles.commentCount}>{post.commentCount}</Text>
+
+                <TouchableHighlight underlayColor={'#cccccc'} style={styles.commentsIcon} onPress={() => toggleCommentsVisibility(post.postID)}>
+                <Text style={styles.commentCount}>view {post.commentCount} replies</Text>
+                </TouchableHighlight>
               </View>
 
-              {visibleComments[post.forumPostID] && (
+              {visibleComments[post.postID] && (
                 <View style={styles.commentsContainer}>
-                  {hardcodedComments
-                    .filter(comment => comment.forumPostID === post.forumPostID)
-                    .map((comment, idx) => (
-                      <View key={idx} style={styles.commentItem}>
+                  {visibleComments[post.postID].map((comment, index) => (
+                      <View key={index} style={styles.commentItem}>
                         <Text style={styles.commentUser}>User: {comment.user}</Text>
                         <Text style={styles.commentText}>{comment.text}</Text>
                       </View>
                     ))}
                 </View>
               )}
+
+              {/* Adding comments */}
+              <View style={styles.addForumComment}>
+                <TextInput
+                  style={styles.addCommentInput}
+                  placeholder="Add a comment..."
+                  value={commentText}
+                  onChangeText={setCommentText}
+                />
+                <TouchableOpacity
+                  style={styles.uploadCommentButton}
+                  onPress={() => handleAddComment(post.postID)}
+                >
+                  <Feather name='upload'/>
+                </TouchableOpacity>
+              </View>
             </View>
           ))}
+
+          
         </View>
+
+        
 
         <Modal
           animationType="slide"
@@ -603,7 +701,7 @@ const Forum = ({ navigation }) => {
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>Report Post</Text>
               <Text>Are you sure you want to report this post?</Text>
-              <Pressable style={styles.modalButton} onPress={() => handleReportPost(postToReport)}>
+              <Pressable style={styles.modalButton} onPress={() => handleReportPost(postToReport, currentUserEmail)}>
                 <Text style={styles.modalButtonText}>Yes, Report</Text>
               </Pressable>
               <Pressable style={styles.modalButton} onPress={() => setReportModalVisible(false)}>
