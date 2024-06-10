@@ -21,7 +21,7 @@ const ResourceCategory = mongoose.model("resourceCategory");
 const Resource = mongoose.model("resourceInfo");
 //const ForumPost = mongoose.model("forumPost")
 const ForumPost = require('./ForumPost');
-const ForumReport = require('./forumReport')
+const ForumReport = require('./ForumReport')
 const Counter = require('./Counter')
 const ForumComment = require('./ForumComment')
 
@@ -201,19 +201,19 @@ app.get('/getForumPosts', async (req, res) => {
 
 // Report Post endpoint
 app.post('/reportPost', async (req, res) => {
-  const { postID, currentUserEmail } = req.body;
+  const { postID, currentUser } = req.body;
 
   
   try {
     const forumReport = new ForumReport({
         postID,
-        currentUserEmail
+        currentUser
     });
 
     await forumReport.save();
     res.send({ status: 'ok', forumReport });
 } catch (error) {
-    console.error('Error reporting post: ', error)
+    console.error('Error reporting post: ', postID)
     res.status(500).send({ status: 'error', error: 'Internal server error' });
 }
 });

@@ -11,6 +11,21 @@ import axios from 'axios';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { Picker } from '@react-native-picker/picker';
 
+// Helper function to format date
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const today = new Date();
+
+  // Calculate the time difference in milliseconds
+  const timeDifference = today - date;
+
+  // Convert time difference from milliseconds to days
+  const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+
+  //return date.toLocaleDateString();
+  return today;
+};
+
 const Forum = ({navigation}) => {
   //Variables to ask user for forum input
   const [forumDesc, setForumDesc] = useState('');
@@ -214,19 +229,14 @@ const handleReportPost = async (postID) => {
           <Feather name="edit" size={24} color="black" />
         </TouchableOpacity>
       </View>
-      
-      
-      // Display Current User's Email }
       {currentUserEmail ? (
           <Text style={[styles.formText, { top: 50, left: 20 }]}>Logged in as: {currentUserEmail}</Text>
         ) : <Text style={[styles.formText, { top: 50, left: 20 }]}>You are not logged in</Text>}
 
-      // Display advertisement 
       <View style={styles.adImageContainer}>
         <Image source={require('../../assets/ad/pregnancyAd1.jpeg')} style={styles.adImage} />
       </View>
 
-      // Sort Dropdown 
       <View style={styles.sortForumContainer}>
           <Text style={{ marginRight: 10 }}>Sort by:</Text>
           <Picker
@@ -239,7 +249,6 @@ const handleReportPost = async (postID) => {
           </Picker>
       </View>
 
-      // Forum Posts 
       <View style={styles.forumDescriptionBox}>
           {forumPostsWithComments.map((post, index) => (
           //{hardcodedPosts.map((post, index) => (
@@ -253,7 +262,7 @@ const handleReportPost = async (postID) => {
               </View>
 
               <Text style={styles.forumPostDescription}>Description: {post.description}</Text>
-              <Text style={styles.forumPostDate}>Date: {post.date}</Text>
+              <Text style={styles.forumPostDate}>Date: {formatDate(post.date)}</Text>
 
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <TouchableHighlight underlayColor={'#cccccc'} style={styles.commentsIcon} onPress={() => toggleCommentsVisibility(post.forumPostID)}>
@@ -280,7 +289,6 @@ const handleReportPost = async (postID) => {
           ))}
       </View>
 
-      // Add Modal for Creating Forum Post 
       <Modal
         animationType="slide"
         transparent={true}
@@ -308,7 +316,6 @@ const handleReportPost = async (postID) => {
         </View>
       </Modal>
 
-      // Report Post Modal 
       <Modal
           animationType="slide"
           transparent={true}
@@ -359,7 +366,12 @@ const formatDate = (dateString) => {
   const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
 
   //return date.toLocaleDateString();
-  return daysDifference;
+  if(daysDifference <= 0){
+    return 0;
+  }
+  else{
+    return daysDifference
+  }
 };
 
 const Forum = ({ navigation }) => {
@@ -508,7 +520,7 @@ const Forum = ({ navigation }) => {
     }
   };
 
-  const handleReportPost = async (postID, currentUserEmail) => {
+  const handleReportPost = async (postID) => {
     const auth = getAuth();
     const currentUser = auth.currentUser;
 
@@ -520,16 +532,17 @@ const Forum = ({ navigation }) => {
     try {
       const response = await axios.post(`${backendUrl}/reportPost`, {
         postID: postID,
-        currentUserEmail: currentUserEmail,
+        currentUser: currentUserEmail,
       });
 
       if (response.data.status === "ok") {
+        console.log("Success", postID)
         Alert.alert("Success", "Post reported successfully");
       } else {
         Alert.alert("Error", response.data.error || "Unknown error occurred");
       }
     } catch (error) {
-      console.error("Error reporting post:", error);
+      console.error("Error reporting post:", postID);
       Alert.alert("Error", "An error occurred while reporting the post");
     }
     setReportModalVisible(false);
@@ -611,7 +624,7 @@ const Forum = ({ navigation }) => {
               <View style={styles.forumRow}>
                 <Text style={styles.forumPostUser}>User: {post.user}</Text>
                 <Text style={styles.forumPostDate}>{formatDate(post.date)}d</Text>
-                <TouchableHighlight style={styles.threeDotVert} onPress={() => { setReportModalVisible(true); setPostToReport(post.forumPostID); }}>
+                <TouchableHighlight style={styles.threeDotVert} onPress={() => { setPostToReport(post.postID) && setReportModalVisible(true) }}>
                   <Entypo name='dots-three-vertical' size={10} />
                 </TouchableHighlight>
               </View>
@@ -640,7 +653,6 @@ const Forum = ({ navigation }) => {
                 </View>
               )}
 
-              {/* Adding comments */}
               <View style={styles.addForumComment}>
                 <TextInput
                   style={styles.addCommentInput}
@@ -659,9 +671,7 @@ const Forum = ({ navigation }) => {
           ))}
 
           
-        </View>
-
-        
+        </View>  
 
         <Modal
           animationType="slide"
@@ -701,7 +711,7 @@ const Forum = ({ navigation }) => {
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>Report Post</Text>
               <Text>Are you sure you want to report this post?</Text>
-              <Pressable style={styles.modalButton} onPress={() => handleReportPost(postToReport, currentUserEmail)}>
+              <Pressable style={styles.modalButton} onPress={() => handleReportPost(postToReport)}>
                 <Text style={styles.modalButtonText}>Yes, Report</Text>
               </Pressable>
               <Pressable style={styles.modalButton} onPress={() => setReportModalVisible(false)}>
@@ -716,3 +726,4 @@ const Forum = ({ navigation }) => {
 };
 
 export default Forum;
+

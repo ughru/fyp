@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         alignItems: 'center',
         width: '100%',
-        marginTop: 10
+        marginTop: 10,
     },
     modalButtonText: {
         fontWeight: 'bold'

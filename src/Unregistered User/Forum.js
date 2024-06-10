@@ -22,7 +22,12 @@ const formatDate = (dateString) => {
   const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
 
   //return date.toLocaleDateString();
-  return daysDifference;
+  if(daysDifference <= 0){
+    return 0;
+  }
+  else{
+    return daysDifference;
+  }
 };
 
 const Forum = ({ navigation }) => {
@@ -90,8 +95,24 @@ const Forum = ({ navigation }) => {
   };
 
   const addForumHandler = async () => {
-    setShowModal(true);
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      Alert.alert("Error", "You must be logged in to create a post");
+      return;
+    }
   };
+
+  const reportForumHandler = async () => {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+
+    if(!currentUser){
+      Alert.alert("Error", "You must be logged in to report a post");
+      return;
+    }
+  }
 
   const handleCloseModal = () => {
     setShowModal(false);
@@ -109,23 +130,6 @@ const Forum = ({ navigation }) => {
     if (!currentUser) {
       Alert.alert("Error", "You must be logged in to create a post");
       return;
-    }
-
-    try {
-      const response = await axios.post(`${backendUrl}/createForumPost`, {
-        user: currentUserEmail,
-        description: forumDesc,
-      });
-
-      if (response.data.status === "ok") {
-        Alert.alert("Success", "Forum post created successfully");
-        setForumPost([...forumPost, response.data.forumPost]);
-      } else {
-        Alert.alert("Error", response.data.error || "Unknown error occurred");
-      }
-    } catch (error) {
-      console.error("Error creating forum post:", error);
-      Alert.alert("Error", "An error occurred while creating the forum post");
     }
 
     setShowModal(false);
@@ -152,14 +156,6 @@ const Forum = ({ navigation }) => {
 
   const sortedPosts = sortForumPosts(forumPostsWithComments, sortOrder);
 
-  const hardcodedComments = [
-    { commentID: 1, forumPostID: 1, user: 'Alice', text: 'You should exercise at least 3 times a week.' },
-    { commentID: 2, forumPostID: 1, user: 'Bob', text: 'Consult your doctor for personalized advice.' },
-    { commentID: 3, forumPostID: 2, user: 'Eve', text: 'Yes, fatigue is common in the first trimester.' },
-    { commentID: 4, forumPostID: 3, user: 'John', text: 'Leafy greens and lean proteins are great choices.' },
-    { commentID: 5, forumPostID: 3, user: 'Mary', text: 'Avoid raw fish and unpasteurized dairy products.' },
-  ];
-
   const toggleCommentsVisibility = (postID) => {
     if (visibleComments[postID]) {
       setVisibleComments(prevState => ({
@@ -171,33 +167,6 @@ const Forum = ({ navigation }) => {
     }
   };
 
-  const handleReportPost = async (postID, currentUserEmail) => {
-    const auth = getAuth();
-    const currentUser = auth.currentUser;
-
-    if (!currentUser) {
-      Alert.alert("Error", "You must be logged in to report a post");
-      return;
-    }
-
-    try {
-      const response = await axios.post(`${backendUrl}/reportPost`, {
-        postID: postID,
-        currentUserEmail: currentUserEmail,
-      });
-
-      if (response.data.status === "ok") {
-        Alert.alert("Success", "Post reported successfully");
-      } else {
-        Alert.alert("Error", response.data.error || "Unknown error occurred");
-      }
-    } catch (error) {
-      console.error("Error reporting post:", error);
-      Alert.alert("Error", "An error occurred while reporting the post");
-    }
-    setReportModalVisible(false);
-  };
-
   const handleAddComment = async(postID) => {
     const auth = getAuth();
     const currentUser = auth.currentUser;
@@ -205,31 +174,6 @@ const Forum = ({ navigation }) => {
     if (!currentUser) {
       Alert.alert("Error", "You must be logged in to comment");
       return;
-    }
-
-    if (!commentText.trim()){
-      Alert.alert("Error", "You cannot add an empty comment");
-      return;
-    }
-
-    try{
-      const response = await axios.post(`${backendUrl}/addComment`, {
-        postID: postID,
-        user: currentUserEmail,
-        text: commentText
-      });
-
-      if(response.data.status == 'ok'){
-        Alert.alert("Success", "Comment added successfully");
-        fetchForumPosts(postID);
-      }
-
-      else{
-        Alert.alert("Error", response.data.error || "Unknown error occurred");
-      }
-    } catch(error){
-      console.error("Error adding comment: ", error);
-      Alert.alert("Error", "An error occurred while adding comment")
     }
 
     setCommentText('');
@@ -272,7 +216,7 @@ const Forum = ({ navigation }) => {
               <View style={styles.forumRow}>
                 <Text style={styles.forumPostUser}>User: {post.user}</Text>
                 <Text style={styles.forumPostDate}>{formatDate(post.date)}d</Text>
-                <TouchableHighlight style={styles.threeDotVert} onPress={() => { setReportModalVisible(true); setPostToReport(post.forumPostID); }}>
+                <TouchableHighlight style={styles.threeDotVert} onPress={ reportForumHandler }>
                   <Entypo name='dots-three-vertical' size={10} />
                 </TouchableHighlight>
               </View>
