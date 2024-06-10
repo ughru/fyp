@@ -521,6 +521,7 @@ const Forum = ({ navigation }) => {
   };
 
   const handleReportPost = async (postID) => {
+    console.log("Reporting post ", postID)
     const auth = getAuth();
     const currentUser = auth.currentUser;
 
@@ -624,7 +625,7 @@ const Forum = ({ navigation }) => {
               <View style={styles.forumRow}>
                 <Text style={styles.forumPostUser}>User: {post.user}</Text>
                 <Text style={styles.forumPostDate}>{formatDate(post.date)}d</Text>
-                <TouchableHighlight style={styles.threeDotVert} onPress={() => { setPostToReport(post.postID) && setReportModalVisible(true) }}>
+                <TouchableHighlight style={styles.threeDotVert} onPress={() => { setReportModalVisible(true); setPostToReport(post.postID); }}>
                   <Entypo name='dots-three-vertical' size={10} />
                 </TouchableHighlight>
               </View>
