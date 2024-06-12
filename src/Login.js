@@ -17,7 +17,7 @@ const Login = ({navigation}) => {
   navigation.addListener('focus', () => {
     setEmail('');
     setPassword('');
-  });
+});
 
   const handleLogin = async () => {
     let valid = true; 
@@ -50,14 +50,10 @@ const Login = ({navigation}) => {
 
         // Check response for errors
         if (response.data && response.data.error) {
-          if (response.data.error === 'User does not exist!') {
-            setError1('* User does not exist');
-          } else if (response.data.error === 'Invalid password') {
-            setError2('* Incorrect password');
-          } else {
-            // Handle other errors
-            console.error('Login error:', response.data.error);
-          }
+          if (response.data.error === 'Invalid email or password') {
+            setError1('* Invalid email or password');
+            setError2('* Invalid email or password');
+          } 
         } else {
           await AsyncStorage.setItem('user', email);
 
@@ -73,7 +69,6 @@ const Login = ({navigation}) => {
       }
     } catch (error) {
       console.error('Login Error:', error);
-      // Handle other errors
     }
   };
   

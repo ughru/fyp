@@ -122,6 +122,16 @@ export const styles = StyleSheet.create({
         backgroundColor: '#E3C2D7',
         marginRight: 10,
     },
+    button9: {
+        width: 80,
+        height: 30,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 5,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: '#E3C2D7',
+    },
     defaultButton: {
         borderColor: '#E3C2D7',
         backgroundColor: 'transparent',
@@ -150,6 +160,15 @@ export const styles = StyleSheet.create({
         borderRadius: 20,
         borderWidth: 1,
         borderColor: '#979595', 
+    },
+    input4: {
+        width: 340,
+        height: 40,
+        padding: 10,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: '#979595', 
+        backgroundColor: '#dedede',
     },
     imgButton: {
         width: 120,
@@ -244,10 +263,6 @@ export const styles = StyleSheet.create({
         paddingVertical: 10,
         borderRadius: 20,
     },
-    categoryBtnTxt: {
-        marginLeft: 5,
-        color: "black",
-    },
     resourceBtn: {
         borderWidth: 1,
         width: 100,
@@ -283,6 +298,10 @@ export const styles = StyleSheet.create({
         marginBottom: 10,
         fontWeight: 'bold',
     },
+    resourceView: {
+        width: 340,
+        borderRadius: 20,
+    },
     pickerSelectStyles: {
         inputIOS: {
             fontSize: 16,
@@ -305,6 +324,34 @@ export const styles = StyleSheet.create({
             paddingRight: 30, 
             borderRadius: 20,
         },
+    },
+    forumPostContainer: {
+        padding: 5,
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        marginBottom: 15,
+        borderColor: '#ddd',
+        borderWidth: 1,
+    },
+    commentsIcon: {
+        margin: 10,
+        color: 'grey',
+    },
+    commentsContainer: {
+        padding: 10,
+        marginTop: 100,
+    },
+    threeDotVert: {
+        alignSelf: 'flex-end'
+    },
+    adImageContainer: {
+        padding: 10,
+        marginBottom: 20,
+    },
+    adImage: {
+        width: 320,
+        height: 200,
+        resizeMode: 'center',
     },
 });
 

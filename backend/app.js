@@ -17,12 +17,17 @@ mongoose.connect(mongoUrl).then(()=> {
 // Import required collections 
 require('./UserDetails');
 require('./ResourceDetail');
+require('./ForumDetail');
 
 const User = mongoose.model("userInfo");
 const Specialist = mongoose.model("specialistInfo");
 const Admin = mongoose.model("adminInfo");
 const ResourceCategory = mongoose.model("resourceCategory");
 const Resource = mongoose.model("resourceInfo");
+const ForumPost = mongoose.model('forumPosts');
+const ForumComment = mongoose.model('forumComments');
+const ForumReport = mongoose.model('forumReports');
+const Counter = mongoose.model('counter');
 
 // Function to get a random sample from an array
 function getRandomSample(array, sampleSize) {
@@ -188,30 +193,16 @@ app.post("/login", async (req, res) => {
           return res.send({ status: "ok", type: "user" });
       }
 
-      /*
-      // Check user in Specialist collection
-      user = await Specialist.findOne({ email });
-      if (user && await bcrypt.compare(password, user.password)) {
-          return res.send({ status: "ok", type: "specialist" });
-      }
-
-      // Check user in Admin collection
-      user = await Admin.findOne({ email });
-      if (user && await bcrypt.compare(password, user.password)) {
-          return res.send({ status: "ok", type: "admin" });
-      }
-      */
-
-      // Check user in Specialist collection
+    // Check user in Specialist collection
     user = await Specialist.findOne({ email });
-    if (user && user.password === password) {
-      return res.send({ status: "ok", type: "specialist" });
+    if (user && await bcrypt.compare(password, user.password)) {
+        return res.send({ status: "ok", type: "specialist" });
     }
 
     // Check user in Admin collection
     user = await Admin.findOne({ email });
-    if (user && user.password === password) {
-      return res.send({ status: "ok", type: "admin" });
+    if (user && await bcrypt.compare(password, user.password)) {
+        return res.send({ status: "ok", type: "admin" });
     }
 
       // If no user is found in any collection
@@ -226,6 +217,46 @@ app.post("/logout", (req, res) => {
     res.send({ message: "Logout successful" });
 });
 
+// reset password
+app.post('/resetpassword', async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  try {
+      // Find the user by email in the User collection
+      let user = await User.findOne({ email });
+
+      // If user not found in the User collection, find in the Specialist collection
+      if (!user) {
+        user = await Specialist.findOne({ email });
+      }
+
+      // If user not found in the Specialist collection, find in the Admin collection
+      if (!user) {
+        user = await Admin.findOne({ email });
+      }
+
+      // If user not found in any collection, return error
+      if (!user) {
+        return res.send({ error: "* User does not exist" });
+      }
+
+      // Hash the new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      // Update the user's password
+      user.password = hashedPassword;
+
+      // Save the updated user
+      await user.save();
+
+      // Password successfully reset
+      return res.json({ message: 'Password reset successfully' });
+  } catch (error) {
+      console.error('Error resetting password:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// update user's pregnancy status
 app.post('/updateStatus', async (req, res) => {
     const { email, status } = req.body;
   
@@ -247,7 +278,149 @@ app.post('/updateStatus', async (req, res) => {
     }
 });
 
+// specialist creates a resource
+app.post("/addresource", async (req, res) => {
+  const { title, category, status, description, specialistName } = req.body;
 
+  try {
+      const existingResource = await Resource.findOne({ title });
+
+      if (existingResource) {
+          return res.send({ error: "Resource with the same title already exists!" });
+      }
+
+      await Resource.create({
+          title,
+          category,
+          status,
+          description,
+          specialistName
+      });
+
+      res.send({ status: "ok", data: "Resource created successfully." });
+  } catch (error) {
+      res.send({ status: "error", data: error.message });
+  }
+});
+
+// forum
+//Function to create unique postID
+async function getNextPostID() {
+  try {
+      const counter = await Counter.findOneAndUpdate(
+          { _id: 'postID' },
+          { $inc: { count: 1 } },
+          { new: true, upsert: true }
+      );
+      return counter.count;
+  } catch (error) {
+      throw new Error('Error getting next post ID');
+  }
+}
+
+//Create forum post
+app.post('/createForumPost', async (req, res) => {
+  const { user, description } = req.body;
+
+  try {
+      const postID = await getNextPostID();
+      const forumPost = new ForumPost({
+          postID,
+          user,
+          description
+      });
+
+      await forumPost.save();
+      res.send({ status: 'ok', forumPost });
+  } catch (error) {
+      res.status(500).send({ status: 'error', error: 'Internal server error' });
+  }
+});
+
+
+//Get forum post
+app.get('/getForumPosts', async (req, res) => {
+  try {
+      const forumPosts = await ForumPost.find().sort({ date: -1 });
+      res.send({ status: 'ok', forumPosts });
+  } catch (error) {
+      console.error('Error reporting forum post:', error);
+      res.status(500).send({ status: 'error', error: 'Internal server error' });
+  }
+});
+
+// Report Post endpoint
+app.post('/reportPost', async (req, res) => {
+const { postID, currentUser } = req.body;
+
+
+try {
+  const forumReport = new ForumReport({
+      postID,
+      currentUser
+  });
+
+  await forumReport.save();
+  res.send({ status: 'ok', forumReport });
+} catch (error) {
+  console.error('Error reporting post: ', postID)
+  res.status(500).send({ status: 'error', error: 'Internal server error' });
+}
+});
+
+//Add forum comment
+app.post('/addComment', async(req, res) => {
+const { postID, user, text } = req.body;
+
+try{
+  //Find forum post by postID
+  //let forumComment = await ForumComment.findOne({postID});
+  let forumPostExist = await ForumPost.exists({ postID });
+
+  //If forum post does not exist
+  if (!forumPostExist) {
+    return res.status(404).send({ status: 'error', error: 'Forum post does not exist' });
+  }
+
+  // Find forum comment by postID
+  let forumComment = await ForumComment.findOne({ postID });
+
+  // If no comments for this post, create a new document
+  if (!forumComment) {
+    forumComment = new ForumComment({
+      postID,
+      comments: [{ user, text }]
+    });
+  } else {
+    forumComment.comments.push({ user, text });
+  }
+
+  await forumComment.save();
+  res.send({ status: 'ok', forumComment });
+}
+
+catch(error){
+  console.error('Error adding comments', error)
+  res.status(500).send({ status: 'error', error: 'Internal server error' });
+}
+});
+
+// Get comments for a forum post
+app.get('/getComments', async (req, res) => {
+const { postID } = req.query;
+
+try {
+    const forumComment = await ForumComment.findOne({ postID });
+
+    if (forumComment) {
+        res.send({ status: 'ok', comments: forumComment.comments });
+    } else {
+        res.send({ status: 'ok', comments: [] });
+    }
+} catch (error) {
+    res.status(500).send({ status: 'error', error: 'Error fetching comments' });
+}
+})
 
 app.listen(5001, ()=> {
     console.log("Node js server started.");

@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Dimensions, Pressable } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Dimensions, Pressable, Modal, TouchableHighlight } from 'react-native';
 import axios from 'axios';
 import styles from '../components/styles';
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { Feather, Ionicons, Entypo, AntDesign, MaterialIcons } from '@expo/vector-icons';
 import url from '../components/config';
 import Keyboard from '../components/Keyboard';
+
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -16,6 +17,8 @@ const SpecialistResource = ({navigation}) => {
   const scrollRef = useRef(null);
   const itemRef = useRef([]);
   const [topHeight, setTopHeight] = useState(0);
+  
+  const [isDropdownVisible, setDropdownVisible] = useState(false);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -54,6 +57,17 @@ const SpecialistResource = ({navigation}) => {
   const onLayoutTop = (event) => {
     const { height } = event.nativeEvent.layout;
     setTopHeight(height + 100);
+  };
+
+  const toggleDropdown = () => {
+    setDropdownVisible(!isDropdownVisible);
+  };
+
+  const handleSelection = (action) => {
+    // Perform action based on selection
+    
+    // Close the dropdown box
+    setDropdownVisible(false);
   };
 
   // Page Displays
@@ -119,13 +133,52 @@ const SpecialistResource = ({navigation}) => {
                   style={styles.resourceBtn}
                   onPress= {() => navigation.navigate("SpecialistResourceInfo", { title: resource.title })}
                 >
-                  <Text>{resource.title}</Text>
+
+                  <TouchableHighlight style={[styles.threeDotVert]} onPress={toggleDropdown}>
+                    <Entypo name='dots-three-vertical' size={16} />
+                  </TouchableHighlight>
+                  <View style= {{flex: 1, justifyContent: 'flex-end'}}>
+                    <Text style= {[styles.text]}>{resource.title}</Text>
+                  </View>
                 </TouchableOpacity>
               );
             }
             return null;
           })}
         </ScrollView>
+
+        <Modal
+                transparent={true}
+                animationType="slide"
+                visible={isDropdownVisible}
+                onRequestClose={() => setDropdownVisible(false)}
+              >
+                <View style={[styles.modalOverlay, {justifyContent: 'flex-end'}]}>
+                <View style={{ 
+                    width: '90%',
+                    backgroundColor: '#E3C2D7',
+                    borderRadius: 10,
+                    padding: 20,
+                    }}>
+                    <Pressable style= {{marginLeft: 280}} onPress={handleSelection}>
+                      <Feather name="x" size={24} color="black"/>
+                    </Pressable>
+                    {/* Selections */}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+                      <Feather name="edit" size={22} color="black" />
+                      <Pressable style={{ marginLeft: 10 }}>
+                        <Text style={styles.text}> Edit Resource </Text>
+                      </Pressable>
+                    </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+                    <MaterialIcons name="delete-outline" size={24} color="black" />
+                      <Pressable style={{ marginLeft: 10 }}>
+                        <Text style={styles.text}> Delete Resource </Text>
+                      </Pressable>
+                    </View>
+                </View>
+                </View>
+              </Modal>
       </View>
     </ScrollView>
     </Keyboard>

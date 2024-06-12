@@ -89,7 +89,7 @@ const Resource = ({ navigation }) => {
       {/* Dynamic Navigation Buttons */}
       <View style={[styles.buttonContainer, { top: 120, left: 20 }]}>
         <ScrollView  ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 20, paddingVertical: 10, marginBottom: 10, paddingRight: 30 }}>
+          contentContainerStyle={{ gap: 10, paddingVertical: 10, marginBottom: 10, paddingRight: 30 }}>
           {categories.map((category, index) => (
             <TouchableOpacity
               key={index}
@@ -97,9 +97,7 @@ const Resource = ({ navigation }) => {
               onPress={() => handleSelectCategory(index)}
               style={activeIndex === index ? styles.categoryBtnActive : styles.categoryBtn}
             >
-              <Text style={activeIndex === index ? styles.categoryBtnTxt : styles.categoryBtnTxt}>
-                {category.categoryName}
-              </Text>
+              <Text style={styles.text}> {category.categoryName}  </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
