@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, ScrollView, TextInput, TouchableOpacity, Alert, Modal, TouchableHighlight, Image } from 'react-native';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { View, Text, Pressable, ScrollView, TextInput } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../components/styles';
 import Keyboard from '../components/Keyboard';
@@ -181,138 +180,12 @@ const Forum = ({ navigation }) => {
 
   return (
     <Keyboard>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={[styles.pageTitle, { top: 80, left: 20 }]}> Community Forum </Text>
-        <View style={[styles.iconContainer, { top: 80, left: 330 }]}>
-          <TouchableOpacity onPress={addForumHandler}>
-            <Feather name="edit" size={24} color="black" />
-          </TouchableOpacity>
-        </View>
-
-        {currentUserEmail ? (
-          <Text style={[styles.formText, { top: 50, left: 20 }]}>Logged in as: {currentUserEmail}</Text>
-        ) : <Text style={[styles.formText, { top: 50, left: 20 }]}>You are not logged in</Text>}
-
-        <View style={styles.adImageContainer}>
-          <Image source={require('../../assets/ad/pregnancyAd1.jpeg')} style={styles.adImage} />
-        </View>
-
-        <View style={styles.sortForumContainer}>
-          <Text style={{ marginRight: 10 }}>Sort by:</Text>
-          <Picker
-            selectedValue={sortOrder}
-            style={{ height: 50, width: 150 }}
-            onValueChange={(itemValue) => setSortOrder(itemValue)}
-          >
-            <Picker.Item label="Newest" value="newest" />
-            <Picker.Item label="Oldest" value="oldest" />
-          </Picker>
-        </View>
-
-        <View style={styles.forumDescriptionBox}>
-          {sortedPosts.map((post, index) => (
-            <View key={index} style={styles.forumPostContainer}>
-              {/*<Text style={styles.forumPostID}>Post ID: {post.postID}</Text>*/}
-              <View style={styles.forumRow}>
-                <Text style={styles.forumPostUser}>User: {post.user}</Text>
-                <Text style={styles.forumPostDate}>{formatDate(post.date)}d</Text>
-                <TouchableHighlight style={styles.threeDotVert} onPress={ reportForumHandler }>
-                  <Entypo name='dots-three-vertical' size={10} />
-                </TouchableHighlight>
-              </View>
-
-              <Text style={styles.forumPostDescription}>Description: {post.description}</Text>
-              
-
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <TouchableHighlight underlayColor={'#cccccc'} style={styles.commentsIcon} onPress={() => toggleCommentsVisibility(post.postID)}>
-                  <Feather name="message-circle" size={24} color="black" style={styles.commentsIcon} />
-                </TouchableHighlight>
-                <Text style={styles.commentCount}>view {post.commentCount} replies</Text>
-              </View>
-
-              {visibleComments[post.postID] && (
-                <View style={styles.commentsContainer}>
-                  {visibleComments[post.postID].map((comment, index) => (
-                      <View key={index} style={styles.commentItem}>
-                        <Text style={styles.commentUser}>User: {comment.user}</Text>
-                        <Text style={styles.commentText}>{comment.text}</Text>
-                      </View>
-                    ))}
-                </View>
-              )}
-
-              {/* Adding comments */}
-              <View style={styles.addForumComment}>
-                <TextInput
-                  style={styles.addCommentInput}
-                  placeholder="Add a comment..."
-                  value={commentText}
-                  onChangeText={setCommentText}
-                />
-                <TouchableOpacity
-                  style={styles.uploadCommentButton}
-                  onPress={() => handleAddComment(post.postID)}
-                >
-                  <Feather name='upload'/>
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))}
-
-          
-        </View>
-
-        
-
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={showModal}
-          onRequestClose={handleCloseModal}
-        >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Create New Forum Post</Text>
-
-              <TextInput
-                multiline={true}
-                style={[styles.forumDescStyle, { marginBottom: 10 }]}
-                placeholder={placeHolder}
-                value={forumDesc}
-                onChangeText={setForumDesc}
-              />
-
-              <Pressable style={styles.modalButton} onPress={handleCreateForumPost}>
-                <Text style={styles.modalButtonText}>Create Post</Text>
-              </Pressable>
-              <Pressable style={styles.modalButton} onPress={handleCloseModal}>
-                <Text style={styles.modalButtonText}>Cancel</Text>
-              </Pressable>
-            </View>
-          </View>
-        </Modal>
-
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={reportModalVisible}
-          onRequestClose={() => setReportModalVisible(false)}
-        >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Report Post</Text>
-              <Text>Are you sure you want to report this post?</Text>
-              <Pressable style={styles.modalButton} onPress={() => handleReportPost(postToReport, currentUserEmail)}>
-                <Text style={styles.modalButtonText}>Yes, Report</Text>
-              </Pressable>
-              <Pressable style={styles.modalButton} onPress={() => setReportModalVisible(false)}>
-                <Text style={styles.modalButtonText}>Cancel</Text>
-              </Pressable>
-            </View>
-          </View>
-        </Modal>
-      </ScrollView>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style= {[styles.pageTitle, {top: 80, left: 20}]}> Community Forum </Text>
+      <View style={[styles.iconContainer, {top: 80, left: 330}]}>
+        <Feather name="edit" size={24} color="black" />
+      </View>
+    </ScrollView>
     </Keyboard>
   );
 };

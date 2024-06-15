@@ -10,13 +10,18 @@ const WeightTracker = ({navigation}) => {
   return (
     <Keyboard>
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style= {[styles.pageTitle, {top: 80}]}> Weight Tracker </Text>
-      <View style={[styles.iconContainer, {top: 85, left: 20}]}>
-      <AntDesign name="left" size={24} color="black" />
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', 
+                    top: 50, marginBottom: 20 }}>
+
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <AntDesign name="left" size={24} color="black" />
+        <Pressable style={[styles.formText]} onPress={() => navigation.navigate("Home")}>
+          <Text style={styles.text}> back </Text>
+        </Pressable>
       </View>
-      <Pressable style={[styles.formText, {top: 88, left: 45}]} onPress={() => navigation.navigate("Home")}>
-        <Text style={styles.text}> back </Text>
-      </Pressable>
+
+      <Text style= {[styles.pageTitle, {marginRight: 80}]}> Weight Tracker </Text>
+    </View>
 
     </ScrollView>
     </Keyboard>

@@ -1,9 +1,10 @@
 import React from 'react';
-import { KeyboardAvoidingView } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 
 const Keyboard = ({ children }) => {
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding" enabled>
+    <KeyboardAvoidingView style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : null}>
       {children}
     </KeyboardAvoidingView>
   );

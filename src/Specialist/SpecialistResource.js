@@ -1,15 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Dimensions} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Dimensions, Pressable } from 'react-native';
 import axios from 'axios';
 import styles from '../components/styles';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import url from '../components/config';
 import Keyboard from '../components/Keyboard';
-import ModalStyle from '../components/ModalStyle';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-const Resource = ({ navigation }) => {
+const SpecialistResource = ({navigation}) => {
   const [search, setSearch] = useState('');
   const [categories, setCategories] = useState([]);
   const [resources, setResources] = useState([]);
@@ -17,7 +16,6 @@ const Resource = ({ navigation }) => {
   const scrollRef = useRef(null);
   const itemRef = useRef([]);
   const [topHeight, setTopHeight] = useState(0);
-  const [isModalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -58,18 +56,15 @@ const Resource = ({ navigation }) => {
     setTopHeight(height + 100);
   };
 
-  const toggleModal = () => {
-    setModalVisible(!isModalVisible);
-  };
-
+  // Page Displays
   return (
     <Keyboard>
     <ScrollView style={styles.container3} contentContainerStyle={{ paddingBottom: topHeight }}>
       <View onLayout={onLayoutTop} style={[styles.container2, { top: 75, left: 20, width: screenWidth * 0.9 }]}>
         <Text style={[styles.pageTitle]}>Resource Hub</Text>
-        <TouchableOpacity style={[styles.iconContainer, {marginBottom: 0}]}>
-          <Feather name="download" size={24} color="black" />
-        </TouchableOpacity>
+        <Pressable style={[styles.iconContainer]} onPress={() => navigation.navigate("CreateResource")}>
+          <Feather name="edit" size={24} color="black" />
+        </Pressable>
       </View>
 
       {/* Search Bar */}
@@ -122,7 +117,7 @@ const Resource = ({ navigation }) => {
                 <TouchableOpacity
                   key={index}
                   style={styles.resourceBtn}
-                  onPress={toggleModal}
+                  onPress= {() => navigation.navigate("SpecialistResourceInfo", { title: resource.title })}
                 >
                   <Text>{resource.title}</Text>
                 </TouchableOpacity>
@@ -132,11 +127,9 @@ const Resource = ({ navigation }) => {
           })}
         </ScrollView>
       </View>
-
-      <ModalStyle  isVisible={isModalVisible} onClose={toggleModal} navigation={navigation} />
     </ScrollView>
     </Keyboard>
   );
 };
 
-export default Resource;
+export default SpecialistResource;

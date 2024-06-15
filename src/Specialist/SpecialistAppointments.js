@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, ScrollView, TextInput } from 'react-native';
 import styles from '../components/styles';
+import Keyboard from '../components/Keyboard';
+import { Feather } from '@expo/vector-icons';
 
-const UserAppointments = ({navigation}) => {
+const SpecialistAppointments = ({navigation}) => {
  
   // Page Displays
   return (
@@ -14,4 +16,4 @@ const UserAppointments = ({navigation}) => {
   );
 };
 
-export default UserAppointments;
+export default SpecialistAppointments;

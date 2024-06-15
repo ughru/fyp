@@ -10,6 +10,7 @@ import AccountType from './src/AccountType/';
 import RegisterUser from './src/RegisterUser/';
 import RegisterSpecialist from './src/RegisterSpecialist/';
 import Login from './src/Login/';
+import ForgetPw from './src/ForgetPw/';
 
 // Unregistered user screens
 import HomePage from './src/Unregistered User/HomePage/';
@@ -18,7 +19,6 @@ import PreHome from './src/Unregistered User/PreHome';
 import DuringHome from './src/Unregistered User/DuringHome';
 import PostHome from './src/Unregistered User/PostHome';
 import Resource from './src/Unregistered User/Resource';
-import ResourceInfo from './src/Unregistered User/ResourceInfo';
 import Forum from './src/Unregistered User/Forum';
 import Appointments from './src/Unregistered User/Appointments';
 
@@ -28,6 +28,7 @@ import UserPreHome from './src/Registered User/UserPreHome/';
 import UserDuringHome from './src/Registered User/UserDuringHome/';
 import UserPostHome from './src/Registered User/UserPostHome/';
 import UserResource from './src/Registered User/UserResource/';
+import UserResourceInfo from './src/Registered User/UserResourceInfo';
 import UserForum from './src/Registered User/UserForum/';
 import UserAppointments from './src/Registered User/UserAppointments/';
 import UserSettings from './src/Registered User/UserSettings/';
@@ -36,8 +37,20 @@ import CycleHistory from './src/Registered User/CycleHistory/';
 import WeightTracker from './src/Registered User/WeightTracker/';
 
 // Specialist screens
+import SpecialistHome from './src/Specialist/SpecialistHome/';
+import SpecialistHomePage from './src/Specialist/SpecialistHomePage/';
+import CreateResource from './src/Specialist/CreateResource/';
+import SpecialistResource from './src/Specialist/SpecialistResource/';
+import SpecialistResourceInfo from './src/Specialist/SpecialistResourceInfo';
+import SpecialistForum from './src/Specialist/SpecialistForum/';
+import SpecialistAppointments from './src/Specialist/SpecialistAppointments/';
+import SpecialistSettings from './src/Specialist/SpecialistSettings/';
 
 // System admin screens
+import AdminHome from './src/Admin/AdminHome/';
+import AdminHomePage from './src/Admin/AdminHomePage/';
+import AdminForum from './src/Admin/AdminForum/';
+import AdminSettings from './src/Admin/AdminSettings/';
 
 // Create a stack navigator
 const Stack = createNativeStackNavigator();
@@ -56,6 +69,7 @@ export default function App() {
                 <Stack.Screen name="RegisterUser" component= {RegisterUser} options={{ headerShown: false }}/> 
                 <Stack.Screen name="RegisterSpecialist" component= {RegisterSpecialist} options={{ headerShown: false }}/>
                 <Stack.Screen name="Login" component= {Login} options={{ headerShown: false }}/>
+                <Stack.Screen name="ForgetPw" component= {ForgetPw} options={{ headerShown: false }}/>
 
                 {/* Unregistered User Screens */}
                 <Stack.Screen name="HomePage" component= {HomePage} options={{ headerShown: false }}/>
@@ -64,7 +78,6 @@ export default function App() {
                 <Stack.Screen name="PostHome" component= {PostHome} options={{ headerShown: false }}/>
                 <Stack.Screen name="Settings" component= {Settings} options={{ headerShown: false }}/>
                 <Stack.Screen name="Resource" component= {Resource} options={{ headerShown: false }}/>
-                <Stack.Screen name="ResourceInfo" component= {ResourceInfo} options={{ headerShown: false }}/>
                 <Stack.Screen name="Forum" component= {Forum} options={{ headerShown: false }}/>
                 <Stack.Screen name="Appointments" component= {Appointments} options={{ headerShown: false }}/>
 
@@ -74,6 +87,7 @@ export default function App() {
                 <Stack.Screen name="UserDuringHome" component= {UserDuringHome} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserPostHome" component= {UserPostHome} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserResource" component= {UserResource} options={{ headerShown: false }}/>
+                <Stack.Screen name="UserResourceInfo" component= {UserResourceInfo} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserForum" component= {UserForum} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserAppointments" component= {UserAppointments} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserSettings" component= {UserSettings} options={{ headerShown: false }}/>
@@ -82,8 +96,20 @@ export default function App() {
                 <Stack.Screen name="WeightTracker" component= {WeightTracker} options={{ headerShown: false }}/>
 
                 {/* Specialist User Screens */}
+                <Stack.Screen name="SpecialistHome" component= {SpecialistHome} options={{ headerShown: false }}/>
+                <Stack.Screen name="SpecialistHomePage" component= {SpecialistHomePage} options={{ headerShown: false }}/>
+                <Stack.Screen name="CreateResource" component= {CreateResource} options={{ headerShown: false }}/>
+                <Stack.Screen name="SpecialistResource" component= {SpecialistResource} options={{ headerShown: false }}/>
+                <Stack.Screen name="SpecialistResourceInfo" component= {SpecialistResourceInfo} options={{ headerShown: false }}/>
+                <Stack.Screen name="SpecialistForum" component= {SpecialistForum} options={{ headerShown: false }}/>
+                <Stack.Screen name="SpecialistAppointments" component= {SpecialistAppointments} options={{ headerShown: false }}/>
+                <Stack.Screen name="SpecialistSettings" component= {SpecialistSettings} options={{ headerShown: false }}/>
 
-                {/* Sys Admin Screens */}
+                {/* Admin Screens */}
+                <Stack.Screen name="AdminHome" component= {AdminHome} options={{ headerShown: false }}/>
+                <Stack.Screen name="AdminHomePage" component= {AdminHomePage} options={{ headerShown: false }}/>
+                <Stack.Screen name="AdminForum" component= {AdminForum} options={{ headerShown: false }}/>
+                <Stack.Screen name="AdminSettings" component= {AdminSettings} options={{ headerShown: false }}/>
             </Stack.Navigator>
         </NavigationContainer>
     );

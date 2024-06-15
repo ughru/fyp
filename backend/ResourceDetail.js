@@ -12,7 +12,9 @@ const ResourceInfoSchema = new mongoose.Schema(
 {
     title: String,
     category: String,
+    status: [String],
     description: String,
+    specialistName: String,
 },
 {
     collection: "Resource"

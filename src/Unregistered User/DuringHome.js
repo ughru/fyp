@@ -1,54 +1,88 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, ScrollView} from 'react-native';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, Pressable, ScrollView, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import styles from '../components/styles';
-import Keyboard from '../components/Keyboard';
+import { fetchResources } from '../components/manageResource';
+import ModalStyle from '../components/ModalStyle';
 
 const formatDate = (date) => {
   const options = { weekday: 'long', day: 'numeric', month: 'long' };
   return date.toLocaleDateString('en-GB', options);
-};  
+};
 
-const DuringHome = ({navigation}) => {
+const DuringHome = ({ navigation }) => {
   const [currentDate, setCurrentDate] = useState(null);
+  const [resources, setResources] = useState([]);
+  const scrollRef = useRef();
+  const [isModalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     const date = new Date();
     const formattedDate = formatDate(date);
+
+    const fetchAndSetResources = async () => {
+      const fetchedResources = await fetchResources();
+      setResources(fetchedResources);
+    };
+
+    fetchAndSetResources();
     setCurrentDate(formattedDate);
   }, []);
 
- 
-  // Page Displays
+  const toggleModal = () => {
+    setModalVisible(!isModalVisible);
+  };
+
   return (
-    <Keyboard>
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={[styles.iconContainer, {top: 80, left: 330}]}>
-        <Ionicons name="notifications-outline" size={24} color="black" />
+      <View style={[styles.container3, { top: 50, marginBottom: 20  }]}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          <Text style={styles.date}>{currentDate}</Text>
+          <Ionicons name="notifications-outline" size={24} color="black" />
+        </View>
+        <Text style={[styles.textTitle, { marginTop: 20}]}>Welcome to Bloom!</Text>
       </View>
-      <Text style={[styles.date, {top: 80, left: 20}]}> {currentDate} </Text>
-      <Text style={[styles.textTitle, { top: 120, left: 20 }]}> Welcome to Bloom! </Text>
 
-      <Text style={[styles.formText, {top: 170, left: 150}]}> You are Pregnant for </Text>
-      <Text style={[styles.questionText, {top: 210, left: 150}]}> Weeks </Text>
-      <Pressable style={[styles.button3, {top: 280, left: 150}]}>
-        <Text style={styles.text}> Details </Text>
-      </Pressable>
+      <View style={[styles.container3, { marginBottom: 50}]}>
+        <Text style={[styles.formText, { marginBottom: 10, alignSelf: 'center' }]}>You are Pregnant for</Text>
+        <Text style={[styles.questionText, { marginBottom: 20, alignSelf: 'center' }]}>Weeks</Text>
+        <Pressable style={[styles.button3, { alignSelf: 'center', marginBottom: 40 }]} onPress={toggleModal}>
+          <Text style={styles.text}>Details</Text>
+        </Pressable>
 
-      <View style={[styles.iconContainer, {top: 350, left: 20}]}>
-        <Ionicons name="scale-outline" size={24} color="black" />
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+          <Ionicons name="scale-outline" size={24} color="black" />
+          <Pressable  style={{ marginLeft: 10 }} onPress={toggleModal}>
+            <Text style={styles.questionText}>Weight Tracker</Text>
+          </Pressable>
+        </View>
+
+        <Text style={[styles.titleNote, { marginBottom: 20 }]}>What to expect</Text>
       </View>
-      <Pressable style={[styles.formText, {top: 352, left: 50}]}>
-        <Text style={styles.questionText}> Weight Tracker </Text>
+
+      <View>
+        <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 20, paddingVertical: 10, marginBottom: 20 }}>
+          {resources.map(
+            (resource, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.resourceBtn}
+                onPress={toggleModal}
+              >
+                <Text>{resource.title}</Text>
+              </TouchableOpacity>
+            )
+          )}
+        </ScrollView>
+      </View>
+
+      <Pressable style={[styles.button, { alignSelf: 'center' }]} onPress={() => navigation.navigate("Resources")}>
+        <Text style={styles.text}>See more</Text>
       </Pressable>
 
-      <Text style={[styles.titleNote, {top: 400, left: 20}]}> What to expect </Text>
-
-      <Pressable style={[styles.button, {top: 700}]}>
-        <Text style={styles.text}> See more </Text>
-      </Pressable>
+      <ModalStyle  isVisible={isModalVisible} onClose={toggleModal} navigation={navigation} />
     </ScrollView>
-    </Keyboard>
   );
 };
 

@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Dimensions } from 'react-native';
 import axios from 'axios';
 import styles from '../components/styles';
-import Keyboard from '../components/Keyboard';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import url from '../components/config';
+import Keyboard from '../components/Keyboard';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 const UserResource = ({ navigation }) => {
   const [search, setSearch] = useState('');
@@ -13,6 +15,7 @@ const UserResource = ({ navigation }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollRef = useRef(null);
   const itemRef = useRef([]);
+  const [topHeight, setTopHeight] = useState(0);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -48,60 +51,82 @@ const UserResource = ({ navigation }) => {
     });
   };
 
+  const onLayoutTop = (event) => {
+    const { height } = event.nativeEvent.layout;
+    setTopHeight(height + 100);
+  };
+
   return (
     <Keyboard>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={[styles.pageTitle, { top: 80, left: 20 }]}>Resource Hub</Text>
-        <View style={[styles.iconContainer, { top: 80, left: 330 }]}>
+    <ScrollView style={styles.container3} contentContainerStyle={{ paddingBottom: topHeight }}>
+      <View onLayout={onLayoutTop} style={[styles.container2, { top: 75, left: 20, width: screenWidth * 0.9 }]}>
+        <Text style={[styles.pageTitle]}>Resource Hub</Text>
+        <View style={[styles.iconContainer, {marginBottom: 0}]}>
           <Feather name="download" size={24} color="black" />
         </View>
+      </View>
 
-        {/* Search Bar */}
-        <View style={[styles.search, { top: 150, left: 20 }]}>
-          <View style={[styles.iconContainer, { left: 10 }]}>
-            <Ionicons name="search-outline" size={24} color="black" />
-          </View>
-          <TextInput
-            style={[styles.input3, styles.textInputWithIcon]}
-            value={search}
-            onChangeText={setSearch}
-            placeholder="Search"
-            placeholderTextColor="black"
-          />
+      {/* Search Bar */}
+      <View style={[styles.search, {top: 100, right: 10}]}>
+        <View style={[styles.iconContainer, {left: 40}]}>
+          <Ionicons name="search-outline" size={24} color="black" />
         </View>
+        <TextInput
+          style={[styles.input3, styles.textInputWithIcon]}
+          value={search}
+          onChangeText={setSearch}
+          placeholder="Search"
+          placeholderTextColor="black"
+        />
+      </View>
 
-        {/* Dynamic Navigation Buttons */}
-        <View style={[styles.buttonContainer, { top: 190, left: 20 }]}>
-          <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 20, paddingVertical: 10, marginBottom: 10 }}>
-
-            {categories.map((category, index) => (
-              <TouchableOpacity key={index} ref={(el) => (itemRef.current[index] = el)}
-                onPress={() => handleSelectCategory(index)}
-                style={ activeIndex === index ? styles.categoryBtnActive : styles.categoryBtn }>
-               <Text style={ activeIndex === index ? styles.categoryBtnTxtActive : styles.categoryBtnTxt }>
-                  {category.categoryName}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* Resources */}
-        <View style={[styles.buttonContainer, { top: 260, left: 20 }]}>
-          <ScrollView contentContainerStyle={{ flexDirection: 'row', flexWrap: 'wrap', gap: 20, paddingVertical: 10 }}>
-          {resources.map((resource, index) => (
-            resource.category === categories[activeIndex]?.categoryName && (
-              <TouchableOpacity key={index} style={styles.resourceBtn}>
-                <Text> {resource.title} </Text>
-              </TouchableOpacity>
-            )
+      {/* Dynamic Navigation Buttons */}
+      <View style={[styles.buttonContainer, { top: 120, left: 20 }]}>
+        <ScrollView  ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 20, paddingVertical: 10, marginBottom: 10, paddingRight: 30 }}>
+          {categories.map((category, index) => (
+            <TouchableOpacity
+              key={index}
+              ref={(el) => (itemRef.current[index] = el)}
+              onPress={() => handleSelectCategory(index)}
+              style={activeIndex === index ? styles.categoryBtnActive : styles.categoryBtn}
+            >
+              <Text style={activeIndex === index ? styles.categoryBtnTxt : styles.categoryBtnTxt}>
+                {category.categoryName}
+              </Text>
+            </TouchableOpacity>
           ))}
-          </ScrollView>
-        </View>
+        </ScrollView>
+      </View>
 
-
-      </ScrollView>
+      {/* Resources */}
+      <View style={[{ top: 120, left: 20 }]}>
+        <ScrollView style={styles.container3}
+          contentContainerStyle={{
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            gap: 20,
+            paddingVertical: 10,
+            paddingBottom: topHeight,
+          }}>
+          {resources.map((resource, index) => {
+            const activeCategory = categories[activeIndex]?.categoryName;
+            if (activeCategory === "All" || resource.category === activeCategory) {
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.resourceBtn}
+                  onPress= {() => navigation.navigate("UserResourceInfo", { title: resource.title })}
+                >
+                  <Text>{resource.title}</Text>
+                </TouchableOpacity>
+              );
+            }
+            return null;
+          })}
+        </ScrollView>
+      </View>
+    </ScrollView>
     </Keyboard>
   );
 };
