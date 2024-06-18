@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Text, Pressable, TextInput, ScrollView, View } from 'react-native';
+import { Text, Pressable, TextInput, ScrollView, View , Platform} from 'react-native';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAuth } from '../firebase';
@@ -181,9 +181,9 @@ const RegisterUser= ({navigation}) => {
 
   return (
     <Keyboard>
-      <ScrollView contentContainerStyle={[styles.container, { paddingBottom: 70 }]}>
+      <ScrollView contentContainerStyle={[styles.container]}>
         {/* Back button */}
-        <View style = {{ flexDirection: 'row', alignItems: 'center', top: 50, marginBottom: 20 }}>
+        <View style = {[{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }, Platform.OS!=="web"&&{paddingTop:50}]}>
           <AntDesign name="left" size={24} color="black" />
           <Pressable style={[styles.formText]} onPress={() => navigation.goBack()}>
             <Text style={styles.text}> back </Text>
@@ -191,8 +191,8 @@ const RegisterUser= ({navigation}) => {
         </View>
 
         {/* Title */}
-        <Text style={[styles.pageTitle, { top: 50, marginBottom: 20 }]}> Get Started </Text>
-        <Text style={[styles.titleNote, { marginTop: 40, marginBottom: 30}]}> Register as a user </Text>
+        <Text style={[styles.pageTitle, { marginBottom: 20 }]}> Get Started </Text>
+        <Text style={[styles.titleNote, { marginBottom: 30}]}> Register as a user </Text>
   
         {/* Form */}
         <View style={[styles.container3, {alignItems: 'center'}]}>
@@ -213,12 +213,12 @@ const RegisterUser= ({navigation}) => {
     
           <View style={{ marginBottom: 30 }}>
             <Text style={[styles.formText, {marginBottom: 10}]}> Password {pwError ? <Text style={styles.error}>{pwError}</Text> : null} </Text>
-            <TextInput style={[styles.input]} value={password} onChangeText={setPassword} secureTextEntry={true} />
+            <TextInput style={[styles.input]} value={password} onChangeText={setPassword} secureTextEntry={true} textContentType={'oneTimeCode'}/>
           </View>
     
           <View style={{ marginBottom: 30 }}>
             <Text style={[styles.formText, {marginBottom: 10}]}> Confirm Password {confirmPwError ? <Text style={styles.error}>{confirmPwError}</Text> : null} </Text>
-            <TextInput style={[styles.input]} value={confirmPw} onChangeText={setConfirmPw} secureTextEntry={true} />
+            <TextInput style={[styles.input]} value={confirmPw} onChangeText={setConfirmPw} secureTextEntry={true} textContentType={'oneTimeCode'}/>
           </View>
         </View>
   
@@ -243,4 +243,3 @@ const RegisterUser= ({navigation}) => {
 
 
 export default RegisterUser;
- 

@@ -30,6 +30,8 @@ import UserPostHome from './src/Registered User/UserPostHome/';
 import UserResource from './src/Registered User/UserResource/';
 import UserResourceInfo from './src/Registered User/UserResourceInfo';
 import UserForum from './src/Registered User/UserForum/';
+import UserCreatePost from './src/Registered User/UserCreatePost/';
+import UserUpdatePost from './src/Registered User/UserUpdatePost/';
 import UserAppointments from './src/Registered User/UserAppointments/';
 import UserSettings from './src/Registered User/UserSettings/';
 import LogPeriod from './src/Registered User/LogPeriod/';
@@ -40,9 +42,12 @@ import WeightTracker from './src/Registered User/WeightTracker/';
 import SpecialistHome from './src/Specialist/SpecialistHome/';
 import SpecialistHomePage from './src/Specialist/SpecialistHomePage/';
 import CreateResource from './src/Specialist/CreateResource/';
+import UpdateResource from './src/Specialist/UpdateResource/';
 import SpecialistResource from './src/Specialist/SpecialistResource/';
 import SpecialistResourceInfo from './src/Specialist/SpecialistResourceInfo';
 import SpecialistForum from './src/Specialist/SpecialistForum/';
+import SpecialistCreatePost from './src/Specialist/SpecialistCreatePost/';
+import SpecialistUpdatePost from './src/Specialist/SpecialistUpdatePost/';
 import SpecialistAppointments from './src/Specialist/SpecialistAppointments/';
 import SpecialistSettings from './src/Specialist/SpecialistSettings/';
 
@@ -89,6 +94,8 @@ export default function App() {
                 <Stack.Screen name="UserResource" component= {UserResource} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserResourceInfo" component= {UserResourceInfo} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserForum" component= {UserForum} options={{ headerShown: false }}/>
+                <Stack.Screen name="UserCreatePost" component= {UserCreatePost} options={{ headerShown: false }}/>
+                <Stack.Screen name="UserUpdatePost" component= {UserUpdatePost} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserAppointments" component= {UserAppointments} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserSettings" component= {UserSettings} options={{ headerShown: false }}/>
                 <Stack.Screen name="CycleHistory" component= {CycleHistory} options={{ headerShown: false }}/>
@@ -99,9 +106,12 @@ export default function App() {
                 <Stack.Screen name="SpecialistHome" component= {SpecialistHome} options={{ headerShown: false }}/>
                 <Stack.Screen name="SpecialistHomePage" component= {SpecialistHomePage} options={{ headerShown: false }}/>
                 <Stack.Screen name="CreateResource" component= {CreateResource} options={{ headerShown: false }}/>
+                <Stack.Screen name="UpdateResource" component= {UpdateResource} options={{ headerShown: false }}/>
                 <Stack.Screen name="SpecialistResource" component= {SpecialistResource} options={{ headerShown: false }}/>
                 <Stack.Screen name="SpecialistResourceInfo" component= {SpecialistResourceInfo} options={{ headerShown: false }}/>
                 <Stack.Screen name="SpecialistForum" component= {SpecialistForum} options={{ headerShown: false }}/>
+                <Stack.Screen name="SpecialistCreatePost" component= {SpecialistCreatePost} options={{ headerShown: false }}/>
+                <Stack.Screen name="SpecialistUpdatePost" component= {SpecialistUpdatePost} options={{ headerShown: false }}/>
                 <Stack.Screen name="SpecialistAppointments" component= {SpecialistAppointments} options={{ headerShown: false }}/>
                 <Stack.Screen name="SpecialistSettings" component= {SpecialistSettings} options={{ headerShown: false }}/>
 

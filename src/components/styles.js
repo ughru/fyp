@@ -16,6 +16,13 @@ export const styles = StyleSheet.create({
     container3: {
         flex: 1,
     },
+    container4: {
+        height: 'fit-content',
+        flexDirection: 'column',
+    },
+    container5:{
+        flexGrow:1
+    },
     iconContainer: {
         marginRight: 10,
     },
@@ -31,7 +38,7 @@ export const styles = StyleSheet.create({
     textTitle: {
         fontSize: 24,
         fontWeight: 'bold',
-        marginBottom: 20,
+        marginBottom: 10,
     },
     pageTitle: {
         fontSize: 30,
@@ -194,6 +201,10 @@ export const styles = StyleSheet.create({
         fontSize: 16,
         marginRight: 5,
     },
+    text3: {
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
     formText: {
         fontSize: 16,
         color: '#979595',
@@ -270,6 +281,7 @@ export const styles = StyleSheet.create({
         paddingHorizontal: 10,
         paddingVertical: 10,
         borderRadius: 10,
+        marginBottom: 10,
     },
     resourceCategoryButton: {
         width: 170,
@@ -279,6 +291,18 @@ export const styles = StyleSheet.create({
         paddingVertical: 5,
         borderRadius: 20,
         backgroundColor: '#E3C2D7',
+    },
+    resourceContainerWeb:{
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'flex-start',
+        paddingVertical: 10
+    },
+    resourceContainerMobile:{
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'flex-start',
+        paddingVertical: 10
     },
     modalOverlay: {
         flex: 1,
@@ -315,15 +339,24 @@ export const styles = StyleSheet.create({
         },
         inputAndroid: {
             fontSize: 16,
-            paddingHorizontal: 10,
-            paddingVertical: 8,
-            borderWidth: 0.5,
-            borderColor: 'gray',
-            borderRadius: 8,
             color: 'black',
-            paddingRight: 30, 
+            width: 340,
+            height: 40,
+            padding: 10,
             borderRadius: 20,
+            borderWidth: 1,
+            borderColor: '#979595', 
         },
+        inputWeb:{
+            fontSize: 16,
+            color: 'black',
+            width: 340,
+            height: 40,
+            padding: 10,
+            borderRadius: 20,
+            borderWidth: 1,
+            borderColor: '#979595', 
+        }
     },
     forumPostContainer: {
         padding: 5,
@@ -334,19 +367,12 @@ export const styles = StyleSheet.create({
         borderWidth: 1,
     },
     commentsIcon: {
-        margin: 10,
+        margin: 5,
         color: 'grey',
-    },
-    commentsContainer: {
-        padding: 10,
-        marginTop: 100,
-    },
-    threeDotVert: {
-        alignSelf: 'flex-end'
     },
     adImageContainer: {
         padding: 10,
-        marginBottom: 20,
+        marginBottom: 10,
     },
     adImage: {
         width: 320,

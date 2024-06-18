@@ -1,53 +1,32 @@
 const mongoose = require("mongoose");
-//const { ref } = require("firebase/database");
-
-
-const CounterSchema = new mongoose.Schema({
-    _id: { type: String, required: true },
-    count: { type: Number, default: 0 }
-});
 
 const ForumPostSchema = new mongoose.Schema(
 {
-    postID: {type: Number, required: true},
-    user: { type: String, required: true },
-    description: { type: String, required: true },
-    date: { type: Date, default: Date.now },
-    comments: {type: Array, default: []}
+    postID: {type: Number},
+    userEmail: {type: String},
+    category: {type: String},
+    description: {type: String},
+    dateCreated: {type: Date},
+    dateUpdated: {type: Date, default: null},
 },
 {
-    //timestamps: true,
     collection: "ForumPost"
 });
 
 const ForumCommentSchema = new mongoose.Schema(
 {
-    postID: {type: Number, required: true},
+    postID: {type: Number},
     comments: [
         {
-        user: { type: String, required: true },
-        userComment: { type: String, required: true },
-        date: { type: Date, default: Date.now }
+            userEmail: { type: String},
+            userComment: {type: String},
+            date: {type: Date}
         }
     ]
 },
 {
-    timestamps: true,
     collection: "ForumComment"
 });
 
-const ForumReportSchema = new mongoose.Schema(
-{
-    postID: { type: Number, required: true },
-    currentUser: {type: String, required: true},
-    date: { type: Date, default: Date.now }
-},
-{
-    timestamps: true,
-    collection: "ForumReport"
-});
-
-mongoose.model("counter", CounterSchema);
 mongoose.model("forumPosts", ForumPostSchema);
 mongoose.model("forumComments", ForumCommentSchema);
-mongoose.model("forumReports", ForumReportSchema);

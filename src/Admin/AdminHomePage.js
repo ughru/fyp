@@ -29,6 +29,9 @@ export default function AdminHomePage() {
         },
         tabBarActiveTintColor: '#D39FC0',
         tabBarInactiveTintColor: 'gray',
+        tabBarStyle:{
+          padding:3
+        }
       })}
     >
       <Tab.Screen name="Home" component={AdminHome} options={{ headerShown: false }} />

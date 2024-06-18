@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable , Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../components/styles';
 
@@ -19,10 +19,10 @@ const Settings = ({ navigation, selectedStatus, setSelectedStatus }) => {
   // Page Displays
   return (
     <View style = {[styles.container]}>
-      <Text style={[styles.pageTitle, {top: 50, marginBottom: 20}]}> Settings </Text>
-      <Text style={[styles.titleNote, {marginTop: 40, marginBottom: 30}]}> Manage your account </Text>
+      <Text style={[styles.pageTitle , Platform.OS!=="web"&&{paddingTop:50}]}> Settings </Text>
+      <Text style={[styles.titleNote, {paddingTop:10 , paddingBottom:10}]}> Manage your account </Text>
       
-      <View style = {[styles.container3]}>
+      <View style = {[styles.container4]}>
         <Text style={[styles.questionText, {marginBottom: 20}]}> Pregnancy Status </Text>
         <View style={styles.buttonPosition}>
           <Pressable
@@ -60,7 +60,7 @@ const Settings = ({ navigation, selectedStatus, setSelectedStatus }) => {
         </View>
       </View>
       
-      <View style = {[styles.container, {alignItems: 'center'}]}>
+      <View style = {[styles.container3, {alignItems: 'center' , paddingHorizontal:20 , justifyContent:'center'}]}>
         <Text style={[styles.pageTitle, {marginBottom: 20}]}> Join Bloom </Text>
         <Pressable style={styles.button5} onPress={() => navigation.navigate("AccountType")}>
           <Text style={styles.questionText}> Register </Text>

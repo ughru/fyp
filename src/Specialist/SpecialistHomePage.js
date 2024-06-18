@@ -35,6 +35,9 @@ export default function SpecialistHomePage() {
         },
         tabBarActiveTintColor: '#D39FC0',
         tabBarInactiveTintColor: 'gray',
+        tabBarStyle:{
+          padding:3
+        }
       })}
     >
       <Tab.Screen name="Home" component={Home} options={{ headerShown: false }} />

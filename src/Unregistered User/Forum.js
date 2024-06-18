@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, TouchableHighlight, Modal, Pressable, Image, Platform } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, TouchableHighlight, Image, Platform } from 'react-native';
 import { firebase } from '../../firebaseConfig';
-import { Feather, Entypo, AntDesign, MaterialIcons } from '@expo/vector-icons';
+import { Feather, AntDesign } from '@expo/vector-icons';
 import axios from 'axios';
 import RNPickerSelect from 'react-native-picker-select';
+import HTMLView from 'react-native-htmlview';
+import ModalStyle from '../components/ModalStyle';
 
-// from js file
+// Importing styles and components
 import styles from '../components/styles';
 import Keyboard from '../components/Keyboard';
 import url from '../components/config.js';
-import ModalStyle from '../components/ModalStyle';
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
@@ -36,21 +37,46 @@ const formatDate = (dateString) => {
 
 const Forum = ({ navigation }) => {
   const [forumPost, setForumPost] = useState([]);
-  const [forumPostsWithComments, setForumPostsWithComments] = useState([]);
   const [commentText, setCommentText] = useState({});
   const [visibleComments, setVisibleComments] = useState({});
   const [sortOrder, setSortOrder] = useState('newest');
-  const [isModalVisible, setModalVisible] = useState(false);
-  const [isDropdownVisible, setDropdownVisible] = useState(false);
   const [activeButton, setActiveButton] = useState('General');
   const [imageUrl, setImageUrl] = useState(null);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [userInfo, setUserInfo] = useState({});
 
   useEffect(() => {
     const fetchForumPosts = async () => {
       try {
         const response = await axios.get(`${url}/getForumPosts`);
         if (response.data.status === "ok") {
-          setForumPost(response.data.forumPosts);
+          const posts = response.data.forumPosts;
+    
+          // Fetch user information for each post
+          for (const post of posts) {
+            try {
+              const userInfoResponse = await axios.get(`${url}/getUserInfo`, {
+                params: { email: post.userEmail },
+              });
+    
+              if (userInfoResponse.data.status === 'ok') {
+                const userData = userInfoResponse.data.data;
+    
+                // Add user info to the post
+                post.userInfo = {
+                  firstName: userData.firstName || '',
+                  lastName: userData.lastName || '',
+                  email: userData.email || '',
+                };
+              } else {
+                console.error('Error fetching user info:', userInfoResponse.data.error);
+              }
+            } catch (error) {
+              console.error('Error fetching user info:', error);
+            }
+          }
+    
+          setForumPost(posts);
         } else {
           console.error("Error fetching forum posts:", response.data.error);
         }
@@ -67,79 +93,96 @@ const Forum = ({ navigation }) => {
         console.error('Error fetching image:', error);
       }
     };
-
+      
     fetchForumPosts();
     fetchImage();
   }, []);
 
-  useEffect(() => {
-    if (forumPost.length > 0) {
-      countComments();
-    }
-  }, [forumPost]);
-
   const fetchComments = async (postID) => {
     try {
       const response = await axios.get(`${url}/getComments`, { params: { postID } });
-      if (response.data.status === "ok") {
+      if (response.data.status === 'ok') {
+        const comments = response.data.comments;
+  
+        // Fetch user or specialist info for each comment
+        for (const comment of comments) {
+          try {
+            let userInfoResponse;
+            let userData;
+  
+            // First, check if userInfo already has the user's info
+            if (userInfo[comment.userEmail]) {
+              // If userInfo already has the user's info, use it directly
+              userData = userInfo[comment.userEmail];
+            } else {
+              // Fetch combined user or specialist info
+              userInfoResponse = await axios.get(`${url}/getUserInfo`, {
+                params: { email: comment.userEmail },
+              });
+  
+              if (userInfoResponse.data.status === 'ok') {
+                userData = userInfoResponse.data.data;
+                // Update userInfo state to include this user's info
+                setUserInfo(prevUserInfo => ({
+                  ...prevUserInfo,
+                  [comment.userEmail]: userData,
+                }));
+              } else {
+                console.error('Error fetching user info:', userInfoResponse.data.error);
+                continue; // Skip to next comment if user info not found
+              }
+            }
+  
+            // Update comment with user or specialist info
+            comment.userInfo = {
+              firstName: userData.firstName || '',
+              lastName: userData.lastName || '',
+              email: userData.email || '',
+            };
+          } catch (error) {
+            console.error('Error fetching user or specialist info:', error);
+          }
+        }
+  
         setVisibleComments(prevState => ({
           ...prevState,
-          [postID]: response.data.comments,
+          [postID]: comments,
         }));
       } else {
-        console.error("Error fetching comments:", response.data.error);
+        console.error('Error fetching comments:', response.data.error);
       }
     } catch (error) {
-      console.error("Error fetching comments:", error);
+      console.error('Error fetching comments:', error);
     }
   };
-
-  const countComments = () => {
-    const postsWithComments = forumPost.map((post) => {
-      const commentCount = post.comments.length;
-      return { ...post, commentCount };
-    });
-    setForumPostsWithComments(postsWithComments);
-  };
-
+    
   const sortForumPosts = (posts, order) => {
     if (order === 'newest') {
-      return posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+      return posts.sort((a, b) => new Date(b.dateCreated) - new Date(a.dateCreated));
     } else {
-      return posts.sort((a, b) => new Date(a.date) - new Date(b.date));
+      return posts.sort((a, b) => new Date(a.dateCreated) - new Date(b.dateCreated));
     }
   };
 
-  const sortedPosts = sortForumPosts(forumPostsWithComments, sortOrder);
+  const sortedPosts = sortForumPosts(forumPost, sortOrder);
 
-  const toggleCommentsVisibility = (postID) => {
+  const toggleCommentsVisibility = async (postID) => {
     if (visibleComments[postID]) {
       setVisibleComments(prevState => ({
         ...prevState,
         [postID]: false,
       }));
     } else {
-      fetchComments(postID);
+      await fetchComments(postID);
     }
-  };
-
-  const toggleDropdown = () => {
-    setDropdownVisible(!isDropdownVisible);
-  };
-
-  const handleSelection = (action) => {
-    if (action === 'edit') {
-      toggleModal();
-    } else if (action === 'delete') {
-      toggleModal();
-    } else if (action === 'report') {
-      toggleModal();
-    }
-    setDropdownVisible(false);
   };
 
   const toggleModal = () => {
     setModalVisible(!isModalVisible);
+  };
+
+  const handleCategoryButtonClick = (category) => {
+    setActiveButton(category);
   };
 
   const handleCommentTextChange = (postID, text) => {
@@ -149,170 +192,130 @@ const Forum = ({ navigation }) => {
     }));
   };
 
-  const handleGeneralButtonClick = () => {
-    setActiveButton('General');
-  };
-
-  const handleAskSpecialistButtonClick = () => {
-    setActiveButton('Ask Specialist');
-  };
-
   return (
     <Keyboard>
-      <ScrollView style={styles.container}>
-        <View style={styles.container3}>
-          <View style={[styles.container2, { marginTop: 50 }]}>
-            <Text style={styles.pageTitle}> Community Forum </Text>
-            <TouchableOpacity style={styles.iconContainer} onPress={toggleModal}>
-              <Feather name="edit" size={24} color="black" />
+      <ScrollView style={styles.container5}>
+        <View style={styles.container4}>
+          <View style={[styles.container2, { paddingTop: 20, paddingHorizontal: 20 }, Platform.OS!=="web"&& {paddingTop:50}]}>
+          <Text style={styles.pageTitle}> Community Forum </Text>
+        </View>
+
+        <View style={[styles.adImageContainer, { width: "100%", alignItems: 'center' }]}>
+          {imageUrl && <Image source={{ uri: imageUrl }} style={styles.adImage} />}
+        </View>
+      </View>
+
+      {/* Sort section */}
+      <View style={[styles.container4, { marginBottom: 20, paddingHorizontal: 20 }]}>
+        {/* Category Filter Buttons */}
+        <View style={styles.buttonContainer}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 20 }}>
+            <TouchableOpacity
+              onPress={() => handleCategoryButtonClick('General')}
+              style={activeButton === 'General' ? styles.categoryBtnActive : styles.categoryBtn}
+            >
+              <Text style={styles.text}> General </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => handleCategoryButtonClick('Ask Specialist')}
+              style={activeButton === 'Ask Specialist' ? styles.categoryBtnActive : styles.categoryBtn}
+            >
+              <Text style={styles.text}> Ask Specialist </Text>
             </TouchableOpacity>
           </View>
-
-          <View style={styles.adImageContainer}>
-            {imageUrl && <Image source={{ uri: imageUrl }} style={styles.adImage} />}
-          </View>
         </View>
 
-        {/* Sort section */}
-        <View style={[styles.container3, { marginBottom: 20 }]}>
-          {/* Category Filter Buttons */}
-          <View style={styles.buttonContainer}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 20 }}>
-              <TouchableOpacity
-                onPress={handleGeneralButtonClick}
-                style={activeButton === 'General' ? styles.categoryBtnActive : styles.categoryBtn}
-              >
-                <Text style={styles.text}> General </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleAskSpecialistButtonClick}
-                style={activeButton === 'Ask Specialist' ? styles.categoryBtnActive : styles.categoryBtn}
-              >
-                <Text style={styles.text}> Ask Specialist </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={[styles.text, { marginRight: 10 }]}>Sort by:</Text>
-            <RNPickerSelect
-              value={sortOrder}
-              onValueChange={(value) => setSortOrder(value)}
-              items={[
-                { label: 'Newest', value: 'newest' },
-                { label: 'Oldest', value: 'oldest' },
-              ]}
-            />
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Text style={[styles.text, { marginRight: 10 }]}>Sort by:</Text>
+          <RNPickerSelect
+            value={sortOrder}
+            onValueChange={(value) => setSortOrder(value)}
+            items={[
+              { label: 'Newest', value: 'newest' },
+              { label: 'Oldest', value: 'oldest' },
+            ]}
+          />
+          {Platform.OS !== 'web' && 
             <View style={[styles.iconContainer, { marginLeft: 10 }]}>
-              <AntDesign name="down" size={16} color="black" />
-            </View>
+            <AntDesign name="down" size={16} color="black" />
           </View>
+          }
         </View>
+      </View>
 
-        {/* Posts + comments */}
-        <View style={styles.container3}>
-          {sortedPosts.map((post, index) => (
-            <View key={index} style={styles.forumPostContainer}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Text style={[styles.text, { flex: 1, margin: 10 }]}> User: {post.user}</Text>
-                <Text style={styles.titleNote}>{formatDate(post.date)}</Text>
-                <TouchableHighlight
-                  style={[styles.threeDotVert, { padding: 15 }]}
-                  onPress={toggleDropdown}
-                  underlayColor={Platform.OS === 'web' ? 'transparent' : '#e0e0e0'}
-                >
-                  <Entypo name="dots-three-vertical" size={10} />
-                </TouchableHighlight>
-              </View>
+      {/* Posts + comments */}
+      <View style={[styles.container3, { paddingHorizontal: 20 }]}>
+        {sortedPosts.map((post, index) => {
+          if (post.category === activeButton) {
+            return (
+              <View key={index} style={styles.forumPostContainer}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Text style={[styles.text3, { flex: 1, margin: 10 }]}>
+                    {post.userInfo.firstName} {post.userInfo.lastName}
+                  </Text>
+                  <Text style={[styles.titleNote, {marginRight: 20}]}>{formatDate(post.dateCreated)}</Text>
+                </View>
 
-              <Modal
-                transparent={true}
-                animationType="slide"
-                visible={isDropdownVisible}
-                onRequestClose={() => setDropdownVisible(false)}
-              >
-                <View style={[styles.modalOverlay, { justifyContent: 'flex-end' }]}>
-                  <View style={{
-                    width: '90%',
-                    backgroundColor: '#E3C2D7',
-                    borderRadius: 10,
-                    padding: 20,
-                  }}>
-                    <Pressable style={{ marginLeft: 'auto' }}>
-                      <Feather name="x" size={24} color="black" onPress={handleSelection} />
-                    </Pressable>
-                    {/* Selections */}
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-                      <Feather name="edit" size={22} color="black" />
-                      <Pressable style={{ marginLeft: 10 }} onPress={() => handleSelection('edit')}>
-                        <Text style={styles.text}> Edit Post </Text>
-                      </Pressable>
+                <HTMLView style={{ margin: 10 }} value={post.description} />
+
+                {/* Comments */}
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <TouchableHighlight
+                    underlayColor={Platform.OS === 'web' ? 'transparent' : '#cccccc'}
+                    style={styles.commentsIcon}
+                    onPress={() => toggleCommentsVisibility(post.postID)}
+                  >
+                    <Feather name="message-circle" size={24} color="black" style={styles.commentsIcon} />
+                  </TouchableHighlight>
+
+                  <TouchableHighlight
+                    underlayColor={Platform.OS === 'web' ? 'transparent' : '#cccccc'}
+                    style={styles.commentsIcon}
+                    onPress={() => toggleCommentsVisibility(post.postID)}
+                  >
+                    {post.commentCount === 0 ? (
+                      <Text style={styles.formText}>No replies yet</Text>
+                    ) : post.commentCount === 1 ? (
+                      <Text style={styles.formText}>view {post.commentCount} reply</Text>
+                    ) : (
+                      <Text style={styles.formText}>view {post.commentCount} replies</Text>
+                    )}
+                  </TouchableHighlight>
+                </View>
+
+                {visibleComments[post.postID] && visibleComments[post.postID].map((comment, commentIndex) => (
+                  <View key={commentIndex} style={[styles.container3, {marginLeft: 20, marginBottom: 20}]}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                      <Text style={[styles.text3, {flex: 1, marginBottom: 10}]}>
+                        {comment.userInfo.firstName} {comment.userInfo.lastName}
+                      </Text>
+                      <Text style={[styles.formText, {marginRight: 20}]}>{formatDate(comment.date)} </Text>
                     </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-                      <MaterialIcons name="delete-outline" size={24} color="black" />
-                      <Pressable style={{ marginLeft: 10 }} onPress={() => handleSelection('delete')}>
-                        <Text style={styles.text}> Delete Post </Text>
-                      </Pressable>
-                    </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-                      <MaterialIcons name="report" size={24} color="black" />
-                      <Pressable style={{ marginLeft: 10 }} onPress={() => handleSelection('report')}>
-                        <Text style={styles.text}> Report Post </Text>
-                      </Pressable>
-                    </View>
+                    <Text style={[styles.text]}>{comment.userComment}</Text>
                   </View>
+                ))}
+
+                <View style={[styles.search, { paddingBottom: 10 }]}>
+                  <TextInput
+                    style={[styles.input4]}
+                    value={commentText[post.postID] || ''}
+                    onChangeText={(text) => handleCommentTextChange(post.postID, text)}
+                    placeholder="Add a comment..."
+                  />
+                  <TouchableOpacity style={[styles.iconContainer, { right: 40 }]}>
+                    <Feather name="upload" size={18} color="black" onPress={toggleModal} />
+                  </TouchableOpacity>
                 </View>
-              </Modal>
-
-              <Text style={[styles.text, { margin: 10 }]}> {post.description}</Text>
-
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <TouchableHighlight
-                  underlayColor={Platform.OS === 'web' ? 'transparent' : '#cccccc'}
-                  style={styles.commentsIcon}
-                  onPress={() => toggleCommentsVisibility(post.postID)}
-                >
-                  <Feather name="message-circle" size={24} color="black" style={styles.commentsIcon} />
-                </TouchableHighlight>
-
-                <TouchableHighlight
-                  underlayColor={Platform.OS === 'web' ? 'transparent' : '#cccccc'}
-                  style={styles.commentsIcon}
-                  onPress={() => toggleCommentsVisibility(post.postID)}
-                >
-                  <Text style={styles.formText}>view {post.commentCount} replies</Text>
-                </TouchableHighlight>
               </View>
+            );
+          }
+          return null;
+        })}
+      </View>
 
-              {visibleComments[post.postID] && (
-                <View style={styles.commentsContainer}>
-                  {visibleComments[post.postID].map((comment, index) => (
-                    <View key={index} style={styles.commentItem}>
-                      <Text style={styles.text}>User: {comment.user}</Text>
-                      <Text style={styles.text}>{comment.text}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-
-              <View style={[styles.search]}>
-                <TextInput
-                  style={[styles.input4]}
-                  value={commentText[post.postID] || ''}
-                  onChangeText={(text) => handleCommentTextChange(post.postID, text)}
-                  placeholder="Add a comment..."
-                />
-                <TouchableOpacity style={[styles.iconContainer, { right: 40 }]} onPress={toggleModal}>
-                  <Feather name="upload" size={18} color="black" />
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))}
-        </View>
-
-        <ModalStyle isVisible={isModalVisible} onClose={toggleModal} navigation={navigation} />
-      </ScrollView>
-    </Keyboard>
+      <ModalStyle isVisible={isModalVisible} onClose={toggleModal} navigation={navigation} />
+    </ScrollView>
+  </Keyboard>
   );
 };
 

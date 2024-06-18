@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, Pressable, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, Pressable, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import styles from '../components/styles';
 import { fetchResources } from '../components/manageResource';
@@ -47,21 +47,21 @@ const PreHome = ({ navigation }) => {
     setCurrentDate(formattedDate);
   }, []);
 
-  const toggleModal = () => {
+  const toggleModal = () => { 
     setModalVisible(!isModalVisible);
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style = {[styles.container3, {top: 50}]}>
+       <View style = {[styles.container4 , {...Platform.select({web:{} , default:{paddingTop:50}})}]}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <Text style={styles.date}>{currentDate}</Text>
           <Ionicons name="notifications-outline" size={24} color="black" />
         </View>
-        <Text style={[styles.textTitle, {marginTop: 20}]}>Welcome to Bloom!</Text>
+        <Text style={[styles.textTitle, {paddingTop: 10}]}>Welcome to Bloom!</Text>
       </View>
 
-      <View style = {[styles.container3, {marginTop: 60}]}>
+      <View style = {[styles.container4]}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Pressable style={styles.button7} />
           <Text style={[styles.text, { marginLeft: 10 }]}>Today</Text>
@@ -105,7 +105,7 @@ const PreHome = ({ navigation }) => {
 
       <View>
         <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 20, paddingVertical: 10, marginBottom: 20 }}>
+           contentContainerStyle={{ gap: 20, paddingVertical: 10}}>
           {resources.map(
             (resource, index) => (
               <TouchableOpacity
@@ -113,7 +113,9 @@ const PreHome = ({ navigation }) => {
                 style={styles.resourceBtn}
                 onPress={toggleModal}
               >
-                <Text>{resource.title}</Text>
+                <View style= {{flex: 1, justifyContent: 'flex-end'}}>
+                  <Text style= {[styles.text]} ellipsizeMode='tail'>{resource.title}</Text>
+                </View>
               </TouchableOpacity>
             )
           )}

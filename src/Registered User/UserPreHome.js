@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, Pressable, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, Pressable, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -47,7 +47,7 @@ const UserPreHome = ({ navigation }) => {
         if (storedEmail) {
           const response = await axios.get(`${url}/userinfo?email=${storedEmail}`);
           if (response.data) {
-            setUserInfo(response.data);
+            setUserInfo(response.data); 
           }
         }
       } catch (error) {
@@ -73,65 +73,69 @@ const UserPreHome = ({ navigation }) => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style = {[styles.container3, {top: 50, marginBottom: 20}]}>
+     <View style={[styles.container4, { ...Platform.select({ web: {}, default: { paddingTop: 50 } }) }]}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <Text style={styles.date}>{currentDate}</Text>
           <Ionicons name="notifications-outline" size={24} color="black" />
         </View>
-        <Text style={[styles.textTitle, {marginTop: 20}]}>Welcome, {userInfo.firstName}!</Text>
+        <Text style={[styles.textTitle, {paddingTop: 10}]}>Welcome, {userInfo.firstName}!</Text>
       </View>
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 40 }}>
-        <Pressable style={styles.button7} />
-        <Text style={[styles.text, { marginLeft: 10 }]}>Today</Text>
-        <Pressable style={[styles.button8, { marginLeft: 30 }]} />
-        <Text style={[styles.text, { marginLeft: 10 }]}>Ovulation</Text>
-      </View>
-
-      <View style={[styles.calendarContainer]}>
-        <View style={styles.header}>
-          {weekDays.map((day, index) => (
-            <Text key={index} style={styles.dayLabel}>{day}</Text>
-          ))}
+      <View style={[styles.container4]}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Pressable style={styles.button7} />
+          <Text style={[styles.text, { marginLeft: 10 }]}>Today</Text>
+          <Pressable style={[styles.button8, { marginLeft: 30 }]} />
+          <Text style={[styles.text, { marginLeft: 10 }]}>Ovulation</Text>
         </View>
-        <View style={styles.days}>
-          {weekDates.map((date, index) => (
-            <Text key={index} style={[styles.date2, date === currentDay && styles.currentDate]}>{date}</Text>
-          ))}
+
+        <View style={[styles.calendarContainer]}>
+          <View style={styles.header}>
+            {weekDays.map((day, index) => (
+              <Text key={index} style={styles.dayLabel}>{day}</Text>
+            ))}
+          </View>
+          <View style={styles.days}>
+            {weekDates.map((date, index) => (
+              <Text key={index} style={[styles.date2, date === currentDay && styles.currentDate]}>{date}</Text>
+            ))}
+          </View>
         </View>
-      </View>
 
-      <Pressable style={[styles.button, { alignSelf: 'center', marginTop: 20, marginBottom: 20 }]} onPress={() => navigation.navigate("LogPeriod")}>
-        <Text style={styles.text}>Log Period</Text>
-      </Pressable>
-
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-        <MaterialIcons name="history" size={24} color="black" />
-        <Pressable onPress={() => navigation.navigate("CycleHistory")} style={{ marginLeft: 10 }}>
-          <Text style={styles.questionText}>Cycle History</Text>
+        <Pressable style={[styles.button, { alignSelf: 'center', marginTop: 20, marginBottom: 20 }]} onPress={() => navigation.navigate("LogPeriod")}>
+          <Text style={styles.text}>Log Period</Text>
         </Pressable>
-      </View>
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-        <Ionicons name="scale-outline" size={24} color="black" />
-        <Pressable onPress={() => navigation.navigate("WeightTracker")} style={{ marginLeft: 10 }}>
-          <Text style={styles.questionText}>Weight Tracker</Text>
-        </Pressable>
-      </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+          <MaterialIcons name="history" size={24} color="black" />
+          <Pressable onPress={() => navigation.navigate("CycleHistory")} style={{ marginLeft: 10 }}>
+            <Text style={styles.questionText}>Cycle History</Text>
+          </Pressable>
+        </View>
 
-      <Text style={[styles.titleNote, { marginBottom: 20 }]}>Suggested for you</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+          <Ionicons name="scale-outline" size={24} color="black" />
+          <Pressable onPress={() => navigation.navigate("WeightTracker")} style={{ marginLeft: 10 }}>
+            <Text style={styles.questionText}>Weight Tracker</Text>
+          </Pressable>
+        </View>
+
+        <Text style={[styles.titleNote, { marginBottom: 20 }]}>Suggested for you</Text>
+      </View>
 
       <View>
         <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 20, paddingVertical: 10, marginBottom: 20 }}>
+          contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
           {resources.map(
             (resource, index) => (
               <TouchableOpacity
                 key={index}
                 style={styles.resourceBtn}
-                onPress={() => navigation.navigate('UserResourceInfo', { title: resource.title })}
+                onPress={() => navigation.navigate('UserResourceInfo', { resourceID: resource.resourceID })}
               >
-                <Text>{resource.title}</Text>
+                <View style= {{flex: 1, justifyContent: 'flex-end'}}>
+                  <Text style= {[styles.text]} ellipsizeMode='tail'>{resource.title}</Text>
+                </View>
               </TouchableOpacity>
             )
           )}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Dimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Dimensions, Platform } from 'react-native';
 import axios from 'axios';
 import styles from '../components/styles';
 import { Feather, Ionicons } from '@expo/vector-icons';
@@ -33,7 +33,7 @@ const UserResource = ({ navigation }) => {
     const fetchResources = async () => {
       try {
         const response = await axios.get(`${url}/resource`);
-        setResources(response.data);
+        setResources(response.data.resources);
       } catch (error) {
         console.error('Error fetching resources:', error);
       }
@@ -58,16 +58,16 @@ const UserResource = ({ navigation }) => {
 
   return (
     <Keyboard>
-    <ScrollView style={styles.container3} contentContainerStyle={{ paddingBottom: topHeight }}>
-      <View onLayout={onLayoutTop} style={[styles.container2, { top: 75, left: 20, width: screenWidth * 0.9 }]}>
+   <ScrollView style={styles.container3} contentContainerStyle={{...Platform.select({web:{} , default:{paddingTop:50}})}}>
+      <View onLayout={onLayoutTop} style={[styles.container2, { paddingTop: 20, left: 20, width: screenWidth * 0.9 }]}>
         <Text style={[styles.pageTitle]}>Resource Hub</Text>
-        <View style={[styles.iconContainer, {marginBottom: 0}]}>
+        <View style={[styles.iconContainer]}>
           <Feather name="download" size={24} color="black" />
         </View>
       </View>
 
       {/* Search Bar */}
-      <View style={[styles.search, {top: 100, right: 10}]}>
+      <View style={[styles.search, {paddingTop: 20 , right:10}]}>
         <View style={[styles.iconContainer, {left: 40}]}>
           <Ionicons name="search-outline" size={24} color="black" />
         </View>
@@ -81,9 +81,14 @@ const UserResource = ({ navigation }) => {
       </View>
 
       {/* Dynamic Navigation Buttons */}
-      <View style={[styles.buttonContainer, { top: 120, left: 20 }]}>
+      <View style={[styles.buttonContainer, {
+        ...Platform.select({
+          web:{width:screenWidth*0.9, paddingTop:20, left: 20 , paddingRight:10},
+          default:{paddingTop:20, left: 20 , paddingRight:10}
+        }) }]}>
         <ScrollView  ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 20, paddingVertical: 10, marginBottom: 10, paddingRight: 30 }}>
+            style={Platform.OS === 'web'? {width:'100%'}:{width:screenWidth * 0.9}}
+            contentContainerStyle={[{ gap: 10, paddingVertical: 10, marginBottom: 10 }, Platform.OS!=='web' && {paddingRight:10}]}>
           {categories.map((category, index) => (
             <TouchableOpacity
               key={index}
@@ -100,25 +105,21 @@ const UserResource = ({ navigation }) => {
       </View>
 
       {/* Resources */}
-      <View style={[{ top: 120, left: 20 }]}>
+      <View style={[{ left: 20}, Platform.OS==="web"?{ width: screenWidth * 0.9}:{width:'100%'}]}>
         <ScrollView style={styles.container3}
-          contentContainerStyle={{
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            gap: 20,
-            paddingVertical: 10,
-            paddingBottom: topHeight,
-          }}>
+          contentContainerStyle={Platform.OS==="web"? styles.resourceContainerWeb : styles.resourceContainerMobile}>
           {resources.map((resource, index) => {
             const activeCategory = categories[activeIndex]?.categoryName;
             if (activeCategory === "All" || resource.category === activeCategory) {
               return (
                 <TouchableOpacity
                   key={index}
-                  style={styles.resourceBtn}
-                  onPress= {() => navigation.navigate("UserResourceInfo", { title: resource.title })}
+                  style={[styles.resourceBtn , {marginRight:(screenWidth * 0.3 - 100)}]}
+                  onPress= {() => navigation.navigate("UserResourceInfo", { resourceID: resource.resourceID })}
                 >
-                  <Text>{resource.title}</Text>
+                  <View style= {{flex: 1, justifyContent: 'flex-end'}}>
+                    <Text style= {[styles.text]} ellipsizeMode='tail'>{resource.title}</Text>
+                  </View>
                 </TouchableOpacity>
               );
             }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState} from 'react';
-import { View, Text, Pressable, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, Pressable, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -47,12 +47,12 @@ const AdminHome = ({navigation}) => {
   // Page Displays
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style = {[styles.container3, {top: 50, marginBottom: 20}]}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+      <View style={[styles.container4, { ...Platform.select({ web: {}, default: { marginTop: 50 } }) }]}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <Text style={styles.date}>{currentDate}</Text>
           <Ionicons name="notifications-outline" size={24} color="black" />
         </View>
-        <Text style={[styles.textTitle, {marginTop: 20}]}>Welcome, {adminInfo.firstName}!</Text>
+        <Text style={[styles.textTitle, {marginTop: 10}]}>Welcome, {adminInfo.firstName}!</Text>
       </View>
     </ScrollView>
   );
