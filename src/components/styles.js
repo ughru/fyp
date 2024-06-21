@@ -256,7 +256,137 @@ export const styles = StyleSheet.create({
         borderRadius: 20,
         backgroundColor: '#E3C2D7',
     },
+<<<<<<< Updated upstream
   });
 
+=======
+    resourceContainerWeb:{
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'flex-start',
+        paddingVertical: 10
+    },
+    resourceContainerMobile:{
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'flex-start',
+        paddingVertical: 10
+    },
+    modalOverlay: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContainer: {
+        width: '80%',
+        backgroundColor: 'white',
+        borderRadius: 10,
+        padding: 20,
+        alignItems: 'center',
+    },
+    modalTitle: {
+        fontSize: 24,
+        marginBottom: 10,
+        fontWeight: 'bold',
+    },
+    resourceView: {
+        width: 340,
+        borderRadius: 20,
+    },
+    pickerSelectStyles: {
+        inputIOS: {
+            fontSize: 16,
+            color: 'black',
+            width: 340,
+            height: 40,
+            padding: 10,
+            borderRadius: 20,
+            borderWidth: 1,
+            borderColor: '#979595', 
+        },
+        inputAndroid: {
+            fontSize: 16,
+            color: 'black',
+            width: 340,
+            height: 40,
+            padding: 10,
+            borderRadius: 20,
+            borderWidth: 1,
+            borderColor: '#979595', 
+        },
+        inputWeb:{
+            fontSize: 16,
+            color: 'black',
+            width: 340,
+            height: 40,
+            padding: 10,
+            borderRadius: 20,
+            borderWidth: 1,
+            borderColor: '#979595', 
+        }
+    },
+    forumPostContainer: {
+        padding: 5,
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        marginBottom: 15,
+        borderColor: '#ddd',
+        borderWidth: 1,
+    },
+    commentsIcon: {
+        margin: 5,
+        color: 'grey',
+    },
+    adImageContainer: {
+        padding: 10,
+        marginBottom: 10,
+    },
+    adImageContainerAppt: {
+        padding: 10,
+        width: "100%", 
+        alignItems: 'center'
+    },
+    adImage: {
+        width: 320,
+        height: 200,
+        resizeMode: 'center',
+    },
+    calendarIcon: {
+        flex: 1,
+        flexDirection: 'row',
+        paddingLeft: 30
+    },
+    calendarText: {
+        marginLeft: 10,
+        fontWeight: 'bold',
+        fontSize: 18,
+    },
+    container6: {
+        height: 'fit-content'
+    },
+    text4: {
+        fontWeight: 'bold',
+        fontSize: 18,
+        paddingLeft: 25
+    },
+    containerDan: {
+        flexGrow: 1
+    },
+    containerDan2: {
+        height: 'fit-content',
+        flexDirection: 'column',
+    },
+    pageTitleDan: {
+        fontSize: 30,
+        fontWeight: 'bold',
+        padding: 10,
+        marginLeft: 10
+    },
+    containerDan3: {
+        padding: 10
+    }
+});
+>>>>>>> Stashed changes
 
 export default styles;

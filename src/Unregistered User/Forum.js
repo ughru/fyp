@@ -180,10 +180,22 @@ const Forum = ({ navigation }) => {
 
   return (
     <Keyboard>
+<<<<<<< Updated upstream
     <ScrollView contentContainerStyle={styles.container}>
       <Text style= {[styles.pageTitle, {top: 80, left: 20}]}> Community Forum </Text>
       <View style={[styles.iconContainer, {top: 80, left: 330}]}>
         <Feather name="edit" size={24} color="black" />
+=======
+      <ScrollView style={styles.container5}>
+        <View style={styles.container4}>
+          <View style={[styles.container2, { paddingTop: 20, paddingHorizontal: 20 }, Platform.OS!=="web"&& {paddingTop:50}]}>
+          <Text style={styles.pageTitle}> Community Forum </Text>
+          </View>
+
+        <View style={[styles.adImageContainer, { width: "100%", alignItems: 'center' }]}>
+          {imageUrl && <Image source={{ uri: imageUrl }} style={styles.adImage} />}
+        </View>
+>>>>>>> Stashed changes
       </View>
     </ScrollView>
     </Keyboard>

@@ -47,6 +47,7 @@ const Settings = ({ navigation, selectedStatus, setSelectedStatus }) => {
             <Text>{selectedStatus === 'During' ? 'During' : 'During'}</Text>
           </Pressable>
 
+<<<<<<< Updated upstream
       <Pressable
         style={[
           styles.button6,
@@ -63,6 +64,37 @@ const Settings = ({ navigation, selectedStatus, setSelectedStatus }) => {
       <Pressable style={[styles.button5, {top: 450}]} onPress={() =>navigation.navigate("AccountType")}>
         <Text style= {styles.questionText}> Register </Text>
       </Pressable>
+=======
+          <Pressable
+            style={[
+              styles.button6, {marginHorizontal: 10},
+              selectedStatus === 'Post' ? styles.button6 : styles.defaultButton,
+            ]}
+            disabled={!selectedStatus}
+            onPress={() => handleStatusSelection('Post')}
+          >
+            <Text>{selectedStatus === 'Post' ? 'Post' : 'Post'}</Text>
+          </Pressable>
+        </View>
+      </View>
+      
+      <View style = {[styles.container3, {alignItems: 'center' , paddingHorizontal:20 , justifyContent:'center'}]}>
+        <Text style={[styles.pageTitle, {marginBottom: 20}]}> Join Bloom </Text>
+        <Pressable style={styles.button5} onPress={() => navigation.navigate("AccountType")}>
+          <Text style={styles.questionText}> Register </Text>
+        </Pressable>
+        <Pressable style={{width: 270,
+        height: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 5,
+        borderRadius: 20,
+        marginTop: 10,
+        backgroundColor: '#E3C2D7'}} onPress={() => navigation.navigate("Login")}>
+          <Text style={styles.questionText}> Login </Text>
+        </Pressable>
+      </View>
+>>>>>>> Stashed changes
     </View>
   );
 };
