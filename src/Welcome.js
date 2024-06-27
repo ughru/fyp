@@ -9,7 +9,7 @@ const Welcome = ({ navigation }) => {
   useEffect(() => {
     const fetchImage = async () => {
       try {
-        const url = await firebase.storage().ref('miscellaneous/logo.PNG').getDownloadURL();
+       const url = await firebase.storage().ref('miscellaneous/logo.png').getDownloadURL();
         setImageUrl(url);
       } catch (error) {
         console.error('Error fetching image:', error);
@@ -30,6 +30,10 @@ const Welcome = ({ navigation }) => {
       {/* Button */}
       <Pressable style={[styles.button, {alignSelf: 'center'}]} onPress={() => navigation.navigate("Personalisation")}>
         <Text style={styles.text}>Get Started</Text>
+      </Pressable>
+
+      <Pressable style={[styles.formText, { marginBottom: 20, alignSelf: 'center' }]} onPress={() => navigation.navigate("RegisterSpecialist", { origin: 'RegisterSpecialist' })}>
+        <Text>Joining as a <Text style= {{fontWeight: 'bold'}}>SPECIALIST</Text>? <Text style={styles.buttonText}>Sign up</Text></Text>
       </Pressable>
     </View>
   );

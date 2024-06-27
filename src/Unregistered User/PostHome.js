@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, Pressable, ScrollView, TouchableOpacity, Platform } from 'react-native';
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { View, Text, Pressable, ScrollView, TouchableOpacity, Platform, Image, StyleSheet } from 'react-native';
+import { Feather, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import styles from '../components/styles';
 import { fetchResources } from '../components/manageResource';
 import ModalStyle from '../components/ModalStyle';
@@ -40,14 +40,14 @@ const PostHome = ({ navigation }) => {
           <Text style={styles.date}>{currentDate}</Text>
           <Ionicons name="notifications-outline" size={24} color="black" />
         </View>
-        <Text style={[styles.textTitle, { marginTop: 10 }]}>Welcome to Bloom!</Text>
+        <Text style={[styles.textTitle, { marginTop: 10, marginBottom: 30 }]}>Welcome to Bloom!</Text>
       </View>
 
       <View style={[styles.container4, { marginBottom: 20 }]}>
         <Text style={[styles.text, { marginBottom: 20 }]}>Upcoming Appointments</Text>
         <View style={{flex:1 , flexDirection:'row' , alignSelf:'center'}}>
           <View style={[styles.button4, { flexDirection: 'row' }]}>
-            <Feather name="calendar" size={24} color="black" style={{}} />
+            <Feather name="calendar" size={24} color="black" />
             <Text style={styles.textInputWithIcon2}>No Appointments Yet</Text>
           </View>
         </View>
@@ -60,7 +60,21 @@ const PostHome = ({ navigation }) => {
         </View>
 
         <View style={[styles.container4]}>
-          <Text style={[styles.titleNote]}>Suggested for you</Text>
+          <Text style={[styles.titleNote, {marginBottom: 20}]}>Suggested for you</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}>
+            <View style={{alignItems: 'center'}}>
+              <MaterialCommunityIcons name="baby-face-outline" size={35} color="black" />
+              <Text style={[styles.text, {marginTop: 10, textAlign: 'center'}]}>Newborn Care</Text>
+            </View>
+            <View style={{alignItems: 'center'}}>
+              <MaterialCommunityIcons name="mother-heart" size={35} color="black" />
+              <Text style={[styles.text, {marginTop: 10, textAlign: 'center'}]}>Recovery</Text>
+            </View>
+            <View style={{alignItems: 'center'}}>
+              <MaterialIcons name="health-and-safety" size={35} color="black" />
+              <Text style={[styles.text, {marginTop: 10, textAlign: 'center'}]}>Health</Text>
+            </View>
+          </View>
         </View>
       </View>
 
@@ -69,15 +83,24 @@ const PostHome = ({ navigation }) => {
           contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
           {resources.map(
             (resource, index) => (
+              <View key={index} style= {{marginBottom: 20}}>
               <TouchableOpacity
                 key={index}
                 style={styles.resourceBtn}
                 onPress={toggleModal}
               >
-                <View style= {{flex: 1, justifyContent: 'flex-end'}}>
-                  <Text style= {[styles.text]} ellipsizeMode='tail'>{resource.title}</Text>
-                </View>
+                {/* Image */}
+                <View style={{ ...StyleSheet.absoluteFillObject }}>
+                    <Image
+                      source={{ uri: resource.imageUrl}}
+                      style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'cover' }}
+                    />
+                  </View>
               </TouchableOpacity>
+              <Text style= {[styles.text, {marginTop: 5, width: 100, textAlign: 'flex-start'}]}>
+                {resource.title} 
+              </Text>
+              </View>
             )
           )}
         </ScrollView>

@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Dimensions, Platform} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Dimensions, Platform, StyleSheet, Image} from 'react-native';
 import axios from 'axios';
 import styles from '../components/styles';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import url from '../components/config';
 import Keyboard from '../components/Keyboard';
 import ModalStyle from '../components/ModalStyle';
+import { firebase } from '../../firebaseConfig'; 
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -64,7 +65,7 @@ const Resource = ({ navigation }) => {
 
   return (
     <Keyboard>
-    <ScrollView style={styles.container3} contentContainerStyle={{ /*paddingBottom: topHeight*/ ...Platform.select({web:{} , default:{paddingTop:50}})}}>
+    <ScrollView style={styles.container3} contentContainerStyle={{...Platform.select({web:{} , default:{paddingTop:50}})}}>
       <View onLayout={onLayoutTop} style={[styles.container2, { paddingTop: 20, left: 20, width: screenWidth * 0.9 }]}>
         <Text style={[styles.pageTitle]}>Resource Hub</Text>
         <TouchableOpacity style={[styles.iconContainer]}>
@@ -116,15 +117,27 @@ const Resource = ({ navigation }) => {
             const activeCategory = categories[activeIndex]?.categoryName;
             if (activeCategory === "All" || resource.category === activeCategory) {
               return (
+                <View key={index} style= {{marginBottom: 20}}>
+                
                 <TouchableOpacity
                   key={index}
                   style={[styles.resourceBtn , {marginRight:(screenWidth * 0.3 - 100)}]}
                   onPress={toggleModal}
                 >
-                  <View style= {{flex: 1, justifyContent: 'flex-end'}}>
-                    <Text style= {[styles.text]} ellipsizeMode='tail'>{resource.title}</Text>
-                  </View>
+
+                {/* Image */}
+                <View style={{ ...StyleSheet.absoluteFillObject }}>
+                  <Image
+                    source={{ uri: resource.imageUrl}}
+                    style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'cover' }}
+                  />
+                </View>
+
                 </TouchableOpacity>
+                <Text style= {[styles.text, {marginTop: 5, width: 100, textAlign: 'flex-start'}]}>
+                  {resource.title} 
+                </Text>
+                </View>
               );
             }
             return null;

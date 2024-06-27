@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Text, Pressable, TextInput, ScrollView, View, Platform } from 'react-native';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { getAuth } from '../firebase';
+import { auth } from '../firebaseConfig';
 import styles from './components/styles';
 import Keyboard from './components/Keyboard';
 import { AntDesign } from '@expo/vector-icons';
@@ -88,7 +87,11 @@ const RegisterSpecialist= ({navigation}) => {
         setError4('* Required field');
         valid = false;
       }
-      else if (!/^[0-9]{8}[A-Za-z]$/.test(uen) || !/^[A-Za-z]{4}[0-9]{5}[A-Za-z]$/.test(uen) || !/^(T|S|20)\d{2}[A-Za-z0-9]{2}[A-Za-z]$/.test(uen)) {
+      else if (
+        !/^[0-9]{8}[A-Za-z]$/.test(uen) &&
+        !/^[A-Za-z]{4}[0-9]{5}[A-Za-z]$/.test(uen) &&
+        !/^([TS]\d{2})[A-Za-z][A-Za-z0-9]\d{4}[A-Za-z]$/.test(uen)
+    ) {
         setError4('* Invalid UEN');
         valid = false;
       }
@@ -116,11 +119,10 @@ const RegisterSpecialist= ({navigation}) => {
 
       if (valid) {
         // Call Firebase function to create user with email and password
-        const auth = getAuth();
-        await createUserWithEmailAndPassword(auth, email, password);
+        await auth.createUserWithEmailAndPassword(auth, email, password);
         
         // Navigate to the home screen
-        navigation.navigate("RegisteredHome");
+        navigation.navigate("Login");
       }
     } catch (error) {
       console.error('Registration error:', error.message);
@@ -180,11 +182,7 @@ const RegisterSpecialist= ({navigation}) => {
           <Text style={styles.text}> Register </Text>
         </Pressable>
 
-        <Pressable style={[styles.formText, { marginBottom: 20, alignSelf: 'center' }]} onPress={() => navigation.navigate("AccountType")}>
-          <Text style={styles.buttonText}> Register as different user </Text>
-        </Pressable>
-
-        <Pressable style={[styles.formText, { marginBottom: 20, alignSelf: 'center' }]} onPress={() => navigation.navigate("Login")}>
+        <Pressable style={[styles.formText, { marginBottom: 20, alignSelf: 'center' }]} onPress={() => navigation.navigate("Login", { origin: 'RegisterSpecialist' })}>
           <Text>Already have an account? <Text style={styles.buttonText}>Login</Text></Text>
         </Pressable>
       </ScrollView>

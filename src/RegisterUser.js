@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Text, Pressable, TextInput, ScrollView, View , Platform} from 'react-native';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getAuth } from '../firebase';
+import { auth } from '../firebaseConfig';
 import styles from './components/styles';
 import Keyboard from './components/Keyboard';
 import axios from 'axios';
@@ -26,7 +25,6 @@ const RegisterUser= ({navigation}) => {
   const [registrationInProgress, setRegistrationInProgress] = useState(false);
 
   useEffect(() => {
-    // Retrieve selected status from AsyncStorage
     const fetchSelectedStatus = async () => {
       try {
         const storedStatus = await AsyncStorage.getItem('selectedStatus');
@@ -46,117 +44,85 @@ const RegisterUser= ({navigation}) => {
     setRegistrationInProgress(true);
 
     const userData = {
-      firstName: firstName,
-      lastName: lastName,
-      email,
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      email: email.trim(),
       password,
       status: selectedStatus, 
     };
 
     try {
-      // Handle Name Errors
+      // Validate First Name
       if (!firstName.trim()) {
-        // Check if empty
         setError1('* Required field');
         valid = false;
-      }
-      else if ((!/^[a-zA-Z ]+$/.test(firstName))) {
+      } else if (!/^[a-zA-Z ]+$/.test(firstName)) {
         setError1('* Invalid First Name');
         valid = false;
-      }
-      else if (firstName.length < 2 ) {
+      } else if (firstName.length < 2) {
         setError1('* Minimum 2 characters');
         valid = false;
-      }
-      else {
+      } else {
         setError1('');
       }
 
-
-      // Handle Name Errors
+      // Validate Last Name
       if (!lastName.trim()) {
-        // Check if empty
         setError2('* Required field');
         valid = false;
-      }
-      else if ((!/^[a-zA-Z\-]+$/.test(lastName))) {
+      } else if (!/^[a-zA-Z\-]+$/.test(lastName)) {
         setError2('* Invalid Last Name');
         valid = false;
-      }
-      else if (lastName.length < 2 ) {
+      } else if (lastName.length < 2) {
         setError2('* Minimum 2 characters');
         valid = false;
-      }
-      else {
+      } else {
         setError2('');
       }
 
-      // Handle Email Errors
-      const response = await axios.post(`${url}/register`, userData);
+      // Validate Email
       if (!email.trim()) {
         setError3('* Required field');
         valid = false;
-      }
-      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         setError3('* Invalid email format');
         valid = false;
-      }
-      else if (response && response.data && response.data.error === 'User already exists!') {
-        setError3('* User already exists');
-        valid = false;
-      }
-      else {
+      } else {
         setError3('');
       }
 
-
-      // Handle Password Errors
+      // Validate Password
       if (!password.trim() || !confirmPw.trim()) {
-         // Check if empty
         setError4('* Required field');
         setError5('* Required field');
         valid = false;
-      }
-      else if (password !== confirmPw) {
-        // Check if passwords match
-        setError4('* Password do not match');
-        setError5('* Password do not match');
+      } else if (password !== confirmPw) {
+        setError4('* Passwords do not match');
+        setError5('* Passwords do not match');
         valid = false;
-      }
-      else if (password.length < 6 ) {
+      } else if (password.length < 6) {
         setError4('* Password must be at least 6 characters');
         valid = false;
-      }
-      else if (confirmPw.length < 6 ) {
+      } else if (confirmPw.length < 6) {
         setError5('* Password must be at least 6 characters');
         valid = false;
-      }
-      else {
+      } else {
         setError4('');
         setError5('');
       }
 
-
       if (valid) {
-        const auth = getAuth();
-
         try {
-          await createUserWithEmailAndPassword(auth, email, password);
+          await auth.createUserWithEmailAndPassword(email, password);
 
-          // Store user information in AsyncStorage
-          await AsyncStorage.setItem('user', JSON.stringify({ email }));
+          await AsyncStorage.setItem('user', email);
 
-          // Submit data to backend
           const response = await axios.post(`${url}/register`, userData);
-
-          // Check if user already exists
           if (response.data && response.data.error === 'User already exists!') {
-            // Handle case where user already exists
             setError3('* User already exists');
-            return; // Stop further execution
+            return;
           }
 
-          // Navigate to the home screen if registration is successful
           navigation.navigate("RegisteredHome");
         } catch (authError) {
           if (authError.code === 'auth/email-already-in-use') {
@@ -173,11 +139,9 @@ const RegisterUser= ({navigation}) => {
         console.error('Registration error:', error.message);
       }
     } finally {
-      // Reset registration in progress
       setRegistrationInProgress(false);
     }
   };
-
 
   return (
     <Keyboard>
@@ -227,13 +191,8 @@ const RegisterUser= ({navigation}) => {
           <Text style={styles.text}> Register </Text>
         </Pressable>
   
-        {/* Register as Different User */}
-        <Pressable style={[styles.formText, { marginBottom: 20, alignSelf: 'center' }]} onPress={() => navigation.navigate("AccountType")}>
-          <Text style={styles.buttonText}> Register as a different user </Text>
-        </Pressable>
-  
         {/* Already have an account? Login */}
-        <Pressable style={[styles.formText, { marginBottom: 20, alignSelf: 'center' }]} onPress={() => navigation.navigate("Login")}>
+        <Pressable style={[styles.formText, { marginBottom: 20, alignSelf: 'center' }]} onPress={() => navigation.navigate("Login", { origin: 'RegisterUser' })}>
           <Text>Already have an account? <Text style={styles.buttonText}>Login</Text></Text>
         </Pressable>
       </ScrollView>

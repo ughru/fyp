@@ -139,6 +139,17 @@ export const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#E3C2D7',
     },
+    button10: {
+        width: 20,
+        height: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 5,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: '#E3C2D7',
+        marginRight: 10,
+    },
     defaultButton: {
         borderColor: '#E3C2D7',
         backgroundColor: 'transparent',
@@ -379,6 +390,15 @@ export const styles = StyleSheet.create({
         height: 200,
         resizeMode: 'center',
     },
+    imageUpload: {
+        borderWidth: 1,
+         width: 150, 
+         height: 30,
+         borderRadius: 20, 
+         justifyContent: 'center', 
+         alignItems: 'center', 
+         borderColor: '#979595' 
+    }
 });
 
 export default styles;

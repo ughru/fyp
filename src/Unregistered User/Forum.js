@@ -43,7 +43,6 @@ const Forum = ({ navigation }) => {
   const [activeButton, setActiveButton] = useState('General');
   const [imageUrl, setImageUrl] = useState(null);
   const [isModalVisible, setModalVisible] = useState(false);
-  const [userInfo, setUserInfo] = useState({});
 
   useEffect(() => {
     const fetchForumPosts = async () => {
@@ -51,31 +50,6 @@ const Forum = ({ navigation }) => {
         const response = await axios.get(`${url}/getForumPosts`);
         if (response.data.status === "ok") {
           const posts = response.data.forumPosts;
-    
-          // Fetch user information for each post
-          for (const post of posts) {
-            try {
-              const userInfoResponse = await axios.get(`${url}/getUserInfo`, {
-                params: { email: post.userEmail },
-              });
-    
-              if (userInfoResponse.data.status === 'ok') {
-                const userData = userInfoResponse.data.data;
-    
-                // Add user info to the post
-                post.userInfo = {
-                  firstName: userData.firstName || '',
-                  lastName: userData.lastName || '',
-                  email: userData.email || '',
-                };
-              } else {
-                console.error('Error fetching user info:', userInfoResponse.data.error);
-              }
-            } catch (error) {
-              console.error('Error fetching user info:', error);
-            }
-          }
-    
           setForumPost(posts);
         } else {
           console.error("Error fetching forum posts:", response.data.error);
@@ -93,7 +67,7 @@ const Forum = ({ navigation }) => {
         console.error('Error fetching image:', error);
       }
     };
-      
+
     fetchForumPosts();
     fetchImage();
   }, []);
@@ -103,47 +77,6 @@ const Forum = ({ navigation }) => {
       const response = await axios.get(`${url}/getComments`, { params: { postID } });
       if (response.data.status === 'ok') {
         const comments = response.data.comments;
-  
-        // Fetch user or specialist info for each comment
-        for (const comment of comments) {
-          try {
-            let userInfoResponse;
-            let userData;
-  
-            // First, check if userInfo already has the user's info
-            if (userInfo[comment.userEmail]) {
-              // If userInfo already has the user's info, use it directly
-              userData = userInfo[comment.userEmail];
-            } else {
-              // Fetch combined user or specialist info
-              userInfoResponse = await axios.get(`${url}/getUserInfo`, {
-                params: { email: comment.userEmail },
-              });
-  
-              if (userInfoResponse.data.status === 'ok') {
-                userData = userInfoResponse.data.data;
-                // Update userInfo state to include this user's info
-                setUserInfo(prevUserInfo => ({
-                  ...prevUserInfo,
-                  [comment.userEmail]: userData,
-                }));
-              } else {
-                console.error('Error fetching user info:', userInfoResponse.data.error);
-                continue; // Skip to next comment if user info not found
-              }
-            }
-  
-            // Update comment with user or specialist info
-            comment.userInfo = {
-              firstName: userData.firstName || '',
-              lastName: userData.lastName || '',
-              email: userData.email || '',
-            };
-          } catch (error) {
-            console.error('Error fetching user or specialist info:', error);
-          }
-        }
-  
         setVisibleComments(prevState => ({
           ...prevState,
           [postID]: comments,

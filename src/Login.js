@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Text, Pressable, TextInput, ScrollView, View, Platform } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from './components/styles';
 import Keyboard from './components/Keyboard';
@@ -7,12 +8,15 @@ import axios from 'axios';
 import url from "./components/config";
 import { AntDesign } from '@expo/vector-icons';
 
-const Login = ({ navigation }) => {
+const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const [emailError, setError1] = useState('');
   const [pwError, setError2] = useState('');
+
+  const navigation = useNavigation();
+  const route = useRoute();
 
   navigation.addListener('focus', () => {
     setEmail('');
@@ -72,14 +76,45 @@ const Login = ({ navigation }) => {
     }
   };
 
+  const handleBackPress = () => {
+    // Check if route.params and route.params.origin exist and navigate accordingly
+    if (route.params && route.params.origin) {
+      switch (route.params.origin) {
+        case 'UserSettings':
+        case 'SpecialistSettings':
+        case 'AdminSettings':
+          navigation.navigate('Welcome');
+          break;
+        default:
+          navigation.goBack();
+          break;
+      }
+    } else {
+      navigation.goBack();
+    }
+  };
+
+  const handleRegister = () => {
+    if (route.params && route.params.origin) {
+      switch (route.params.origin) {
+        case 'RegisterSpecialist':
+          navigation.navigate('RegisterSpecialist');
+          break;
+        default:
+          navigation.navigate('RegisterUser');
+          break;
+      }
+    }
+  }
+
   return (
     <Keyboard>
        <ScrollView contentContainerStyle={[styles.container]}>
         {/* Back Button */}
         <View style={[styles.container4, Platform.OS !== "web" && { paddingTop: 50 }]}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', paddingBottom:20 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', paddingBottom:120 }}>
             <AntDesign name="left" size={24} color="black" />
-            <Pressable style={[styles.formText]} onPress={() => navigation.goBack()}>
+            <Pressable style={[styles.formText]} onPress={handleBackPress}>
               <Text style={styles.text}> back </Text>
             </Pressable>
           </View>
@@ -101,7 +136,7 @@ const Login = ({ navigation }) => {
               <TextInput style={[styles.input]} value={password} onChangeText={setPassword} secureTextEntry={true} />
             </View>
 
-            <Pressable style={[styles.formText, { marginLeft: 10, marginBottom: 20 }]} onPress={() => navigation.navigate("ForgetPw")}>
+            <Pressable style={[styles.formText, { marginLeft: 10, marginBottom: 20 }]} onPress={() => navigation.navigate("ForgetPw", { origin: 'Login' })}>
               <Text style={styles.buttonText}> Forgot Password? </Text>
             </Pressable>
 
@@ -110,7 +145,7 @@ const Login = ({ navigation }) => {
               <Text style={styles.text}> Login </Text>
             </Pressable>
 
-            <Pressable style={[styles.formText, { alignSelf: 'center' }]} onPress={() => navigation.navigate("AccountType")}>
+            <Pressable style={[styles.formText, { alignSelf: 'center' }]} onPress={handleRegister}>
               <Text>Don't have an account? <Text style={styles.buttonText}>Sign up</Text></Text>
             </Pressable>
           </View>

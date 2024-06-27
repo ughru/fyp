@@ -35,11 +35,9 @@ function getRandomSample(array, sampleSize) {
 
 
 // Check db connection status
-/*
 app.get("/", (req, res) => {
     res.send({status: "Started"})
 });
-*/
 
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', 'http://localhost:8081');
@@ -104,26 +102,71 @@ app.get('/admininfo', async (req, res) => {
   }
 });
 
-// get user and specialist info in one
-// combination of 2 tables to get user information of comments (forum)
-app.get('/getUserInfo', async (req, res) => {
+// edit user profile
+app.put('/editUser', async (req, res) => {
+    const { email } = req.query;
+    const updatedInfo = req.body;
+
+    try {
+        const updatedUser = await User.findOneAndUpdate({ email }, updatedInfo, { new: true });
+        if (updatedUser) {
+            res.json(updatedUser);
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
+    } catch (error) {
+        console.error('Error updating user info:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.put('/editSpecialist', async (req, res) => {
   const { email } = req.query;
+  const updatedInfo = req.body;
 
   try {
-    const user = await User.findOne({ email });
-    const specialist = await Specialist.findOne({ email });
+      // Fetch the existing specialist info
+      const existingSpecialist = await Specialist.findOne({ email });
 
-    if (user || specialist) {
-      res.send({
-        status: 'ok',
-        data: user || specialist,
-        userType: user ? 'User' : 'Specialist'
-      });
-    } else {
-      res.send({ status: 'error', error: 'User not found' });
-    }
+      if (!existingSpecialist) {
+          return res.status(404).json({ message: 'Specialist not found' });
+      }
+
+      // Update the specialist info
+      const updatedUser = await Specialist.findOneAndUpdate({ email }, updatedInfo, { new: true });
+
+      // If the update includes a name change, update all resources
+      if (updatedInfo.firstName || updatedInfo.lastName) {
+          const oldSpecialistName = `${existingSpecialist.firstName} ${existingSpecialist.lastName}`;
+          const newSpecialistName = `${updatedInfo.firstName || existingSpecialist.firstName} ${updatedInfo.lastName || existingSpecialist.lastName}`;
+
+          await Resource.updateMany(
+              { specialistName: oldSpecialistName },
+              { $set: { specialistName: newSpecialistName } }
+          );
+      }
+
+      res.json(updatedUser);
   } catch (error) {
-    res.status(500).send({ status: 'error', error: 'Error fetching user info' });
+      console.error('Error updating specialist info:', error);
+      res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.put('/editAdmin', async (req, res) => {
+  const { email } = req.query;
+  const updatedInfo = req.body;
+
+  try {
+      const updatedUser = await Admin.findOneAndUpdate({ email }, updatedInfo, { new: true });
+      if (updatedUser) {
+          res.json(updatedUser);
+      } else {
+          res.status(404).json({ message: 'Admin not found' });
+      }
+  } catch (error) {
+      console.error('Error updating admin info:', error);
+      res.status(500).json({ message: 'Internal server error' });
   }
 });
 
@@ -298,7 +341,7 @@ app.get('/resourceReco', async (req, res) => {
 
 // specialist creates a resource
 app.post('/addresource', async (req, res) => {
-  const { title, category, status, description, specialistName } = req.body;
+  const { title, category, status, description, specialistName, imageUrl } = req.body;
 
   try {
     const existingResource = await Resource.findOne({ title });
@@ -321,7 +364,8 @@ app.post('/addresource', async (req, res) => {
       category,
       status,
       description,
-      specialistName
+      specialistName,
+      imageUrl,
     });
 
     res.send({ status: "ok", data: "Resource created successfully." });
@@ -333,12 +377,12 @@ app.post('/addresource', async (req, res) => {
 
 // Update resource by ID
 app.put('/updateresource', async (req, res) => {
-  const { resourceID, title, category, status, description, specialistName } = req.body;
+  const { resourceID, title, category, status, description, specialistName, imageUrl } = req.body;
 
   try {
     const updatedResource = await Resource.findOneAndUpdate(
       { resourceID },
-      { title, category, status, description, specialistName },
+      { title, category, status, description, specialistName, imageUrl },
       { new: true } // Return the updated document
     );
 
@@ -377,27 +421,39 @@ app.delete('/deleteresource', async (req, res) => {
 *************************************************
 ************************************************/
 //Get forum post
+// use email in post -> get firstname and lastname in userinfo 
 app.get('/getForumPosts', async (req, res) => {
   try {
-      const forumPosts = await ForumPost.find().sort({ dateCreated: -1 });
+    const forumPosts = await ForumPost.find().sort({ dateCreated: -1 });
 
-      const forumPostsWithComments = await Promise.all(forumPosts.map(async (post) => {
-            const comments = await ForumComment.findOne({ postID: post.postID });
-            const commentCount = comments ? comments.comments.length : 0;
-            return {
-                ...post.toObject(),
-                commentCount: commentCount
-            };
-        }));
+    const forumPostsWithUserInfo = await Promise.all(forumPosts.map(async (post) => {
+      const user = await User.findOne({ email: post.userEmail });
+      const specialist = await Specialist.findOne({ email: post.userEmail });
+      const userInfo = user || specialist || {};
 
-        res.send({ status: 'ok', forumPosts: forumPostsWithComments });
+      const comments = await ForumComment.findOne({ postID: post.postID });
+      const commentCount = comments ? comments.comments.length : 0;
+
+      return {
+        ...post.toObject(),
+        commentCount: commentCount,
+        userInfo: {
+          firstName: userInfo.firstName || '',
+          lastName: userInfo.lastName || '',
+          email: userInfo.email || ''
+        }
+      };
+    }));
+
+    res.send({ status: 'ok', forumPosts: forumPostsWithUserInfo });
   } catch (error) {
-      console.error('Error reporting forum post:', error);
-      res.status(500).send({ status: 'error', error: 'Internal server error' });
+    console.error('Error fetching forum posts:', error);
+    res.status(500).send({ status: 'error', error: 'Internal server error' });
   }
 });
 
 // Get comments for a forum post
+// use email in comments -> get firstname and lastname in userinfo 
 app.get('/getComments', async (req, res) => {
   const { postID } = req.query;
 
@@ -405,7 +461,22 @@ app.get('/getComments', async (req, res) => {
     const forumComment = await ForumComment.findOne({ postID });
 
     if (forumComment) {
-      res.send({ status: 'ok', comments: forumComment.comments });
+      const commentsWithUserInfo = await Promise.all(forumComment.comments.map(async (comment) => {
+        const user = await User.findOne({ email: comment.userEmail });
+        const specialist = await Specialist.findOne({ email: comment.userEmail });
+        const userInfo = user || specialist || {};
+
+        return {
+          ...comment.toObject(),
+          userInfo: {
+            firstName: userInfo.firstName || '',
+            lastName: userInfo.lastName || '',
+            email: userInfo.email || ''
+          }
+        };
+      }));
+
+      res.send({ status: 'ok', comments: commentsWithUserInfo });
     } else {
       res.send({ status: 'ok', comments: [] });
     }
@@ -512,6 +583,38 @@ app.delete('/deletePost', async (req, res) => {
   } catch (error) {
       console.error('Error deleting post and comments:', error);
       res.status(500).json({ status: 'error', message: 'Internal server error' });
+  }
+});
+
+// Delete a comment
+app.delete('/deleteComment', async (req, res) => {
+  const { postID, commentID } = req.query; // Assuming postID and commentID are passed as query parameters
+
+  try {
+    // Find the forum comment by postID
+    const forumComment = await ForumComment.findOne({ postID: parseInt(postID) });
+
+    if (!forumComment) {
+      return res.status(404).send({ status: 'error', error: 'Forum post not found' });
+    }
+
+    // Find the index of the comment in the comments array
+    const commentIndex = forumComment.comments.findIndex(comment => comment._id.toString() === commentID);
+
+    if (commentIndex === -1) {
+      return res.status(404).send({ status: 'error', error: 'Comment not found' });
+    }
+
+    // Remove the comment from the comments array
+    forumComment.comments.splice(commentIndex, 1);
+
+    // Save the updated forum comment
+    await forumComment.save();
+
+    res.send({ status: 'ok', message: 'Comment deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting comment:', error);
+    res.status(500).send({ status: 'error', error: 'Failed to delete comment' });
   }
 });
 

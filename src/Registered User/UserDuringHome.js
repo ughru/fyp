@@ -1,12 +1,13 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, Pressable, ScrollView, TouchableOpacity, Image, Platform} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { View, Text, Pressable, ScrollView, TouchableOpacity, Image, Platform, StyleSheet} from 'react-native';
+import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import styles from '../components/styles';
 import url from '../components/config';
 import { fetchResources } from '../components/manageResource';
 import { firebase } from '../../firebaseConfig'; 
+import { useFocusEffect } from '@react-navigation/native';
 
 const formatDate = (date) => {
   const options = { weekday: 'long', day: 'numeric', month: 'long' };
@@ -24,21 +25,21 @@ const UserDuringHome = ({navigation}) => {
   });
   const scrollRef = useRef(null);
 
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      try {
+  const fetchUserInfo = useCallback(async () => {
+    try {
         const storedEmail = await AsyncStorage.getItem('user');
         if (storedEmail) {
-          const response = await axios.get(`${url}/userinfo?email=${storedEmail}`);
-          if (response.data) {
+        const response = await axios.get(`${url}/userinfo?email=${storedEmail}`);
+        if (response.data) {
             setUserInfo(response.data);
-          }
         }
-      } catch (error) {
+        }
+    } catch (error) {
         console.error('Error fetching user info:', error);
-      }
-    };
+    }
+  }, []);
 
+  useEffect(() => {
     const fetchAndSetResources = async () => {
       const fetchedResources = await fetchResources();
       setResources(fetchedResources);
@@ -64,9 +65,14 @@ const UserDuringHome = ({navigation}) => {
     fetchAndSetResources();
     setCurrentDateFormatted();
     fetchImage();
-  }, []);
+  }, [fetchUserInfo]);
 
- 
+  useFocusEffect(
+    useCallback(() => {
+        fetchUserInfo();
+    }, [fetchUserInfo])
+  );
+
   // Page Displays
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -103,7 +109,21 @@ const UserDuringHome = ({navigation}) => {
         </Pressable>
       </View>
 
-      <Text style={[styles.titleNote]}>What to expect</Text>
+      <Text style={[styles.titleNote, {marginBottom: 20}]}>What to expect</Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center'}}>
+        <View style={{alignItems: 'center'}}>
+          <MaterialCommunityIcons name="baby-face-outline" size={35} color="black" />
+          <Text style={[styles.text, {marginTop: 10, textAlign: 'center'}]}>Baby's growth</Text>
+        </View>
+        <View style={{alignItems: 'center'}}>
+          <MaterialCommunityIcons name="mother-heart" size={35} color="black" />
+          <Text style={[styles.text, {marginTop: 10, textAlign: 'center'}]}>Body changes</Text>
+        </View>
+        <View style={{alignItems: 'center'}}>
+          <MaterialIcons name="health-and-safety" size={35} color="black" />
+          <Text style={[styles.text, {marginTop: 10, textAlign: 'center'}]}>Health</Text>
+        </View>
+      </View>
     </View>
 
       {/* Dynamically get 10 recommended resources */}
@@ -112,15 +132,24 @@ const UserDuringHome = ({navigation}) => {
           contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
           {resources.map(
             (resource, index) => (
+              <View key={index} style= {{marginBottom: 20}}>
               <TouchableOpacity
                 key={index}
                 style={styles.resourceBtn}
                 onPress={() => navigation.navigate('UserResourceInfo', { resourceID: resource.resourceID })}
               >
-                <View style= {{flex: 1, justifyContent: 'flex-end'}}>
-                  <Text style= {[styles.text]} ellipsizeMode='tail'>{resource.title}</Text>
+                {/* Image */}
+                <View style={{ ...StyleSheet.absoluteFillObject }}>
+                  <Image
+                    source={{ uri: resource.imageUrl}}
+                    style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'cover' }}
+                  />
                 </View>
               </TouchableOpacity>
+              <Text style= {[styles.text, {marginTop: 5, width: 100, textAlign: 'flex-start'}]}>
+                {resource.title} 
+              </Text>
+              </View>
             )
           )}
         </ScrollView>

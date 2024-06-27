@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Dimensions, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Dimensions, Platform, StyleSheet, Image } from 'react-native';
 import axios from 'axios';
 import styles from '../components/styles';
 import { Feather, Ionicons } from '@expo/vector-icons';
@@ -112,15 +112,26 @@ const UserResource = ({ navigation }) => {
             const activeCategory = categories[activeIndex]?.categoryName;
             if (activeCategory === "All" || resource.category === activeCategory) {
               return (
+                <View key={index} style= {{marginBottom: 20}}>
+
                 <TouchableOpacity
                   key={index}
                   style={[styles.resourceBtn , {marginRight:(screenWidth * 0.3 - 100)}]}
                   onPress= {() => navigation.navigate("UserResourceInfo", { resourceID: resource.resourceID })}
                 >
-                  <View style= {{flex: 1, justifyContent: 'flex-end'}}>
-                    <Text style= {[styles.text]} ellipsizeMode='tail'>{resource.title}</Text>
+                  {/* Image */}
+                  <View style={{ ...StyleSheet.absoluteFillObject }}>
+                    <Image
+                      source={{ uri: resource.imageUrl}}
+                      style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'cover' }}
+                    />
                   </View>
+
                 </TouchableOpacity>
+                <Text style= {[styles.text, {marginTop: 5, width: 100, textAlign: 'flex-start'}]}>
+                  {resource.title} 
+                </Text>
+                </View>
               );
             }
             return null;

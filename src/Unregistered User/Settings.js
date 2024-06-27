@@ -62,7 +62,7 @@ const Settings = ({ navigation, selectedStatus, setSelectedStatus }) => {
       
       <View style = {[styles.container3, {alignItems: 'center' , paddingHorizontal:20 , justifyContent:'center'}]}>
         <Text style={[styles.pageTitle, {marginBottom: 20}]}> Join Bloom </Text>
-        <Pressable style={styles.button5} onPress={() => navigation.navigate("AccountType")}>
+        <Pressable style={styles.button5} onPress={() => navigation.navigate("RegisterUser")}>
           <Text style={styles.questionText}> Register </Text>
         </Pressable>
       </View>

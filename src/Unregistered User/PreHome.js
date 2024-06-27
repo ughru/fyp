@@ -1,35 +1,18 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, Pressable, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, Pressable, ScrollView, TouchableOpacity, Platform, StyleSheet, Image } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import styles from '../components/styles';
 import { fetchResources } from '../components/manageResource';
 import ModalStyle from '../components/ModalStyle';
+import Calendar from '../components/Calendar';
 
 const formatDate = (date) => {
   const options = { weekday: 'long', day: 'numeric', month: 'long' };
   return date.toLocaleDateString('en-GB', options);
 };  
 
-const getWeek = () => {
-  const weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-  const today = new Date();
-  const currentDay = today.getDate();
-  const firstDayOfWeek = new Date(today);
-  firstDayOfWeek.setDate(today.getDate() - today.getDay());
-
-  const weekDates = [];
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(firstDayOfWeek);
-    date.setDate(firstDayOfWeek.getDate() + i);
-    weekDates.push(date.getDate());
-  }
-
-  return { weekDays, weekDates, currentDay };
-};
-
 const PreHome = ({ navigation }) => {
   const [currentDate, setCurrentDate] = useState(null);
-  const { weekDays, weekDates, currentDay } = getWeek();
   const [resources, setResources] = useState([]);
   const scrollRef = useRef();
   const [isModalVisible, setModalVisible] = useState(false);
@@ -69,17 +52,8 @@ const PreHome = ({ navigation }) => {
           <Text style={[styles.text, { marginLeft: 10 }]}>Ovulation</Text>
         </View>
 
-        <View style={[styles.calendarContainer]}>
-          <View style={styles.header}>
-            {weekDays.map((day, index) => (
-              <Text key={index} style={styles.dayLabel}>{day}</Text>
-            ))}
-          </View>
-          <View style={styles.days}>
-            {weekDates.map((date, index) => (
-              <Text key={index} style={[styles.date2, date === currentDay && styles.currentDate]}>{date}</Text>
-            ))}
-          </View>
+        <View>
+          <Calendar />
         </View>
 
         <Pressable style={[styles.button, { alignSelf: 'center', marginTop: 20, marginBottom: 20 }]} onPress={toggleModal}>
@@ -105,18 +79,27 @@ const PreHome = ({ navigation }) => {
 
       <View>
         <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
-           contentContainerStyle={{ gap: 20, paddingVertical: 10}}>
+           contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
           {resources.map(
             (resource, index) => (
+              <View key={index} style= {{marginBottom: 20}}>
               <TouchableOpacity
                 key={index}
                 style={styles.resourceBtn}
                 onPress={toggleModal}
               >
-                <View style= {{flex: 1, justifyContent: 'flex-end'}}>
-                  <Text style= {[styles.text]} ellipsizeMode='tail'>{resource.title}</Text>
-                </View>
+                {/* Image */}
+                <View style={{ ...StyleSheet.absoluteFillObject }}>
+                    <Image
+                      source={{ uri: resource.imageUrl}}
+                      style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'cover' }}
+                    />
+                  </View>
               </TouchableOpacity>
+              <Text style= {[styles.text, {marginTop: 5, width: 100, textAlign: 'flex-start'}]}>
+                {resource.title} 
+              </Text>
+              </View>
             )
           )}
         </ScrollView>

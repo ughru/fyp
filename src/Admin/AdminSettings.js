@@ -1,9 +1,10 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import { View, Text, Pressable, TextInput, ScrollView, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../components/styles';
 import axios from 'axios';
 import url from "../components/config";
+import { useFocusEffect } from '@react-navigation/native';
 
 const AdminSettings= ({navigation}) => {
   const [adminInfo, setAdminInfo] = useState({
@@ -12,23 +13,29 @@ const AdminSettings= ({navigation}) => {
     email: ''
   });
 
-  useEffect(() => {
-    const fetchAdminInfo = async () => {
-      try {
-        const storedEmail = await AsyncStorage.getItem('user');
-        if (storedEmail) {
-          const response = await axios.get(`${url}/admininfo?email=${storedEmail}`);
-          if (response.data) {
-            setAdminInfo(response.data);
-          }
+  const fetchAdminInfo = useCallback(async () => {
+    try {
+      const storedEmail = await AsyncStorage.getItem('user');
+      if (storedEmail) {
+        const response = await axios.get(`${url}/admininfo?email=${storedEmail}`);
+        if (response.data) {
+          setAdminInfo(response.data);
         }
-      } catch (error) {
-        console.error('Error fetching user info:', error);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching user info:', error);
+    }
+}, []);
 
+  useEffect(() => {
     fetchAdminInfo();
-  }, []);
+    }, [fetchAdminInfo]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchAdminInfo();
+    }, [fetchAdminInfo])
+  );
  
   const handleLogout = async () => {
     try {
@@ -37,7 +44,7 @@ const AdminSettings= ({navigation}) => {
 
       // Clear AsyncStorage and navigate to the login screen
       await AsyncStorage.clear();
-      navigation.navigate('Login');
+      navigation.navigate('Login', { origin: 'AdminSettings' });
     } catch (error) {
       console.error('Logout Error:', error);
     }
@@ -47,9 +54,14 @@ const AdminSettings= ({navigation}) => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
     <Text style={[styles.pageTitle, Platform.OS!=="web"&&{paddingTop:50}]}> Settings </Text>
-    <Text style={[styles.titleNote, {paddingTop:10 , paddingBottom:10}]}> Manage your account </Text>
+    <Text style={[styles.titleNote, {paddingTop:10 , paddingBottom:20}]}> Manage your account </Text>
 
-      <Text style= {[styles.questionText, {marginBottom: 20}]}> Profile </Text>
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', marginBottom: 20 }}>
+      <Text style= {[styles.questionText]}> Profile </Text>
+      <Pressable  style={[styles.button3]} onPress={() => navigation.navigate("AdminEditProfile")}>
+        <Text style={styles.text}>Edit Profile</Text>
+      </Pressable>
+    </View>
 
       <View style={[styles.container4, {alignItems: 'center'}]}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', marginBottom: 20 }}>
@@ -82,7 +94,7 @@ const AdminSettings= ({navigation}) => {
         </Pressable>
 
         <Text style= {[styles.questionText, {marginBottom: 20}]}> Info and Support </Text>
-        <Pressable style={[styles.formText, {marginBottom: 20}]}>
+        <Pressable style={[styles.formText, {marginBottom: 20}]} onPress={() => navigation.navigate("ForgetPw", { origin: 'AdminSettings' })}>
           <Text style={styles.text}> Change Password </Text>
         </Pressable>
 

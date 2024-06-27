@@ -34,9 +34,12 @@ import UserCreatePost from './src/Registered User/UserCreatePost/';
 import UserUpdatePost from './src/Registered User/UserUpdatePost/';
 import UserAppointments from './src/Registered User/UserAppointments/';
 import UserSettings from './src/Registered User/UserSettings/';
+import UserEditProfile from './src/Registered User/UserEditProfile/';
 import LogPeriod from './src/Registered User/LogPeriod/';
 import CycleHistory from './src/Registered User/CycleHistory/';
 import WeightTracker from './src/Registered User/WeightTracker/';
+import CreateWeightLog from './src/Registered User/CreateWeightLog/';
+import UpdateWeightLog from './src/Registered User/UpdateWeightLog/';
 
 // Specialist screens
 import SpecialistHome from './src/Specialist/SpecialistHome/';
@@ -50,12 +53,14 @@ import SpecialistCreatePost from './src/Specialist/SpecialistCreatePost/';
 import SpecialistUpdatePost from './src/Specialist/SpecialistUpdatePost/';
 import SpecialistAppointments from './src/Specialist/SpecialistAppointments/';
 import SpecialistSettings from './src/Specialist/SpecialistSettings/';
+import SpecialistEditProfile from './src/Specialist/SpecialistEditProfile/';
 
 // System admin screens
 import AdminHome from './src/Admin/AdminHome/';
 import AdminHomePage from './src/Admin/AdminHomePage/';
 import AdminForum from './src/Admin/AdminForum/';
 import AdminSettings from './src/Admin/AdminSettings/';
+import AdminEditProfile from './src/Admin/AdminEditProfile/';
 
 // Create a stack navigator
 const Stack = createNativeStackNavigator();
@@ -98,9 +103,12 @@ export default function App() {
                 <Stack.Screen name="UserUpdatePost" component= {UserUpdatePost} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserAppointments" component= {UserAppointments} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserSettings" component= {UserSettings} options={{ headerShown: false }}/>
+                <Stack.Screen name="UserEditProfile" component= {UserEditProfile} options={{ headerShown: false }}/>
                 <Stack.Screen name="CycleHistory" component= {CycleHistory} options={{ headerShown: false }}/>
                 <Stack.Screen name="LogPeriod" component= {LogPeriod} options={{ headerShown: false }}/>
                 <Stack.Screen name="WeightTracker" component= {WeightTracker} options={{ headerShown: false }}/>
+                <Stack.Screen name="CreateWeightLog" component= {CreateWeightLog} options={{ headerShown: false }}/>
+                <Stack.Screen name="UpdateWeightLog" component= {UpdateWeightLog} options={{ headerShown: false }}/>
 
                 {/* Specialist User Screens */}
                 <Stack.Screen name="SpecialistHome" component= {SpecialistHome} options={{ headerShown: false }}/>
@@ -114,12 +122,14 @@ export default function App() {
                 <Stack.Screen name="SpecialistUpdatePost" component= {SpecialistUpdatePost} options={{ headerShown: false }}/>
                 <Stack.Screen name="SpecialistAppointments" component= {SpecialistAppointments} options={{ headerShown: false }}/>
                 <Stack.Screen name="SpecialistSettings" component= {SpecialistSettings} options={{ headerShown: false }}/>
+                <Stack.Screen name="SpecialistEditProfile" component= {SpecialistEditProfile} options={{ headerShown: false }}/>
 
                 {/* Admin Screens */}
                 <Stack.Screen name="AdminHome" component= {AdminHome} options={{ headerShown: false }}/>
                 <Stack.Screen name="AdminHomePage" component= {AdminHomePage} options={{ headerShown: false }}/>
                 <Stack.Screen name="AdminForum" component= {AdminForum} options={{ headerShown: false }}/>
                 <Stack.Screen name="AdminSettings" component= {AdminSettings} options={{ headerShown: false }}/>
+                <Stack.Screen name="AdminEditProfile" component= {AdminEditProfile} options={{ headerShown: false }}/>
             </Stack.Navigator>
         </NavigationContainer>
     );

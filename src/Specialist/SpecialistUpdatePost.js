@@ -103,45 +103,45 @@ const SpecialistUpdatePost = ({ navigation, route }) => {
     };    
 
     return (
-        <Keyboard>
-            <ScrollView contentContainerStyle={styles.container}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', top: 50, marginBottom: 90 }}>
-                    <Text style={[styles.pageTitle]}> Update Post </Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 20 }}>
-                        <Pressable style={[styles.formText, {}]} onPress={() => navigation.goBack()}>
-                            <Entypo name="cross" size={30} color="black" />
-                        </Pressable>
+    <Keyboard>
+    <ScrollView contentContainerStyle={styles.container}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', top: 50, marginBottom: 90 }}>
+            <Text style={[styles.pageTitle]}> Update Post </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 20 }}>
+                <Pressable style={[styles.formText, {}]} onPress={() => navigation.goBack()}>
+                    <Entypo name="cross" size={30} color="black" />
+                </Pressable>
+            </View>
+        </View>
+
+        {/* Form fields */}
+        <View style={[styles.container3, { marginBottom: 20 }]}>
+            <View style={{ marginBottom: 30 }}>
+                <Text style={[styles.text, { marginBottom: 10 }]}> Category </Text>
+                
+                <View style={[styles.buttonContainer, { marginBottom: 20 }]}>
+                    <View style= {styles.categoryBtnActive}>
+                        <Text style={styles.text}> Ask Specialist </Text>
                     </View>
                 </View>
 
-                {/* Form fields */}
+                <View style={[styles.container3, { marginBottom: 50 }]}>
+                    <Text style={[styles.text, { marginBottom: 20 }]}> Description {descriptionError ? <Text style={styles.error}>{descriptionError}</Text> : null} </Text>
+                    <RichEditor
+                        onChange={(newDescription) => setDescription(newDescription)}
+                        initialContentHTML={description}
+                    />
+                </View>
+
                 <View style={[styles.container3, { marginBottom: 20 }]}>
-                    <View style={{ marginBottom: 30 }}>
-                        <Text style={[styles.text, { marginBottom: 10 }]}> Category </Text>
-                        
-                        <View style={[styles.buttonContainer, { marginBottom: 20 }]}>
-                            <View style= {styles.categoryBtnActive}>
-                                <Text style={styles.text}> Ask Specialist </Text>
-                            </View>
-                        </View>
-
-                        <View style={[styles.container3, { marginBottom: 50 }]}>
-                            <Text style={[styles.text, { marginBottom: 20 }]}> Description {descriptionError ? <Text style={styles.error}>{descriptionError}</Text> : null} </Text>
-                            <RichEditor
-                                onChange={(newDescription) => setDescription(newDescription)}
-                                initialContentHTML={description}
-                            />
-                        </View>
-
-                        <View style={[styles.container3, { marginBottom: 20 }]}>
-                            <Pressable style={[styles.button, { alignSelf: 'center' }]} onPress={onSavePost}>
-                                <Text style={styles.text}> Update </Text>
-                            </Pressable>
-                        </View>
-                    </View>
+                    <Pressable style={[styles.button, { alignSelf: 'center' }]} onPress={onSavePost}>
+                        <Text style={styles.text}> Update </Text>
+                    </Pressable>
                 </View>
-            </ScrollView>
-        </Keyboard>
+            </View>
+        </View>
+    </ScrollView>
+    </Keyboard>
     );
 };
 

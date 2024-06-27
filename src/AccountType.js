@@ -12,7 +12,7 @@ const AccountType = ({navigation}) => {
 
   const handleNext = () => {
     if (selectedButton === 'user') {
-      navigation.navigate('RegisterUser');
+      navigation.navigate('Personalisation');
     } else if (selectedButton === 'specialist') {
       navigation.navigate('RegisterSpecialist');
     }
@@ -23,7 +23,7 @@ const AccountType = ({navigation}) => {
     <View style={styles.container}>
       <View style = {[styles.container4, {justifyContent: 'center', alignItems: 'center'}, Platform.OS!=="web"&&{paddingTop:50}]}>
       {/* Back button */}
-      <View style = {[{ flexDirection: 'row', alignItems: 'center', marginBottom: 80, marginRight: 280}]}>
+      <View style = {[{ flexDirection: 'row', alignItems: 'center', marginBottom: 150, marginRight: 280}]}>
           <AntDesign name="left" size={24} color="black" />
           <Pressable style={[styles.formText]} onPress={() => navigation.goBack()}>
             <Text style={styles.text}> back </Text>
@@ -56,7 +56,7 @@ const AccountType = ({navigation}) => {
       </Pressable>
       </View>
 
-      <Pressable style={[styles.formText, {alignSelf: 'center'}]} onPress={() => navigation.navigate("Login")}>
+      <Pressable style={[styles.formText, {alignSelf: 'center'}]} onPress={() => navigation.navigate("Login", {origin: 'AccountType'})}>
         <Text>Already have an account? <Text style={styles.buttonText}>Login</Text></Text>
       </Pressable>
       </View>

@@ -23,17 +23,17 @@ const Calendar = () => {
   const { weekDays, weekDates, currentDay } = getWeek();
 
   return (
-    <View style={styles.container}>
+    <View style={styles.calendarContainer}>
       <View style={styles.header}>
-        {weekDays.map((day, index) => (
-          <Text key={index} style={styles.dayLabel}>{day}</Text>
-        ))}
-      </View>
-      <View style={styles.days}>
-        {weekDates.map((date, index) => (
-          <Text key={index} style={[styles.date2, date === currentDay && styles.currentDate]}>{date}</Text>
-        ))}
-      </View>
+            {weekDays.map((day, index) => (
+              <Text key={index} style={styles.dayLabel}>{day}</Text>
+            ))}
+          </View>
+          <View style={styles.days}>
+            {weekDates.map((date, index) => (
+              <Text key={index} style={[styles.date2, date === currentDay && styles.currentDate]}>{date}</Text>
+            ))}
+          </View>
     </View>
   );
 };

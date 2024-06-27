@@ -7,7 +7,7 @@ import url from '../components/config';
 import Keyboard from '../components/Keyboard';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { firebase } from '../../firebaseConfig'; 
+import { storage } from '../../firebaseConfig'; 
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -19,7 +19,6 @@ const SpecialistResource = ({ navigation }) => {
   const scrollRef = useRef(null);
   const itemRef = useRef([]);
   const [topHeight, setTopHeight] = useState(0);
-  const [imageUrl, setImageUrl] = useState(null);
 
   const [isDropdownVisible, setDropdownVisible] = useState(false);
   const [selectedResource, setSelectedResource] = useState(null);
@@ -29,20 +28,6 @@ const SpecialistResource = ({ navigation }) => {
     lastName: '',
     email: ''
   });
-
-  useEffect(() => {
-    const fetchImage = async () => {
-      try {
-        const url = await firebase.storage().ref('resource/am i pregnant.PNG').getDownloadURL();
-        setImageUrl(url);
-      } catch (error) {
-        console.error('Error fetching image:', error);
-      }
-    };
-
-    fetchImage();
-  }, []);
-
 
   const fetchData = useCallback(async () => {
     try {
@@ -88,9 +73,15 @@ const SpecialistResource = ({ navigation }) => {
     setTopHeight(height + 100);
   };
 
-  const deleteResource = async (resourceID) => {
+  const deleteResource = async (resourceID, imageUrl) => {
     try {
       await axios.delete(`${url}/deleteresource`, { params: { resourceID } });
+
+      if (imageUrl) {
+      const storageRef = storage.refFromURL(imageUrl);
+      await storageRef.delete();
+      }
+
       Alert.alert('Success', 'Resource deleted successfully');
       fetchData();
       setDropdownVisible(false);
@@ -112,7 +103,7 @@ const SpecialistResource = ({ navigation }) => {
       navigation.navigate('UpdateResource', { resourceID: selectedResource.resourceID })
       setDropdownVisible(false);
     } else if (action === 'delete') {
-      deleteResource(selectedResource.resourceID);
+      deleteResource(selectedResource.resourceID, selectedResource.imageUrl);
     } else {
       setDropdownVisible(false);
     }
@@ -170,74 +161,77 @@ const SpecialistResource = ({ navigation }) => {
       {/* Resources */}
       <View style={[{ left: 20}, Platform.OS==="web"?{ width: screenWidth * 0.9}:{width:'100%'}]}>
       <ScrollView style={styles.container3}
-          contentContainerStyle={Platform.OS==="web"? styles.resourceContainerWeb : styles.resourceContainerMobile}>
-          {resources.map((resource, index) => {
-          const activeCategory = categories[activeIndex]?.categoryName;
-          const isSpecialistResource = resource.specialistName === `${specialistInfo.firstName} ${specialistInfo.lastName}`;
+        contentContainerStyle={Platform.OS==="web"? styles.resourceContainerWeb : styles.resourceContainerMobile}>
+        {resources.map((resource, index) => {
+        const activeCategory = categories[activeIndex]?.categoryName;
+        const isSpecialistResource = resource.specialistName === `${specialistInfo.firstName} ${specialistInfo.lastName}`;
 
-          if (activeCategory === "All" || resource.category === activeCategory) {
-              return (
-                  <TouchableOpacity
-                      key={index}
-                      style={[styles.resourceBtn , {marginRight:(screenWidth * 0.3 - 100)}]}
-                      onPress={() => navigation.navigate("SpecialistResourceInfo", { resourceID: resource.resourceID })}
-                  >
-                    {/* Image */}
-                    <View style={{ ...StyleSheet.absoluteFillObject}}>
-                      {resource.title === "Am I Pregnant?" && imageUrl && (
-                        <Image source={{ uri: imageUrl }} style={{width: '100%', height: '100%', borderRadius: 10, resizeMode: 'cover'}}/>
-                      )}
-                    </View>
+        if (activeCategory === "All" || resource.category === activeCategory) {
+          return (
+            <View key={index} style= {{marginBottom: 20}}>
+            <TouchableOpacity
+                key={index}
+                style={[styles.resourceBtn , {marginRight:(screenWidth * 0.3 - 100)}]}
+                onPress={() => navigation.navigate("SpecialistResourceInfo", { resourceID: resource.resourceID })}
+            >
 
-                    <View style={{ ...StyleSheet.absoluteFillObject,
-                                  padding: 10}}>
+              {/* Image */}
+              {resource.imageUrl && (
+              <View style={{ ...StyleSheet.absoluteFillObject }}>
+                <Image
+                  source={{ uri: resource.imageUrl}}
+                  style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'cover' }}
+                />
+              </View>
+              )}
 
-                      {isSpecialistResource && (
-                          <TouchableHighlight style={[{alignSelf: 'flex-end'}]} onPress={() => toggleDropdown(resource)}>
-                              <Entypo name='dots-three-vertical' size={16} />
-                          </TouchableHighlight>
-                      )}
+              {/* More icon*/}
+              {isSpecialistResource && (
+                <TouchableHighlight style={[{ alignSelf: 'flex-end'}]} onPress={() => toggleDropdown(resource)}>
+                    <Entypo name='dots-three-vertical' size={18} />
+                </TouchableHighlight>
+              )}
 
-                      <View style= {{flex: 1, justifyContent: 'flex-end'}}>
-                        <Text style= {[styles.text]} ellipsizeMode='tail'>{resource.title}</Text>
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-              );
-          }
-          return null;
-        })}
+            </TouchableOpacity>
+              <Text style= {[styles.text, {marginTop: 5, width: 100, textAlign: 'flex-start'}]}>
+                    {resource.title} 
+              </Text>
+            </View>
+          );
+        }
+        return null;
+      })}
 
 
-        <Modal
-          transparent={true}
-          animationType="fade"
-          visible={isDropdownVisible}
-          onRequestClose={() => setDropdownVisible(false)}
-        >
-          <View style={[styles.modalOverlay, {justifyContent: 'flex-end'}]}>
-            <View style={{ width: '90%', backgroundColor: '#E3C2D7', borderRadius: 10, padding: 20, }}>
-                <Pressable style= {{marginLeft: 280}} onPress={handleSelection}>
-                  <Feather name="x" size={24} color="black"/>
-                </Pressable>
-                {/* Selections */}
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-                  <Feather name="edit" size={22} color="black" />
-                  <Pressable style={{ marginLeft: 10 }} onPress = {() => handleSelection('edit')}>
-                    <Text style={styles.text}> Edit Resource </Text>
-                  </Pressable>
-                </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-                <MaterialIcons name="delete-outline" size={24} color="black" />
-                  <Pressable style={{ marginLeft: 10 }} onPress = {() => handleSelection('delete')}>
-                    <Text style={styles.text}> Delete Resource </Text>
-                  </Pressable>
-                </View>
+      <Modal
+        transparent={true}
+        animationType="fade"
+        visible={isDropdownVisible}
+        onRequestClose={() => setDropdownVisible(false)}
+      >
+        <View style={[styles.modalOverlay, {justifyContent: 'flex-end'}]}>
+          <View style={{ width: '90%', backgroundColor: '#E3C2D7', borderRadius: 10, padding: 20, }}>
+            <Pressable style= {{marginLeft: 280}} onPress={handleSelection}>
+              <Feather name="x" size={24} color="black"/>
+            </Pressable>
+            {/* Selections */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+              <Feather name="edit" size={22} color="black" />
+              <Pressable style={{ marginLeft: 10 }} onPress = {() => handleSelection('edit')}>
+                <Text style={styles.text}> Edit Resource </Text>
+              </Pressable>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+            <MaterialIcons name="delete-outline" size={24} color="black" />
+              <Pressable style={{ marginLeft: 10 }} onPress = {() => handleSelection('delete')}>
+                <Text style={styles.text}> Delete Resource </Text>
+              </Pressable>
             </View>
           </View>
-        </Modal>
-        </ScrollView>
-      </View>
+        </View>
+      </Modal>
+      </ScrollView>
+    </View>
     </ScrollView>
     </Keyboard>
   ); 

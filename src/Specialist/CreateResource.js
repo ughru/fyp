@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Pressable, ScrollView, TextInput, Platform, Alert } from 'react-native';
+import { View, Text, Pressable, ScrollView, TextInput, Platform, Alert, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Entypo } from '@expo/vector-icons';
 import RNPickerSelect from 'react-native-picker-select';
@@ -7,6 +7,9 @@ import axios from 'axios';
 import { RichEditor, RichToolbar, actions } from 'react-native-pell-rich-editor';
 import Keyboard from '../components/Keyboard'; 
 import url from '../components/config';
+import { Camera } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
+import {storage} from '../../firebaseConfig';
 
 // import own code
 import styles from '../components/styles';
@@ -17,7 +20,7 @@ const CreateResource = ({ navigation }) => {
     const [categories, setCategories] = useState([]);
     const [description, setDescription] = useState('');
     const [specialistInfo, setSpecialistInfo] = useState({ firstName: '', lastName: '' });
-    const [resourceCount, setResourceCount] = useState(0);
+    const [imageUri, setImageUri] = useState(null);
 
     // errors
     const [titleError, setError1] = useState('');
@@ -32,18 +35,18 @@ const CreateResource = ({ navigation }) => {
     const editor = useRef(null);
 
     useEffect(() => {
-            const fetchSpecialistInfo = async () => {
-            try {
-                const storedEmail = await AsyncStorage.getItem('user');
-                if (storedEmail) {
-                    const response = await axios.get(`${url}/specialistinfo?email=${storedEmail}`);
-                    if (response.data) {
-                        setSpecialistInfo(response.data);
-                    }
+        const fetchSpecialistInfo = async () => {
+        try {
+            const storedEmail = await AsyncStorage.getItem('user');
+            if (storedEmail) {
+                const response = await axios.get(`${url}/specialistinfo?email=${storedEmail}`);
+                if (response.data) {
+                    setSpecialistInfo(response.data);
                 }
-            } catch (error) {
-                console.error('Error fetching user info:', error);
             }
+        } catch (error) {
+            console.error('Error fetching user info:', error);
+        }
         };
 
         const fetchCategories = async () => {
@@ -105,15 +108,27 @@ const CreateResource = ({ navigation }) => {
         }
 
         if (valid) {
-            const resourceData = {
-                title,
-                category: selectedCategory,
-                status: selectedStatuses,
-                description,
-                specialistName: `${specialistInfo.firstName} ${specialistInfo.lastName}`
-            };
-
             try {
+                let imageUrl = '';
+
+                if (imageUri) {
+                    const response = await fetch(imageUri);
+                    const blob = await response.blob();
+                    const filename = `${title}.${blob.type.split('/')[1]}`;
+                    const storageRef = storage.ref().child(`resource/${filename}`);
+                    await storageRef.put(blob);
+                    imageUrl = await storageRef.getDownloadURL();
+                }
+
+                const resourceData = {
+                    title,
+                    category: selectedCategory,
+                    status: selectedStatuses,
+                    description,
+                    specialistName: `${specialistInfo.firstName} ${specialistInfo.lastName}`,
+                    imageUrl
+                };
+
                 const response = await axios.post(`${url}/addresource`, resourceData);
 
                 // Handle response and check if the resource already exists
@@ -143,109 +158,168 @@ const CreateResource = ({ navigation }) => {
         }
     };
 
+    const pickImage = async () => {
+        try {
+            let result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.All,
+                allowsEditing: true,
+                aspect: [4, 3],
+                quality: 1,
+              });
+
+            if (!result.canceled) {
+                // Set the selected image URI to the state
+                setImageUri(result.assets[0].uri);
+            } 
+        } catch (error) {
+            console.error('Error picking image:', error);
+            Alert.alert('Error', 'Failed to pick an image.');
+        }
+    };
+
+    const takePhoto = async () => {
+        const { status } = await Camera.requestCameraPermissionsAsync();
+        if (status === 'granted') {
+            try {
+                let result = await ImagePicker.launchCameraAsync({
+                    allowsEditing: true,
+                    aspect: [4, 3],
+                    quality: 1,
+                });
+
+                if (!result.canceled) {
+                    setImageUri(result.assets[0].uri);
+                } 
+            } catch (error) {
+                console.error('Error taking photo:', error);
+                Alert.alert('Error', 'Failed to take a photo.');
+            }
+        } else {
+            Alert.alert('Permission denied', 'Camera permissions are required to take a photo.');
+        }
+    };
+
+    const removeImage = () => {
+        setImageUri(null);
+    };
+
     return (
-        <Keyboard>
-            <ScrollView contentContainerStyle={styles.container}>
-            <View style={[{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', paddingBottom:20 }, {...Platform.select({web:{} , default:{paddingTop:50}})}]}>
-                    <Text style={[styles.pageTitle]}> Create Resource </Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 20 }}>
-                        <Pressable style={[styles.formText, {}]} onPress={() => navigation.goBack()}>
-                            <Entypo name="cross" size={30} color="black" />
-                        </Pressable>
-                    </View>
-                </View>
+    <Keyboard>
+    <ScrollView contentContainerStyle={styles.container}>
+        <View style={[{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', paddingBottom:20 }, {...Platform.select({web:{} , default:{paddingTop:50}})}]}>
+            <Text style={[styles.pageTitle]}> Create Resource </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 20 }}>
+                <Pressable style={[styles.formText, {}]} onPress={() => navigation.goBack()}>
+                    <Entypo name="cross" size={30} color="black" />
+                </Pressable>
+            </View>
+        </View>
 
-                {/* Form fields */}
-                <View style={[styles.container4, { marginBottom: 20 }]}>
-                    <View style={{ marginBottom: 30 }}>
-                        <Text style={[styles.text, { marginBottom: 10 }]}> Title {titleError ? <Text style={styles.error}>{titleError}</Text> : null} </Text>
-                        <TextInput style={[styles.input3]} value={title} onChangeText={setTitle} />
-                    </View>
-                    <View style={{ marginBottom: 30 }}>
-                        <Text style={[styles.text, { marginBottom: 10 }]}> Category {categoryError ? <Text style={styles.error}>{categoryError}</Text> : null} </Text>
-                        <RNPickerSelect
-                            onValueChange={(value) => {
-                                setSelectedCategory(value)
-                            }}
-                            items={categories}
-                            style={styles.pickerSelectStyles}
-                            placeholder={{ label: 'Select a category', value: 'Select a category' }}
-                        />
-                    </View>
+        {/* Form fields */}
+        <View style={[styles.container4, { marginBottom: 20 }]}>
+            <View style={{ marginBottom: 30 }}>
+                <Text style={[styles.text, { marginBottom: 10 }]}> Title {titleError ? <Text style={styles.error}>{titleError}</Text> : null} </Text>
+                <TextInput style={[styles.input3]} value={title} onChangeText={setTitle} />
+            </View>
+            <View style={{ marginBottom: 30 }}>
+                <Text style={[styles.text, { marginBottom: 10 }]}> Category {categoryError ? <Text style={styles.error}>{categoryError}</Text> : null} </Text>
+                <RNPickerSelect
+                    onValueChange={(value) => {
+                        setSelectedCategory(value)
+                    }}
+                    items={categories}
+                    style={styles.pickerSelectStyles}
+                    placeholder={{ label: 'Select a category', value: 'Select a category' }}
+                />
+            </View>
 
-                    {/* Status selection buttons */}
-                    <View style={[styles.container4, { marginBottom: 20 }]}>
-                        <Text style={[styles.text, { marginBottom: 20 }]}> Status {statusError ? <Text style={styles.error}>{statusError}</Text> : null} </Text>
-                        <View style={[styles.buttonPosition]}>
-                            <Pressable
-                                style={[
-                                    styles.button6, { marginHorizontal: 10 },
-                                    selectedStatuses.includes('Pre') ? styles.button6 : styles.defaultButton,
-                                ]}
-                                onPress={() => handleStatusSelection('Pre')}
-                            >
-                                <Text>Pre</Text>
-                            </Pressable>
+            {/* Status selection buttons */}
+            <View style={[styles.container4, { marginBottom: 20 }]}>
+                <Text style={[styles.text, { marginBottom: 20 }]}> Status {statusError ? <Text style={styles.error}>{statusError}</Text> : null} </Text>
+                <View style={[styles.buttonPosition]}>
+                    <Pressable
+                        style={[
+                            styles.button6, { marginHorizontal: 10 },
+                            selectedStatuses.includes('Pre') ? styles.button6 : styles.defaultButton,
+                        ]}
+                        onPress={() => handleStatusSelection('Pre')}
+                    >
+                        <Text>Pre</Text>
+                    </Pressable>
 
-                            <Pressable
-                                style={[
-                                    styles.button6, { marginHorizontal: 10 },
-                                    selectedStatuses.includes('During') ? styles.button6 : styles.defaultButton,
-                                ]}
-                                onPress={() => handleStatusSelection('During')}
-                            >
-                                <Text>During</Text>
-                            </Pressable>
+                    <Pressable
+                        style={[
+                            styles.button6, { marginHorizontal: 10 },
+                            selectedStatuses.includes('During') ? styles.button6 : styles.defaultButton,
+                        ]}
+                        onPress={() => handleStatusSelection('During')}
+                    >
+                        <Text>During</Text>
+                    </Pressable>
 
-                            <Pressable
-                                style={[
-                                    styles.button6, { marginHorizontal: 10 },
-                                    selectedStatuses.includes('Post') ? styles.button6 : styles.defaultButton,
-                                ]}
-                                onPress={() => handleStatusSelection('Post')}
-                            >
-                                <Text>Post</Text>
-                            </Pressable>
-                        </View>
-                    </View>
-
-                    <View style={[styles.container4, { marginBottom: 20 }]}>
-                        <Text style={[styles.text, { marginBottom: 20 }]}> Description {descriptionError ? <Text style={styles.error}>{descriptionError}</Text> : null} </Text>
-                        <RichToolbar
-                            editor={editor} 
-                            actions={[actions.setBold, actions.setItalic, actions.setUnderline, actions.insertBulletsList,
-                                actions.insertOrderedList, actions.heading1, actions.heading2]}
-                            iconMap={{
-                                [actions.setBold]: ({tintColor}) => <Text style={[{fontSize: 22, color: '#979595', color: tintColor}]}> B </Text>,
-                                [actions.setItalic]: ({tintColor}) => <Text style={[{fontSize: 22, color: '#979595', color: tintColor}]}> I </Text>,
-                                [actions.setUnderline]: ({tintColor}) => <Text style={[{fontSize: 22, color: '#979595', color: tintColor}]}> U </Text>,
-                                [actions.heading1]: ({tintColor}) => <Text style={[{fontSize: 22, color: '#979595', color: tintColor}]}> H1 </Text>,
-                                [actions.heading2]: ({tintColor}) => <Text style={[{fontSize: 22, color: '#979595', color: tintColor}]}> H2 </Text>
-                            }}
-                        />
-                        <RichEditor
-                            ref={editor} 
-                            onChange={(newDescription) => setDescription(newDescription)}
-                            initialContentHTML={description}
-                        />
-                    </View>
-
-                    {/* Image Upload */}
-                    <View>
-                        <Text style={[styles.text, { marginBottom: 10 }]}> Image </Text>
-                        <Pressable style={[{ borderWidth: 1, width: 150, height: 30, borderRadius: 20, justifyContent: 'center', alignItems: 'center', borderColor: '#979595' }]}>
-                            <Text style={styles.text}> Upload an image </Text>
-                        </Pressable>
-                    </View>
-                </View>
-
-                <View style={[styles.container3, { marginBottom: 20 }]}>
-                    <Pressable style={[styles.button, { alignSelf: 'center' }]} onPress={onSaveResource}>
-                        <Text style={styles.text}> Create </Text>
+                    <Pressable
+                        style={[
+                            styles.button6, { marginHorizontal: 10 },
+                            selectedStatuses.includes('Post') ? styles.button6 : styles.defaultButton,
+                        ]}
+                        onPress={() => handleStatusSelection('Post')}
+                    >
+                        <Text>Post</Text>
                     </Pressable>
                 </View>
-            </ScrollView>
-        </Keyboard>
+            </View>
+
+            <View style={[styles.container4, { marginBottom: 20 }]}>
+                <Text style={[styles.text, { marginBottom: 20 }]}> Description {descriptionError ? <Text style={styles.error}>{descriptionError}</Text> : null} </Text>
+                <RichToolbar
+                    editor={editor} 
+                    actions={[actions.setBold, actions.setItalic, actions.setUnderline, actions.insertBulletsList,
+                        actions.insertOrderedList, actions.heading1, actions.heading2]}
+                    iconMap={{
+                        [actions.setBold]: ({tintColor}) => <Text style={[{fontSize: 22, color: '#979595', color: tintColor}]}> B </Text>,
+                        [actions.setItalic]: ({tintColor}) => <Text style={[{fontSize: 22, color: '#979595', color: tintColor}]}> I </Text>,
+                        [actions.setUnderline]: ({tintColor}) => <Text style={[{fontSize: 22, color: '#979595', color: tintColor}]}> U </Text>,
+                        [actions.heading1]: ({tintColor}) => <Text style={[{fontSize: 22, color: '#979595', color: tintColor}]}> H1 </Text>,
+                        [actions.heading2]: ({tintColor}) => <Text style={[{fontSize: 22, color: '#979595', color: tintColor}]}> H2 </Text>
+                    }}
+                />
+                <RichEditor
+                    ref={editor} 
+                    onChange={(newDescription) => setDescription(newDescription)}
+                    initialContentHTML={description}
+                />
+            </View>
+
+            {/* Image Upload */}
+            <View>
+                <Text style={[styles.text, { marginBottom: 10 }]}> Image </Text>
+                <Pressable style={[styles.imageUpload, {marginBottom: 10}]} onPress={pickImage}>
+                    <Text style={styles.text}> Upload an image </Text>
+                </Pressable>
+                <Pressable style={[styles.imageUpload,{marginBottom: 20}]} onPress={takePhoto}>
+                    <Text style={styles.text}> Take a photo </Text>
+                </Pressable>
+                {imageUri && (
+                <View>
+                    <Image
+                        source={{ uri: imageUri }}
+                        style={{ width: 300, height: 300, resizeMode: 'contain' }}
+                    />
+                    <Pressable style={[styles.imageUpload, { marginTop: 20 }]} onPress={removeImage}>
+                        <Text style={styles.text}> Remove Image </Text>
+                    </Pressable>
+                </View>
+                )}
+            </View>
+        </View>
+
+        <View style={[styles.container3, { marginBottom: 20 }]}>
+            <Pressable style={[styles.button, { alignSelf: 'center' }]} onPress={onSaveResource}>
+                <Text style={styles.text}> Create </Text>
+            </Pressable>
+        </View>
+    </ScrollView>
+    </Keyboard>
     );
 };
 
