@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Text, Pressable, TextInput, ScrollView, View } from 'react-native';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { getAuth } from '../firebase';
+import { Text, Pressable, TextInput, ScrollView, View, Platform } from 'react-native';
+import { auth } from '../firebaseConfig';
 import styles from './components/styles';
 import Keyboard from './components/Keyboard';
 import { AntDesign } from '@expo/vector-icons';
@@ -39,6 +38,10 @@ const RegisterSpecialist= ({navigation}) => {
         setError1('* Minimum 2 characters');
         valid = false;
       }
+      else if (firstName[0] !== firstName[0].toUpperCase()) {
+        setError1('* First letter must be uppercase');
+        valid = false;
+      }
       else {
         setError1('');
       }
@@ -55,6 +58,10 @@ const RegisterSpecialist= ({navigation}) => {
       }
       else if (lastName.length < 2 ) {
         setError2('* Minimum 2 characters');
+        valid = false;
+      }
+      else if (lastName[0] !== lastName[0].toUpperCase()) {
+        setError2('* First letter must be uppercase');
         valid = false;
       }
       else {
@@ -88,7 +95,11 @@ const RegisterSpecialist= ({navigation}) => {
         setError4('* Required field');
         valid = false;
       }
-      else if (!/^[0-9]{8}[A-Za-z]$/.test(uen) || !/^[A-Za-z]{4}[0-9]{5}[A-Za-z]$/.test(uen) || !/^(T|S|20)\d{2}[A-Za-z0-9]{2}[A-Za-z]$/.test(uen)) {
+      else if (
+        !/^[0-9]{8}[A-Za-z]$/.test(uen) &&
+        !/^[A-Za-z]{4}[0-9]{5}[A-Za-z]$/.test(uen) &&
+        !/^([TS]\d{2})[A-Za-z][A-Za-z0-9]\d{4}[A-Za-z]$/.test(uen)
+    ) {
         setError4('* Invalid UEN');
         valid = false;
       }
@@ -116,11 +127,10 @@ const RegisterSpecialist= ({navigation}) => {
 
       if (valid) {
         // Call Firebase function to create user with email and password
-        const auth = getAuth();
-        await createUserWithEmailAndPassword(auth, email, password);
+        await auth.createUserWithEmailAndPassword(auth, email, password);
         
         // Navigate to the home screen
-        navigation.navigate("RegisteredHome");
+        navigation.navigate("Login");
       }
     } catch (error) {
       console.error('Registration error:', error.message);
@@ -129,9 +139,9 @@ const RegisterSpecialist= ({navigation}) => {
 
   return (
     <Keyboard>
-      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: 70}]}>
+      <ScrollView contentContainerStyle={[styles.container]}>
         {/* Back button */}
-        <View style = {{ flexDirection: 'row', alignItems: 'center', top: 50, marginBottom: 20 }}>
+        <View style = {[{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }, Platform.OS!=="web"&&{paddingTop:50}]}>
           <AntDesign name="left" size={24} color="black" />
           <Pressable style={[styles.formText]} onPress={() => navigation.goBack()}>
             <Text style={styles.text}> back </Text>
@@ -139,8 +149,8 @@ const RegisterSpecialist= ({navigation}) => {
         </View>
 
         {/* Title */}
-        <Text style={[styles.pageTitle, { top: 50, marginBottom: 20 }]}> Get Started </Text>
-        <Text style={[styles.titleNote, { marginTop: 40, marginBottom: 30}]}> Register as a specialist </Text>
+        <Text style={[styles.pageTitle, { marginBottom: 20 }]}> Get Started </Text>
+        <Text style={[styles.titleNote, { marginBottom: 30}]}> Register as a specialist </Text>
 
         {/* Form */}
         <View style={[styles.container3, {alignItems: 'center'}]}>
@@ -166,12 +176,12 @@ const RegisterSpecialist= ({navigation}) => {
     
           <View style={{ marginBottom: 30 }}>
             <Text style={[styles.formText, {marginBottom: 10}]}> Password {pwError ? <Text style={styles.error}>{pwError}</Text> : null} </Text>
-            <TextInput style={[styles.input]} value={password} onChangeText={setPassword} secureTextEntry={true} />
+            <TextInput style={[styles.input]} value={password} onChangeText={setPassword} secureTextEntry={true} textContentType={'oneTimeCode'} />
           </View>
     
           <View style={{ marginBottom: 30 }}>
             <Text style={[styles.formText, {marginBottom: 10}]}> Confirm Password {confirmPwError ? <Text style={styles.error}>{confirmPwError}</Text> : null} </Text>
-            <TextInput style={[styles.input]} value={confirmPw} onChangeText={setConfirmPw} secureTextEntry={true} />
+            <TextInput style={[styles.input]} value={confirmPw} onChangeText={setConfirmPw} secureTextEntry={true} textContentType={'oneTimeCode'} />
           </View>
         </View>
 
@@ -180,11 +190,7 @@ const RegisterSpecialist= ({navigation}) => {
           <Text style={styles.text}> Register </Text>
         </Pressable>
 
-        <Pressable style={[styles.formText, { marginBottom: 20, alignSelf: 'center' }]} onPress={() => navigation.navigate("AccountType")}>
-          <Text style={styles.buttonText}> Register as different user </Text>
-        </Pressable>
-
-        <Pressable style={[styles.formText, { marginBottom: 20, alignSelf: 'center' }]} onPress={() => navigation.navigate("Login")}>
+        <Pressable style={[styles.formText, { marginBottom: 20, alignSelf: 'center' }]} onPress={() => navigation.navigate("Login", { origin: 'RegisterSpecialist' })}>
           <Text>Already have an account? <Text style={styles.buttonText}>Login</Text></Text>
         </Pressable>
       </ScrollView>
