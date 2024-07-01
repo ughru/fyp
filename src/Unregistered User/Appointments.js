@@ -8,15 +8,21 @@ import { View, Text, Pressable, ScrollView, TextInput, Platform, Image, Touchabl
 import styles from '../components/styles';
 import { firebase } from '../../firebaseConfig';
 import { Feather, AntDesign } from '@expo/vector-icons';
+<<<<<<< Updated upstream
+=======
+import ModalStyle from '../components/ModalStyle';
+import pregnancyAd1 from '../../assets/ad/pregnancyAd1.jpeg'; // Adjust the path as needed
+>>>>>>> Stashed changes
 
 const Appointments = ({navigation}) => {
-  const [imageUrl, setImageUrl] = useState(null);
+  const [imageUrl, setImageUrl] = useState('');
   const [activeButton, setActiveButton] = useState('Upcoming');
 
   useEffect(() => {
     const fetchImage = async() => {
       try{
-        const url = await firebase.storage().ref('adminAd/ad.png').getDownloadURL();
+        //const url = await firebase.storage().ref('ad/pregnancyAd1.jpeg').getDownloadURL();
+        const url = '/assets/ad/pregnancyAd1.jpeg';
         setImageUrl(url);
       } catch(error){
         console.error('Error fetching image', error);
@@ -45,6 +51,7 @@ const Appointments = ({navigation}) => {
             {imageUrl && <Image source={{ uri: imageUrl }} style={styles.adImage} />}
           </View>
 
+<<<<<<< Updated upstream
           <View style={styles.calendarIcon}>
             <AntDesign name="calendar" size={30} color="black" />
             <Text style={styles.calendarText}>Book appointment</Text>
@@ -83,6 +90,10 @@ const Appointments = ({navigation}) => {
           
         
         
+=======
+        <View style={[styles.adImageContainer, {width: '100%', alignItems: 'center'}]}>
+        {imageUrl && <Image source={{ uri: imageUrl }} style={styles.adImage} alt="Ad" />}
+>>>>>>> Stashed changes
         </View>
 >>>>>>> Stashed changes
       </View>

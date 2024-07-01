@@ -30,6 +30,13 @@ import UserPostHome from './src/Registered User/UserPostHome/';
 import UserResource from './src/Registered User/UserResource/';
 import UserResourceInfo from './src/Registered User/UserResourceInfo';
 import UserForum from './src/Registered User/UserForum/';
+<<<<<<< Updated upstream
+=======
+import UserCreatePost from './src/Registered User/UserCreatePost/';
+import UserCreateAppointment from './src/Registered User/UserCreateAppointment';
+import UserBookAppointment from './src/Registered User/UserBookAppointment';
+import UserUpdatePost from './src/Registered User/UserUpdatePost/';
+>>>>>>> Stashed changes
 import UserAppointments from './src/Registered User/UserAppointments/';
 import UserSettings from './src/Registered User/UserSettings/';
 import LogPeriod from './src/Registered User/LogPeriod/';
@@ -89,6 +96,13 @@ export default function App() {
                 <Stack.Screen name="UserResource" component= {UserResource} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserResourceInfo" component= {UserResourceInfo} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserForum" component= {UserForum} options={{ headerShown: false }}/>
+<<<<<<< Updated upstream
+=======
+                <Stack.Screen name="UserCreatePost" component= {UserCreatePost} options={{ headerShown: false }}/>
+                <Stack.Screen name="UserCreateAppointment" component={UserCreateAppointment} options={{ headerShown: false }}/>
+                <Stack.Screen name="UserBookAppointment" component={UserBookAppointment} options={{ headerShown: false }}/>
+                <Stack.Screen name="UserUpdatePost" component= {UserUpdatePost} options={{ headerShown: false }}/>
+>>>>>>> Stashed changes
                 <Stack.Screen name="UserAppointments" component= {UserAppointments} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserSettings" component= {UserSettings} options={{ headerShown: false }}/>
                 <Stack.Screen name="CycleHistory" component= {CycleHistory} options={{ headerShown: false }}/>
