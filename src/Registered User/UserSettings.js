@@ -1,9 +1,10 @@
-import React, {useEffect, useState} from 'react';
-import { View, Text, Pressable, TextInput, ScrollView } from 'react-native';
+import React, {useEffect, useState, useCallback} from 'react';
+import { View, Text, Pressable, TextInput, ScrollView, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../components/styles';
 import axios from 'axios';
 import url from "../components/config";
+import { useFocusEffect } from '@react-navigation/native';
 
 const UserSettings  = ({navigation, selectedStatus, setSelectedStatus}) => {
   const [userInfo, setUserInfo] = useState({
@@ -13,24 +14,30 @@ const UserSettings  = ({navigation, selectedStatus, setSelectedStatus}) => {
     email: ''
   });
 
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      try {
+  // Fetch user email
+  const fetchUserInfo = useCallback(async () => {
+    try {
         const storedEmail = await AsyncStorage.getItem('user');
         if (storedEmail) {
-          const response = await axios.get(`${url}/userinfo?email=${storedEmail}`);
-          if (response.data) {
+        const response = await axios.get(`${url}/userinfo?email=${storedEmail}`);
+        if (response.data) {
             setUserInfo(response.data);
-            setSelectedStatus(response.data.status);
-          }
         }
-      } catch (error) {
+        }
+    } catch (error) {
         console.error('Error fetching user info:', error);
-      }
-    };
+    }
+}, []);
 
-    fetchUserInfo();
-  }, []);
+  useEffect(() => {
+      fetchUserInfo();
+    }, [fetchUserInfo]);
+
+  useFocusEffect(
+  useCallback(() => {
+      fetchUserInfo();
+  }, [fetchUserInfo])
+  );
   
   const handleStatusSelection = async (status) => {
     try {
@@ -64,7 +71,8 @@ const UserSettings  = ({navigation, selectedStatus, setSelectedStatus}) => {
 
       // Clear AsyncStorage and navigate to the login screen
       await clearAsyncStorageExcept(['resourceDate', 'resources']);
-      navigation.navigate('Login');
+      
+      navigation.navigate('Login', { origin: 'UserSettings' });
     } catch (error) {
       console.error('Logout Error:', error);
     }
@@ -73,12 +81,17 @@ const UserSettings  = ({navigation, selectedStatus, setSelectedStatus}) => {
   // Page Displays
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={[styles.pageTitle, {top: 50, marginBottom: 20}]}> Settings </Text>
-      <Text style={[styles.titleNote, {marginTop: 40, marginBottom: 20}]}> Manage your account </Text>
+      <Text style={[styles.pageTitle, Platform.OS!=="web"&&{paddingTop:50}]}> Settings </Text>
+      <Text style={[styles.titleNote, {paddingTop:10 , paddingBottom:20}]}> Manage your account </Text>
 
-      <Text style= {[styles.questionText, {marginBottom: 20}]}> Profile </Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', marginBottom: 20 }}>
+        <Text style= {[styles.questionText]}> Profile </Text>
+        <Pressable  style={[styles.button3]} onPress={() => navigation.navigate("UserEditProfile")}>
+          <Text style={styles.text}>Edit Profile</Text>
+        </Pressable>
+      </View>
 
-      <View style={[styles.container3, {alignItems: 'center'}]}>
+      <View style={[styles.container4, {alignItems: 'center'}]}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', marginBottom: 20 }}>
           <Text style= {[styles.text]}> First Name </Text>
           <TextInput style={[styles.input2]} value={userInfo.firstName} />
@@ -93,7 +106,7 @@ const UserSettings  = ({navigation, selectedStatus, setSelectedStatus}) => {
         </View>
       </View>
 
-      <View style = {[styles.container3]}>
+      <View style = {[styles.container4]}>
         <Text style={[styles.questionText, {marginBottom: 20}]}> Pregnancy Status </Text>
         <View style={[styles.buttonPosition, {marginBottom: 20}]}>
           <Pressable
@@ -139,7 +152,7 @@ const UserSettings  = ({navigation, selectedStatus, setSelectedStatus}) => {
         </Pressable>
 
         <Text style= {[styles.questionText, {marginBottom: 20}]}> Info and Support </Text>
-        <Pressable style={[styles.formText, {marginBottom: 20}]}>
+        <Pressable style={[styles.formText, {marginBottom: 20}]} onPress={() => navigation.navigate("ForgetPw", { origin: 'UserSettings' })}>
           <Text style={styles.text}> Change Password </Text>
         </Pressable>
         <Pressable style={[styles.formText, {marginBottom: 20}]}>
@@ -150,7 +163,7 @@ const UserSettings  = ({navigation, selectedStatus, setSelectedStatus}) => {
         </Pressable>
 
         {/* Logout Button */}
-        <Pressable style={[styles.formText, {marginBottom: 20}]} onPress={handleLogout}>
+        <Pressable style={[styles.formText]} onPress={handleLogout}>
           <Text style={styles.questionText}>Logout</Text>
         </Pressable>
       </View>

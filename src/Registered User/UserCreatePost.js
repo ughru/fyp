@@ -11,7 +11,7 @@ import { Feather, AntDesign } from '@expo/vector-icons';
 // import own code
 import styles from '../components/styles';
 
-const UserCreateAppointment = ({ navigation }) => {
+const UserCreatePost = ({ navigation }) => {
     // values
     const [description, setDescription] = useState('');
 
@@ -103,7 +103,15 @@ const UserCreateAppointment = ({ navigation }) => {
         <Keyboard>
             <ScrollView contentContainerStyle={styles.container}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', top: 50, marginBottom: 90 }}>
+<<<<<<<< Updated upstream:src/Registered User/UserCreatePost.js
+                    <Text style={[styles.pageTitle]}> Create Post </Text>
+========
+                    <AntDesign name="left" size={24} color="black" />
+                        <Pressable style={[styles.formText]} onPress={() => navigation.goBack()}>
+                            <Text style={styles.text}> back </Text>
+                        </Pressable>
                     <Text style={[styles.pageTitle]}> Book Appointment </Text>
+>>>>>>>> Stashed changes:src/Registered User/UserCreateAppointment.js
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 20 }}>
                         <Pressable style={[styles.formText, {}]} onPress={() => navigation.goBack()}>
                             <Entypo name="cross" size={30} color="black" />
@@ -114,88 +122,41 @@ const UserCreateAppointment = ({ navigation }) => {
                 {/* Form fields */}
                 <View style={[styles.container3, { marginBottom: 20 }]}>
                     <View style={{ marginBottom: 30 }}>
-                        <Text style={[styles.textTitle, { marginBottom: 10 }]}> Service {categoryError ? <Text style={styles.error}>{categoryError}</Text> : null} </Text>
+                        <Text style={[styles.text, { marginBottom: 10 }]}> Category {categoryError ? <Text style={styles.error}>{categoryError}</Text> : null} </Text>
                         
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20, justifyContent: 'space-evenly' }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20 }}>
                             <Pressable
-                                onPress={() => handleCategoryButtonClick('Pregnancy')}
-                                style={activeButton === 'Pregnancy' ? styles.categoryBtnActive : styles.categoryBtn}
+                                onPress={() => handleCategoryButtonClick('General')}
+                                style={activeButton === 'General' ? styles.categoryBtnActive : styles.categoryBtn}
                             >
-                                <Text style={styles.text}> Pregnancy </Text>
+                                <Text style={styles.text}> General </Text>
                             </Pressable>
                             <Pressable
-                                onPress={() => handleCategoryButtonClick('Fertility')}
-                                style={activeButton === 'Fertility' ? styles.categoryBtnActive : styles.categoryBtn}
+                                onPress={() => handleCategoryButtonClick('Ask Specialist')}
+                                style={activeButton === 'Ask Specialist' ? styles.categoryBtnActive : styles.categoryBtn}
                             >
-                                <Text style={styles.text}> Fertility </Text>
-                            </Pressable>
-                            <Pressable 
-                                onPress={() => handleCategoryButtonClick('Nutrition')}
-                                style={activeButton === 'Nutrition' ? styles.categoryBtnActive : styles.categoryBtn}
-                            >
-                                <Text style={styles.text}> Nutrition </Text>
+                                <Text style={styles.text}> Ask Specialist </Text>
                             </Pressable>
                         </View>
-                    </View>
-                </View>
 
-                {/* Show options for diff specialists */}
-                <View style={styles.appointmentContainer}>
-                  <Pressable
-                    onPress={() => navigation.navigate("UserBookAppointment")}
-                  >
-                    <View style={styles.appointmentContainer2}>
-                      <Text style={styles.appointmentText}>Dr Chua</Text>
-                      <Text style={styles.appointmentText2}>Obstetrician</Text>
-                      <View style={styles.appointmentContainer3}>
-                        <Text style={styles.appointmentText2}>Hospital/Clinic</Text>
-                        <Text style={styles.appointmentText3}>Details</Text>
-                      </View>
+                        <View style={[styles.container3, { marginBottom: 20 }]}>
+                        <Text style={[styles.text, { marginBottom: 20 }]}> Description {descriptionError ? <Text style={styles.error}>{descriptionError}</Text> : null} </Text>
+                        <RichEditor
+                            onChange={(newDescription) => setDescription(newDescription)}
+                            initialContentHTML={description}
+                        />
                     </View>
-                  </Pressable>
 
-                  <Pressable
-                    onPress={() => navigation.navigate("UserBookAppointment")}
-                  >
-                    <View style={styles.appointmentContainer2}>
-                      <Text style={styles.appointmentText}>Dr 1</Text>
-                      <Text style={styles.appointmentText2}>Obstetrician</Text>
-                      <View style={styles.appointmentContainer3}>
-                        <Text style={styles.appointmentText2}>Hospital/Clinic</Text>
-                        <Text style={styles.appointmentText3}>Details</Text>
-                      </View>
+                    <View style={[styles.container3, { marginBottom: 20 }]}>
+                        <Pressable style={[styles.button, { alignSelf: 'center' }]} onPress={onSavePost}>
+                            <Text style={styles.text}> Create </Text>
+                        </Pressable>
                     </View>
-                  </Pressable>
-
-                  <Pressable
-                    onPress={() => navigation.navigate("UserBookAppointment")}
-                  >
-                    <View style={styles.appointmentContainer2}>
-                      <Text style={styles.appointmentText}>Dr 2</Text>
-                      <Text style={styles.appointmentText2}>Obstetrician</Text>
-                      <View style={styles.appointmentContainer3}>
-                        <Text style={styles.appointmentText2}>Hospital/Clinic</Text>
-                        <Text style={styles.appointmentText3}>Details</Text>
-                      </View>
                     </View>
-                  </Pressable>
-
-                  <Pressable
-                    onPress={() => navigation.navigate("UserBookAppointment")}
-                  >
-                    <View style={styles.appointmentContainer2}>
-                      <Text style={styles.appointmentText}>Dr 3</Text>
-                      <Text style={styles.appointmentText2}>Obstetrician</Text>
-                      <View style={styles.appointmentContainer3}>
-                        <Text style={styles.appointmentText2}>Hospital/Clinic</Text>
-                        <Text style={styles.appointmentText3}>Details</Text>
-                      </View>
-                    </View>
-                  </Pressable>
                 </View>
             </ScrollView>
         </Keyboard>
     );
 };
 
-export default UserCreateAppointment;
+export default UserCreatePost;

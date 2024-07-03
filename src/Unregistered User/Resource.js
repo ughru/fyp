@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Dimensions} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Dimensions, Platform, StyleSheet, Image} from 'react-native';
 import axios from 'axios';
 import styles from '../components/styles';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import url from '../components/config';
 import Keyboard from '../components/Keyboard';
 import ModalStyle from '../components/ModalStyle';
+import { firebase } from '../../firebaseConfig'; 
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -35,7 +36,7 @@ const Resource = ({ navigation }) => {
     const fetchResources = async () => {
       try {
         const response = await axios.get(`${url}/resource`);
-        setResources(response.data);
+        setResources(response.data.resources);
       } catch (error) {
         console.error('Error fetching resources:', error);
       }
@@ -64,16 +65,16 @@ const Resource = ({ navigation }) => {
 
   return (
     <Keyboard>
-    <ScrollView style={styles.container3} contentContainerStyle={{ paddingBottom: topHeight }}>
-      <View onLayout={onLayoutTop} style={[styles.container2, { top: 75, left: 20, width: screenWidth * 0.9 }]}>
+    <ScrollView style={styles.container3} contentContainerStyle={{...Platform.select({web:{} , default:{paddingTop:50}})}}>
+      <View onLayout={onLayoutTop} style={[styles.container2, { paddingTop: 20, left: 20, width: screenWidth * 0.9 }]}>
         <Text style={[styles.pageTitle]}>Resource Hub</Text>
-        <TouchableOpacity style={[styles.iconContainer, {marginBottom: 0}]}>
+        <TouchableOpacity style={[styles.iconContainer]}>
           <Feather name="download" size={24} color="black" />
         </TouchableOpacity>
       </View>
 
       {/* Search Bar */}
-      <View style={[styles.search, {top: 100, right: 10}]}>
+      <View style={[styles.search, {paddingTop: 20 , right:10}]}>
         <View style={[styles.iconContainer, {left: 40}]}>
           <Ionicons name="search-outline" size={24} color="black" />
         </View>
@@ -87,9 +88,14 @@ const Resource = ({ navigation }) => {
       </View>
 
       {/* Dynamic Navigation Buttons */}
-      <View style={[styles.buttonContainer, { top: 120, left: 20 }]}>
+      <View style={[styles.buttonContainer, {
+        ...Platform.select({
+          web:{width:screenWidth*0.9, paddingTop:20, left: 20 , paddingRight:10},
+          default:{paddingTop:20, left: 20 , paddingRight:10}
+        }) }]}>
         <ScrollView  ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 20, paddingVertical: 10, marginBottom: 10, paddingRight: 30 }}>
+              style={Platform.OS === 'web'? {width:'100%'}:{width:screenWidth * 0.9}}
+              contentContainerStyle={[{ gap: 10, paddingVertical: 10, marginBottom: 10 }, Platform.OS!=='web' && {paddingRight:10}]}>
           {categories.map((category, index) => (
             <TouchableOpacity
               key={index}
@@ -97,35 +103,41 @@ const Resource = ({ navigation }) => {
               onPress={() => handleSelectCategory(index)}
               style={activeIndex === index ? styles.categoryBtnActive : styles.categoryBtn}
             >
-              <Text style={activeIndex === index ? styles.categoryBtnTxt : styles.categoryBtnTxt}>
-                {category.categoryName}
-              </Text>
+              <Text style={styles.text}> {category.categoryName}  </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
       </View>
 
       {/* Resources */}
-      <View style={[{ top: 120, left: 20 }]}>
+      <View style={[{ marginLeft: 20}, Platform.OS==="web"?{ width: screenWidth * 0.9}:{width:'100%'}]}>
         <ScrollView style={styles.container3}
-          contentContainerStyle={{
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            gap: 20,
-            paddingVertical: 10,
-            paddingBottom: topHeight,
-          }}>
+          contentContainerStyle={Platform.OS==="web"? styles.resourceContainerWeb : styles.resourceContainerMobile}>
           {resources.map((resource, index) => {
             const activeCategory = categories[activeIndex]?.categoryName;
             if (activeCategory === "All" || resource.category === activeCategory) {
               return (
+                <View key={index} style= {{marginBottom: 20}}>
+                
                 <TouchableOpacity
                   key={index}
-                  style={styles.resourceBtn}
+                  style={[styles.resourceBtn , {marginRight:(screenWidth * 0.3 - 100)}]}
                   onPress={toggleModal}
                 >
-                  <Text>{resource.title}</Text>
+
+                {/* Image */}
+                <View style={{ ...StyleSheet.absoluteFillObject }}>
+                  <Image
+                    source={{ uri: resource.imageUrl}}
+                    style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'cover' }}
+                  />
+                </View>
+
                 </TouchableOpacity>
+                <Text style= {[styles.text, {marginTop: 5, width: 100, textAlign: 'flex-start'}]}>
+                  {resource.title} 
+                </Text>
+                </View>
               );
             }
             return null;

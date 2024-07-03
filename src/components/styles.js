@@ -3,9 +3,25 @@ import { StyleSheet } from 'react-native';
 // Style Definitions
 export const styles = StyleSheet.create({
     container: {
+        flexGrow: 1,
+        padding: 20,
+    },
+    container2: {
+        flex: 1, 
+        flexDirection: 'row',
+        zIndex: 10,
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    container3: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
+    },
+    container4: {
+        height: 'fit-content',
+        flexDirection: 'column',
+    },
+    container5:{
+        flexGrow:1
     },
     iconContainer: {
         marginRight: 10,
@@ -22,7 +38,7 @@ export const styles = StyleSheet.create({
     textTitle: {
         fontSize: 24,
         fontWeight: 'bold',
-        marginBottom: 20,
+        marginBottom: 10,
     },
     pageTitle: {
         fontSize: 30,
@@ -113,6 +129,27 @@ export const styles = StyleSheet.create({
         backgroundColor: '#E3C2D7',
         marginRight: 10,
     },
+    button9: {
+        width: 80,
+        height: 30,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 5,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: '#E3C2D7',
+    },
+    button10: {
+        width: 20,
+        height: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 5,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: '#E3C2D7',
+        marginRight: 10,
+    },
     defaultButton: {
         borderColor: '#E3C2D7',
         backgroundColor: 'transparent',
@@ -142,6 +179,15 @@ export const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#979595', 
     },
+    input4: {
+        width: 340,
+        height: 40,
+        padding: 10,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: '#979595', 
+        backgroundColor: '#dedede',
+    },
     imgButton: {
         width: 120,
         height: 120,
@@ -165,6 +211,10 @@ export const styles = StyleSheet.create({
     text2: {
         fontSize: 16,
         marginRight: 5,
+    },
+    text3: {
+        fontSize: 18,
+        fontWeight: 'bold',
     },
     formText: {
         fontSize: 16,
@@ -235,10 +285,6 @@ export const styles = StyleSheet.create({
         paddingVertical: 10,
         borderRadius: 20,
     },
-    categoryBtnTxt: {
-        marginLeft: 5,
-        color: "black",
-    },
     resourceBtn: {
         borderWidth: 1,
         width: 100,
@@ -246,6 +292,7 @@ export const styles = StyleSheet.create({
         paddingHorizontal: 10,
         paddingVertical: 10,
         borderRadius: 10,
+        marginBottom: 10,
     },
     resourceCategoryButton: {
         width: 170,
@@ -256,10 +303,6 @@ export const styles = StyleSheet.create({
         borderRadius: 20,
         backgroundColor: '#E3C2D7',
     },
-<<<<<<< Updated upstream
-  });
-
-=======
     resourceContainerWeb:{
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -342,51 +385,11 @@ export const styles = StyleSheet.create({
         padding: 10,
         marginBottom: 10,
     },
-    adImageContainerAppt: {
-        padding: 10,
-        width: "100%", 
-        alignItems: 'center'
-    },
     adImage: {
         width: 320,
         height: 200,
         resizeMode: 'center',
     },
-<<<<<<< Updated upstream
-    calendarIcon: {
-        flex: 1,
-        flexDirection: 'row',
-        paddingLeft: 30
-    },
-    calendarText: {
-        marginLeft: 10,
-        fontWeight: 'bold',
-        fontSize: 18,
-    },
-    container6: {
-        height: 'fit-content'
-    },
-    text4: {
-        fontWeight: 'bold',
-        fontSize: 18,
-        paddingLeft: 25
-    },
-    containerDan: {
-        flexGrow: 1
-    },
-    containerDan2: {
-        height: 'fit-content',
-        flexDirection: 'column',
-    },
-    pageTitleDan: {
-        fontSize: 30,
-        fontWeight: 'bold',
-        padding: 10,
-        marginLeft: 10
-    },
-    containerDan3: {
-        padding: 10
-=======
     imageUpload: {
         borderWidth: 1,
          width: 150, 
@@ -456,9 +459,7 @@ export const styles = StyleSheet.create({
         borderRadius: 20,
         marginTop: 10,
         marginLeft: 20
->>>>>>> Stashed changes
-    }
+    },
 });
->>>>>>> Stashed changes
 
 export default styles;

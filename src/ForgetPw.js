@@ -1,58 +1,104 @@
-import React, {useState} from 'react';
-import { Text, Pressable, TextInput, ScrollView, View } from 'react-native';
+import React, { useState } from 'react';
+import { Text, Pressable, TextInput, ScrollView, View, Alert, Platform } from 'react-native';
 import styles from './components/styles';
 import Keyboard from './components/Keyboard';
 import axios from 'axios';
 import url from "./components/config";
 import { AntDesign } from '@expo/vector-icons';
 
-const ForgetPw = ({navigation}) => {
+const ForgetPw = ({ navigation, route }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
     const [emailError, setError1] = useState('');
     const [pwError, setError2] = useState('');
 
-    navigation.addListener('focus', () => {
-        setEmail('');
-        setPassword('');
-    });
+    const { origin } = route.params;
+
+    const resetPassword = async () => {
+        let valid = true;
+
+        if (!email.trim()) {
+            setError1('* Required field');
+            valid = false;
+        }
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            setError1('* Invalid email format');
+            valid = false;
+        }
+        else {
+            setError1('');
+        }
+
+        if (!password.trim()) {
+            setError2('* Required field');
+            valid = false;
+        }
+        else if (password.length < 6) {
+            setError2('* Must be at least 6 characters');
+            valid = false;
+        }
+        else {
+            setError2('');
+        }
+
+        if (valid) {
+            try {
+                const response = await axios.post(`${url}/resetpassword`, { email, newPassword: password });
+
+                if (response.data && response.data.error) {
+                    setError1(response.data.error);
+                    return;
+                }
+
+                // Display successful update
+                navigation.goBack();
+                Alert.alert('Password Reset', 'Password has been reset successfully!');
+            } catch (error) {
+                Alert.alert('Reset Error', 'Unable to reset password.');
+            }
+        }
+    };
 
     return (
-        <Keyboard>
-        <ScrollView contentContainerStyle={[styles.container]}>
+    <Keyboard>
+    <ScrollView contentContainerStyle={[styles.container]}>
         {/* Back Button */}
-        <View style={[styles.container3, {justifyContent: 'center'}]}>
-            <View style = {{ flexDirection: 'row', alignItems: 'center', bottom: 120 }}>
-            <AntDesign name="left" size={24} color="black" />
-            <Pressable style={[styles.formText]} onPress={() => navigation.goBack()}>
-                <Text style={styles.text}> back </Text>
-            </Pressable>
+        <View style={[styles.container3, Platform.OS !== "web" && { paddingTop: 50 }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingBottom: 150 }}>
+                <AntDesign name="left" size={24} color="black" />
+                <Pressable style={[styles.formText]} onPress={() => navigation.goBack()}>
+                    <Text style={styles.text}> back </Text>
+                </Pressable>
             </View>
 
-        {/* Title */}
-            <Text style={[styles.pageTitle,  { marginLeft: 10, marginBottom: 20 }]}> Forget Password </Text>
-            <Text style= {[styles.titleNote, { marginLeft: 10, marginBottom: 40}]}> To reset, fill form below </Text>
+            <View style={[styles.container3, { justifyContent: 'center' }]}>
+                {/* Title */}
+                <Text style={[styles.pageTitle, { marginBottom: 20 }]}>
+                    {origin === 'Login' ? 'Forget Password' : 'Change Password'}
+                </Text>
+                <Text style={[styles.titleNote, { marginBottom: 40 }]}> To reset, fill form below </Text>
 
-        {/* Form */}
-            <View style={{ marginBottom: 30, alignSelf: 'center' }}>
-            <Text style= {[styles.formText, {marginBottom: 10}]}> Email   </Text>
-            <TextInput style={[styles.input]} value = {email} onChangeText = {setEmail}
-                keyboardType="email-address" />
+                {/* Form */}
+                <View style={{ marginBottom: 30, alignSelf: 'center' }}>
+                    <Text style={[styles.formText, { marginBottom: 10 }]}> Email {emailError ? <Text style={styles.error}>{emailError}</Text> : null} </Text>
+                    <TextInput style={[styles.input]} value={email} onChangeText={setEmail}
+                        keyboardType="email-address" />
+                </View>
+
+                <View style={{ marginBottom: 30, alignSelf: 'center' }}>
+                    <Text style={[styles.formText, { marginBottom: 10 }]}> New Password {pwError ? <Text style={styles.error}>{pwError}</Text> : null} </Text>
+                    <TextInput style={[styles.input]} value={password} onChangeText={setPassword} secureTextEntry={true} />
+                </View>
+
+                {/* Button */}
+                <Pressable style={[styles.button, { marginBottom: 20, alignSelf: 'center' }]} onPress={resetPassword}>
+                    <Text style={styles.text}> Reset </Text>
+                </Pressable>
             </View>
-
-            <View style={{ marginBottom: 30, alignSelf: 'center' }}>
-            <Text style= {[styles.formText, {marginBottom: 10}]}> New Password </Text>
-            <TextInput style={[styles.input]} value = {password} onChangeText = {setPassword} secureTextEntry={true}/>
-            </View>
-
-            {/* Button */}
-            <Pressable style={[styles.button, { marginBottom: 20, alignSelf: 'center' }]}>
-            <Text style={styles.text}> Reset </Text>
-            </Pressable>
         </View>
-        </ScrollView>
-        </Keyboard>
+    </ScrollView>
+    </Keyboard>
     );
 };
 

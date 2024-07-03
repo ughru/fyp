@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable , Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../components/styles';
 
@@ -19,10 +19,10 @@ const Settings = ({ navigation, selectedStatus, setSelectedStatus }) => {
   // Page Displays
   return (
     <View style = {[styles.container]}>
-      <Text style={[styles.pageTitle, {top: 50, marginBottom: 20}]}> Settings </Text>
-      <Text style={[styles.titleNote, {marginTop: 40, marginBottom: 30}]}> Manage your account </Text>
+      <Text style={[styles.pageTitle , Platform.OS!=="web"&&{paddingTop:50}]}> Settings </Text>
+      <Text style={[styles.titleNote, {paddingTop:10 , paddingBottom:10}]}> Manage your account </Text>
       
-      <View style = {[styles.container3]}>
+      <View style = {[styles.container4]}>
         <Text style={[styles.questionText, {marginBottom: 20}]}> Pregnancy Status </Text>
         <View style={styles.buttonPosition}>
           <Pressable
@@ -47,24 +47,6 @@ const Settings = ({ navigation, selectedStatus, setSelectedStatus }) => {
             <Text>{selectedStatus === 'During' ? 'During' : 'During'}</Text>
           </Pressable>
 
-<<<<<<< Updated upstream
-      <Pressable
-        style={[
-          styles.button6,
-          { top: 220, left: 220 },
-          selectedStatus === 'Post' ? styles.button6 : styles.defaultButton,
-        ]}
-        disabled={!selectedStatus}
-        onPress={() => handleStatusSelection('Post')}
-      >
-        <Text>{selectedStatus === 'Post' ? 'Post' : 'Post'}</Text>
-      </Pressable>
-
-      <Text style= {[styles.pageTitle, {top: 400}]}> Join Bloom </Text>
-      <Pressable style={[styles.button5, {top: 450}]} onPress={() =>navigation.navigate("AccountType")}>
-        <Text style= {styles.questionText}> Register </Text>
-      </Pressable>
-=======
           <Pressable
             style={[
               styles.button6, {marginHorizontal: 10},
@@ -80,21 +62,10 @@ const Settings = ({ navigation, selectedStatus, setSelectedStatus }) => {
       
       <View style = {[styles.container3, {alignItems: 'center' , paddingHorizontal:20 , justifyContent:'center'}]}>
         <Text style={[styles.pageTitle, {marginBottom: 20}]}> Join Bloom </Text>
-        <Pressable style={styles.button5} onPress={() => navigation.navigate("AccountType")}>
+        <Pressable style={styles.button5} onPress={() => navigation.navigate("RegisterUser")}>
           <Text style={styles.questionText}> Register </Text>
         </Pressable>
-        <Pressable style={{width: 270,
-        height: 40,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 5,
-        borderRadius: 20,
-        marginTop: 10,
-        backgroundColor: '#E3C2D7'}} onPress={() => navigation.navigate("Login")}>
-          <Text style={styles.questionText}> Login </Text>
-        </Pressable>
       </View>
->>>>>>> Stashed changes
     </View>
   );
 };

@@ -1,26 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, ScrollView, Dimensions } from 'react-native';
+import { View, Text, Pressable, ScrollView, Dimensions, Platform } from 'react-native';
+import HTMLView from 'react-native-htmlview';
 import styles from '../components/styles';
-import { AntDesign, Feather } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import url from '../components/config';
 import axios from 'axios';
 
 const { width: screenWidth } = Dimensions.get('window');
 
 const UserResourceInfo = ({ navigation, route }) => {
-    const { title } = route.params;
-    const [resource, setResource] = useState([]);
+    const { resourceID } = route.params;
+    const [resource, setResource] = useState(null);
     const [topHeight, setTopHeight] = useState(0);
 
     useEffect(() => {
-        // Fetch resource info from backend API
         const fetchResources = async () => {
             try {
                 const response = await axios.get(`${url}/resource`);
-                const resources = response.data;
-
-                // Find the resource with the matching title
-                const matchedResource = resources.find(res => res.title === title);
+                const resources = response.data.resources;
+                const matchedResource = resources.find(res => res.resourceID === resourceID);
                 setResource(matchedResource);
             } catch (error) {
                 console.error('Error fetching resources:', error);
@@ -28,46 +26,53 @@ const UserResourceInfo = ({ navigation, route }) => {
         };
 
         fetchResources();
-    }, [title]);
+    }, [resourceID]);
 
-    // Function to get the height of the top section
     const onLayoutTop = (event) => {
         const { height } = event.nativeEvent.layout;
         setTopHeight(height + 100);
     };
 
+    const sortStatus = (statusArray) => {
+        const order = ['Pre', 'During', 'Post'];
+        return statusArray.sort((a, b) => order.indexOf(a) - order.indexOf(b));
+    };
+
     return (
-        <ScrollView style={styles.container3} contentContainerStyle={{ paddingBottom: topHeight }}>
-            {/** Top section */}
-            <View onLayout={onLayoutTop} style={{...styles.container2, top: 80, left: 20, width: screenWidth * 0.9}}>
-                {/** Arrow + Back button */}
-                <View style={{ flexDirection: 'row' , alignContent:'center'}}>
+        <ScrollView style={styles.container3} contentContainerStyle={{ ...Platform.select({web:{} , default:{paddingTop:50}}) }}>
+        {/** Top section */}
+        <View onLayout={onLayoutTop} style={{...styles.container2, paddingTop: 20, left: 20, width: screenWidth * 0.9}}>
+                <View style={{ flexDirection: 'row', alignContent: 'center' }}>
                     <View>
                         <AntDesign name="left" size={24} color="black" />
                     </View>
                     <Pressable onPress={() => navigation.goBack()}>
-                        <Text style={[styles.text, {top: 3}]}> back</Text>
+                        <Text style={[styles.text, { top: 3 }]}> back</Text>
                     </Pressable>
-                </View>
-                {/** Download button */}
-                <View style={{ marginRight: 30 }}>
-                    <Feather name="download" size={24} color="black" />
                 </View>
             </View>
-            <View style={styles.container3}>
+            <View style={{...styles.container4 , padding:20}}>
                 {resource && (
-                <View style={{ top: 90, left: 20 }}>
-                    {/* Title */}
-                    <Text style={[styles.pageTitle, { marginBottom: 20 }]}>{title}</Text>
-
-                    {/* Category */}
-                    <Pressable style={[styles.resourceCategoryButton, {marginBottom: 20}]}>
-                        <Text style={[styles.categoryBtnTxt]}>{resource.category}</Text>
-                    </Pressable>
-
-                    {/* Description */}
-                    <Text style={[styles.descriptionText, {  width: screenWidth * 0.9 }]}>{resource.description}</Text>
-                </View>
+                    <View>
+                        <Text style={[styles.pageTitle, { marginBottom: 20 }]}>{resource.title}</Text>
+                        <Text style={[styles.titleNote, { marginBottom: 20 }]}>Written by: Dr {resource.specialistName}</Text>
+                        <Pressable style={[styles.resourceCategoryButton, { marginBottom: 20 }]}>
+                            <Text style={[styles.categoryBtnTxt]}>{resource.category}</Text>
+                        </Pressable>
+                        <View style={{ marginBottom: 20 }}>
+                            <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                                {resource.status && sortStatus(resource.status).map((status, index) => (
+                                    <Pressable key={index} style={[styles.button9, { marginHorizontal: 5, marginBottom: 10 }]}>
+                                        <Text>{status}</Text>
+                                    </Pressable>
+                                ))}
+                            </View>
+                        </View>
+                        {/* Description */}
+                        <View style={[styles.container4]}>
+                            <HTMLView value={resource.description} />
+                        </View>
+                    </View>
                 )}
             </View>
         </ScrollView>

@@ -75,6 +75,9 @@ export default function RegisteredHome() {
         },
         tabBarActiveTintColor: '#D39FC0',
         tabBarInactiveTintColor: 'gray',
+        tabBarStyle:{
+          padding:3
+        }
       })}
     >
       <Tab.Screen name="Home" component={getHomeScreen()} options={{ headerShown: false }} />

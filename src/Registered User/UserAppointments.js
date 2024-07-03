@@ -1,9 +1,5 @@
 import React, { useEffect, useState } from 'react';
-<<<<<<< Updated upstream
-import { View, Text, Pressable, ScrollView, TextInput } from 'react-native';
-=======
 import { View, Text, Pressable, ScrollView, TextInput, Image, Platform, TouchableOpacity } from 'react-native';
->>>>>>> Stashed changes
 import styles from '../components/styles';
 import { firebase } from '../../firebaseConfig';
 import { Feather, AntDesign } from '@expo/vector-icons';
@@ -39,17 +35,18 @@ const UserAppointments = ({navigation}) => {
   // Page Displays
   return (
     <ScrollView contentContainerStyle={styles.container}>
-<<<<<<< Updated upstream
-      <View style = {[styles.container3, {top: 50}]}>
-        <Text style={[styles.pageTitle, {marginBottom: 570, marginRight: 120}]}> Appointments</Text>
-=======
       <View style = {[styles.container4, Platform.OS!=="web"&&{paddingTop:50}]}>
-        <Text style={[styles.pageTitle]}> Appointments</Text>
-      
-        <View style={[styles.adImageContainer, {width: '100%', alignItems: 'center'}]}>
-        {imageUrl && <Image source={{ uri: imageUrl }} style={styles.adImage} alt="Ad" />}
+        <View style={{flexDirection: 'row'}}>
+          <AntDesign name="left" size={24} color="black" />
+              <Pressable style={[styles.formText]} onPress={() => navigation.goBack()}>
+                <Text style={styles.text}> back </Text>
+              </Pressable>
         </View>
->>>>>>> Stashed changes
+        <Text style={[styles.pageTitle]}> Appointments</Text>
+      </View>
+
+      <View style={[styles.adImageContainer, {width: '100%', alignItems: 'center'}]}>
+        {imageUrl && <Image source={{ uri: imageUrl }} style={styles.adImage} alt="Ad" />}
       </View>
 
       <View style={[styles.container4, { marginBottom: 20}]}>

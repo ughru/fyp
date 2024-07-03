@@ -5,30 +5,32 @@ import { Entypo } from '@expo/vector-icons';
 import RNPickerSelect from 'react-native-picker-select';
 import axios from 'axios';
 import { RichEditor, RichToolbar, actions } from 'react-native-pell-rich-editor';
-import Keyboard from '../components/Keyboard'; 
+import Keyboard from '../components/Keyboard';
 import url from '../components/config';
 import { Camera } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import {storage} from '../../firebaseConfig';
 
-// import own code
+// Import styles
 import styles from '../components/styles';
 
-const CreateResource = ({ navigation }) => {
-    // values
+const UpdateResource = ({ navigation, route }) => {
+    // Values
+    const { resourceID} = route.params;
     const [title, setTitle] = useState('');
     const [categories, setCategories] = useState([]);
     const [description, setDescription] = useState('');
     const [specialistInfo, setSpecialistInfo] = useState({ firstName: '', lastName: '' });
+    const [resource, setResource] = useState(null);
     const [imageUri, setImageUri] = useState(null);
 
-    // errors
-    const [titleError, setError1] = useState('');
-    const [categoryError, setError2] = useState('');
-    const [statusError, setError3] = useState('');
-    const [descriptionError, setError4] = useState('');
+    // Errors
+    const [titleError, setTitleError] = useState('');
+    const [categoryError, setCategoryError] = useState('');
+    const [statusError, setStatusError] = useState('');
+    const [descriptionError, setDescriptionError] = useState('');
 
-    // set selected values
+    // Selected values
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [selectedStatuses, setSelectedStatuses] = useState([]);
 
@@ -36,17 +38,17 @@ const CreateResource = ({ navigation }) => {
 
     useEffect(() => {
         const fetchSpecialistInfo = async () => {
-        try {
-            const storedEmail = await AsyncStorage.getItem('user');
-            if (storedEmail) {
-                const response = await axios.get(`${url}/specialistinfo?email=${storedEmail}`);
-                if (response.data) {
-                    setSpecialistInfo(response.data);
+            try {
+                const storedEmail = await AsyncStorage.getItem('user');
+                if (storedEmail) {
+                    const response = await axios.get(`${url}/specialistinfo?email=${storedEmail}`);
+                    if (response.data) {
+                        setSpecialistInfo(response.data);
+                    }
                 }
+            } catch (error) {
+                console.error('Error fetching user info:', error);
             }
-        } catch (error) {
-            console.error('Error fetching user info:', error);
-        }
         };
 
         const fetchCategories = async () => {
@@ -59,13 +61,34 @@ const CreateResource = ({ navigation }) => {
                 const filteredCategoryItems = categoryItems.slice(1);
                 setCategories(filteredCategoryItems);
             } catch (error) {
-                console.error(error);
+                console.error('Error fetching categories:', error);
             }
         };
 
+        const fetchResources = async () => {
+            try {
+                const response = await axios.get(`${url}/resource`);
+                const resources = response.data.resources;
+
+                // Find the resource with the matching title
+                const matchedResource = resources.find(res => res.resourceID === resourceID);
+                if (matchedResource) {
+                    setResource(matchedResource); // Set resource state
+                    setTitle(matchedResource.title); // Set title state
+                    setSelectedCategory(matchedResource.category); // Set selected category state
+                    setSelectedStatuses(matchedResource.status); // Set selected statuses state
+                    setDescription(matchedResource.description); // Set description state
+                    setImageUri(matchedResource.imageUrl);
+                } 
+            } catch (error) {
+                console.error('Error fetching resources:', error);
+            }
+        };
+
+        fetchResources();
         fetchSpecialistInfo();
         fetchCategories();
-    }, []);
+    }, [resourceID]);
 
     const handleStatusSelection = (status) => {
         setSelectedStatuses((prevStatuses) =>
@@ -75,43 +98,47 @@ const CreateResource = ({ navigation }) => {
         );
     };
 
-    const onSaveResource = async () => {
+    const onUpdateResource = async () => {
         let valid = true;
 
         // Validate input fields
         if (!title.trim()) {
-            setError1('* Required field');
+            setTitleError('* Required field');
             valid = false;
         } else {
-            setError1('');
+            setTitleError('');
         }
 
         if (selectedCategory === 'Select a category') {
-            setError2('* Required field');
+            setCategoryError('* Required field');
             valid = false;
         } else {
-            setError2('');
+            setCategoryError('');
         }
 
         if (selectedStatuses.length === 0) {
-            setError3('* Please select at least one status');
+            setStatusError('* Please select at least one status');
             valid = false;
         } else {
-            setError3('');
+            setStatusError('');
         }
 
         if (!description.trim()) {
-            setError4('* Required field');
+            setDescriptionError('* Required field');
             valid = false;
         } else {
-            setError4('');
+            setDescriptionError('');
         }
 
         if (valid) {
             try {
-                let imageUrl = '';
-
-                if (imageUri) {
+                let imageUrl = resource.imageUrl;
+    
+                // If a new image is selected, upload it to Firebase Storage
+                if (imageUri ===  null) {
+                    imageUrl = null;
+                }
+                else {
                     const response = await fetch(imageUri);
                     const blob = await response.blob();
                     const filename = `${title}.${blob.type.split('/')[1]}`;
@@ -119,8 +146,9 @@ const CreateResource = ({ navigation }) => {
                     await storageRef.put(blob);
                     imageUrl = await storageRef.getDownloadURL();
                 }
-
+    
                 const resourceData = {
+                    resourceID,
                     title,
                     category: selectedCategory,
                     status: selectedStatuses,
@@ -128,32 +156,18 @@ const CreateResource = ({ navigation }) => {
                     specialistName: `${specialistInfo.firstName} ${specialistInfo.lastName}`,
                     imageUrl
                 };
-
-                const response = await axios.post(`${url}/addresource`, resourceData);
-
-                // Handle response and check if the resource already exists
-                if (response.data && response.data.error === "Resource with the same title already exists!") {
-                    setError1('* Resource with the same title already exists');
-                    return;
-                }
-
+    
+                await axios.put(`${url}/updateresource`, resourceData);
+    
                 // Alert success and navigate back
-                Alert.alert('Success', 'Resource successfully created!',
-                    [{
-                        text: 'OK', onPress: async () => {
-                            navigation.goBack();
-                        }
-                    }],
-                    { cancelable: false }
-                );
+                Alert.alert('Success', 'Resource successfully updated!', [{ text: 'OK', onPress: () => navigation.goBack() }], {
+                    cancelable: false
+                });
             } catch (error) {
-                console.error('Resource error:', error.message);
-
+                console.error('Resource update error:', error);
+    
                 // Alert failure
-                Alert.alert('Failure', 'Resource was not created!',
-                    [{ text: 'OK' }],
-                    { cancelable: false }
-                );
+                Alert.alert('Failure', 'Resource was not updated!', [{ text: 'OK' }], { cancelable: false });
             }
         }
     };
@@ -165,18 +179,17 @@ const CreateResource = ({ navigation }) => {
                 allowsEditing: true,
                 aspect: [4, 3],
                 quality: 1,
-              });
-
+            });
+    
             if (!result.canceled) {
                 // Set the selected image URI to the state
                 setImageUri(result.assets[0].uri);
-            } 
+            }
         } catch (error) {
             console.error('Error picking image:', error);
-            Alert.alert('Error', 'Failed to pick an image.');
         }
     };
-
+    
     const takePhoto = async () => {
         const { status } = await Camera.requestCameraPermissionsAsync();
         if (status === 'granted') {
@@ -186,28 +199,37 @@ const CreateResource = ({ navigation }) => {
                     aspect: [4, 3],
                     quality: 1,
                 });
-
+    
                 if (!result.canceled) {
+                    // Set the selected image URI to the state
                     setImageUri(result.assets[0].uri);
-                } 
+                }
             } catch (error) {
                 console.error('Error taking photo:', error);
-                Alert.alert('Error', 'Failed to take a photo.');
             }
         } else {
             Alert.alert('Permission denied', 'Camera permissions are required to take a photo.');
         }
-    };
+    };    
 
-    const removeImage = () => {
-        setImageUri(null);
+    const removeImage = async () => {
+        try {
+            if (imageUri && resource.imageUrl) {
+                // Delete the image from Firebase Storage
+                const storageRef = storage.refFromURL(resource.imageUrl);
+                await storageRef.delete();
+                setImageUri(null);
+            }
+        } catch (error) {
+            console.error('Error removing image:', error);
+        }
     };
 
     return (
     <Keyboard>
     <ScrollView contentContainerStyle={styles.container}>
         <View style={[{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', paddingBottom:20 }, {...Platform.select({web:{} , default:{paddingTop:50}})}]}>
-            <Text style={[styles.pageTitle]}> Create Resource </Text>
+            <Text style={[styles.pageTitle]}> Update Resource </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 20 }}>
                 <Pressable style={[styles.formText, {}]} onPress={() => navigation.goBack()}>
                     <Entypo name="cross" size={30} color="black" />
@@ -218,11 +240,12 @@ const CreateResource = ({ navigation }) => {
         {/* Form fields */}
         <View style={[styles.container4, { marginBottom: 20 }]}>
             <View style={{ marginBottom: 30 }}>
-                <Text style={[styles.text, { marginBottom: 10 }]}> Title {titleError ? <Text style={styles.error}>{titleError}</Text> : null} </Text>
-                <TextInput style={[styles.input3]} value={title} onChangeText={setTitle} />
+                <Text style={[styles.text, { marginBottom: 10 }]}> Title </Text>
+                <TextInput style={[styles.input3]} value={title} onChangeText={setTitle} /> 
+                {titleError ? <Text style={styles.error}>{titleError}</Text> : null}
             </View>
             <View style={{ marginBottom: 30 }}>
-                <Text style={[styles.text, { marginBottom: 10 }]}> Category {categoryError ? <Text style={styles.error}>{categoryError}</Text> : null} </Text>
+                <Text style={[styles.text, { marginBottom: 10 }]}> Category </Text>
                 <RNPickerSelect
                     onValueChange={(value) => {
                         setSelectedCategory(value)
@@ -230,12 +253,14 @@ const CreateResource = ({ navigation }) => {
                     items={categories}
                     style={styles.pickerSelectStyles}
                     placeholder={{ label: 'Select a category', value: 'Select a category' }}
+                    value={selectedCategory}
                 />
+                {categoryError ? <Text style={styles.error}>{categoryError}</Text> : null}
             </View>
 
             {/* Status selection buttons */}
             <View style={[styles.container4, { marginBottom: 20 }]}>
-                <Text style={[styles.text, { marginBottom: 20 }]}> Status {statusError ? <Text style={styles.error}>{statusError}</Text> : null} </Text>
+                <Text style={[styles.text, { marginBottom: 20 }]}> Status </Text>
                 <View style={[styles.buttonPosition]}>
                     <Pressable
                         style={[
@@ -267,27 +292,32 @@ const CreateResource = ({ navigation }) => {
                         <Text>Post</Text>
                     </Pressable>
                 </View>
+                {statusError ? <Text style={styles.error}>{statusError}</Text> : null}
             </View>
 
             <View style={[styles.container4, { marginBottom: 20 }]}>
-                <Text style={[styles.text, { marginBottom: 20 }]}> Description {descriptionError ? <Text style={styles.error}>{descriptionError}</Text> : null} </Text>
+                <Text style={[styles.text, { marginBottom: 20 }]}> Description </Text>
                 <RichToolbar
-                    editor={editor} 
+                    editor={editor}
                     actions={[actions.setBold, actions.setItalic, actions.setUnderline, actions.insertBulletsList,
                         actions.insertOrderedList, actions.heading1, actions.heading2]}
                     iconMap={{
-                        [actions.setBold]: ({tintColor}) => <Text style={[{fontSize: 22, color: '#979595', color: tintColor}]}> B </Text>,
-                        [actions.setItalic]: ({tintColor}) => <Text style={[{fontSize: 22, color: '#979595', color: tintColor}]}> I </Text>,
-                        [actions.setUnderline]: ({tintColor}) => <Text style={[{fontSize: 22, color: '#979595', color: tintColor}]}> U </Text>,
-                        [actions.heading1]: ({tintColor}) => <Text style={[{fontSize: 22, color: '#979595', color: tintColor}]}> H1 </Text>,
-                        [actions.heading2]: ({tintColor}) => <Text style={[{fontSize: 22, color: '#979595', color: tintColor}]}> H2 </Text>
+                        [actions.setBold]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}> B </Text>,
+                        [actions.setItalic]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}> I </Text>,
+                        [actions.setUnderline]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}> U </Text>,
+                        
+                        [actions.insertBulletsList]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}> • </Text>,
+                        [actions.insertOrderedList]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}> 1. </Text>,
+                        [actions.heading1]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}> H1 </Text>,
+                        [actions.heading2]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}> H2 </Text>
                     }}
                 />
                 <RichEditor
-                    ref={editor} 
+                    ref={editor}
                     onChange={(newDescription) => setDescription(newDescription)}
                     initialContentHTML={description}
                 />
+                {descriptionError ? <Text style={styles.error}>{descriptionError}</Text> : null}
             </View>
 
             {/* Image Upload */}
@@ -314,8 +344,8 @@ const CreateResource = ({ navigation }) => {
         </View>
 
         <View style={[styles.container3, { marginBottom: 20 }]}>
-            <Pressable style={[styles.button, { alignSelf: 'center' }]} onPress={onSaveResource}>
-                <Text style={styles.text}> Create </Text>
+            <Pressable style={[styles.button, { alignSelf: 'center' }]} onPress={onUpdateResource}>
+                <Text style={styles.text}> Update </Text>
             </Pressable>
         </View>
     </ScrollView>
@@ -323,4 +353,4 @@ const CreateResource = ({ navigation }) => {
     );
 };
 
-export default CreateResource;
+export default UpdateResource;

@@ -1,9 +1,10 @@
-import React, {useEffect, useState} from 'react';
-import { View, Text, Pressable, TextInput, ScrollView } from 'react-native';
+import React, {useEffect, useState, useCallback} from 'react';
+import { View, Text, Pressable, TextInput, ScrollView, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../components/styles';
 import axios from 'axios';
 import url from "../components/config";
+import { useFocusEffect } from '@react-navigation/native';
 
 const SpecialistSettings= ({navigation}) => {
   const [specialistInfo, setSpecialistInfo] = useState({
@@ -12,23 +13,29 @@ const SpecialistSettings= ({navigation}) => {
     email: ''
   });
 
-  useEffect(() => {
-    const fetchSpecialistInfo = async () => {
-      try {
-        const storedEmail = await AsyncStorage.getItem('user');
-        if (storedEmail) {
-          const response = await axios.get(`${url}/specialistinfo?email=${storedEmail}`);
-          if (response.data) {
-            setSpecialistInfo(response.data);
-          }
+  const fetchSpecialistInfo = useCallback(async () => {
+    try {
+      const storedEmail = await AsyncStorage.getItem('user');
+      if (storedEmail) {
+        const response = await axios.get(`${url}/specialistinfo?email=${storedEmail}`);
+        if (response.data) {
+          setSpecialistInfo(response.data);
         }
-      } catch (error) {
-        console.error('Error fetching user info:', error);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching user info:', error);
+    }
+}, []);
 
+  useEffect(() => {
     fetchSpecialistInfo();
-  }, []);
+    }, [fetchSpecialistInfo]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchSpecialistInfo();
+    }, [fetchSpecialistInfo])
+  );
  
   const handleLogout = async () => {
     try {
@@ -37,7 +44,7 @@ const SpecialistSettings= ({navigation}) => {
 
       // Clear AsyncStorage and navigate to the login screen
       await AsyncStorage.clear();
-      navigation.navigate('Login');
+      navigation.navigate('Login', { origin: 'SpecialistSettings' });
     } catch (error) {
       console.error('Logout Error:', error);
     }
@@ -45,13 +52,18 @@ const SpecialistSettings= ({navigation}) => {
 
   // Page Displays
   return (
-    <View style={styles.container}>
-      <Text style={[styles.pageTitle, {top: 50, marginBottom: 20}]}> Settings </Text>
-      <Text style={[styles.titleNote, {marginTop: 40, marginBottom: 20}]}> Manage your account </Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={[styles.pageTitle, Platform.OS!=="web"&&{paddingTop:50}]}> Settings </Text>
+      <Text style={[styles.titleNote, {paddingTop:10 , paddingBottom:20}]}> Manage your account </Text>
 
-      <Text style= {[styles.questionText, {marginBottom: 20}]}> Profile </Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', marginBottom: 20 }}>
+        <Text style= {[styles.questionText]}> Profile </Text>
+        <Pressable  style={[styles.button3]} onPress={() => navigation.navigate("SpecialistEditProfile")}>
+          <Text style={styles.text}>Edit Profile</Text>
+        </Pressable>
+      </View>
 
-      <View style={[styles.container3, {alignItems: 'center'}]}>
+      <View style={[styles.container4, {alignItems: 'center'}]}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', marginBottom: 20 }}>
           <Text style= {[styles.text]}> First Name </Text>
           <TextInput style={[styles.input2]} value={specialistInfo.firstName} />
@@ -70,29 +82,29 @@ const SpecialistSettings= ({navigation}) => {
         </View>
       </View>
 
-      <View style = {[styles.container3, {marginBottom: 150}]}>
-        <Text style= {[styles.questionText, {marginBottom: 30}]}> Others </Text>
-        <Pressable style={[styles.formText, {marginBottom: 30}]} onPress={() => navigation.navigate("Resources")}>
+      <View style = {[styles.container4]}>
+        <Text style= {[styles.questionText, {marginBottom: 20}]}> Others </Text>
+        <Pressable style={[styles.formText, {marginBottom: 20}]} onPress={() => navigation.navigate("Resources")}>
           <Text style={styles.text}> Resources </Text>
         </Pressable>
-        <Pressable style={[styles.formText, {marginBottom: 30}]} onPress={() => navigation.navigate("Appointments")}>
+        <Pressable style={[styles.formText, {marginBottom: 20}]} onPress={() => navigation.navigate("Appointments")}>
           <Text style={styles.text}> Appointments </Text>
         </Pressable>
 
-        <Text style= {[styles.questionText, {marginBottom: 30}]}> Info and Support </Text>
-        <Pressable style={[styles.formText, {marginBottom: 30}]}>
+        <Text style= {[styles.questionText, {marginBottom: 20}]}> Info and Support </Text>
+        <Pressable style={[styles.formText, {marginBottom: 20}]} onPress={() => navigation.navigate("ForgetPw", { origin: 'SpecialistSettings' })}>
           <Text style={styles.text}> Change Password </Text>
         </Pressable>
-        <Pressable style={[styles.formText, {marginBottom: 30}]}>
+        <Pressable style={[styles.formText, {marginBottom: 20}]}>
           <Text style={styles.text}> Report a Problem </Text>
         </Pressable>
 
         {/* Logout Button */}
-        <Pressable style={[styles.formText, {marginBottom: 30}]} onPress={handleLogout}>
+        <Pressable style={[styles.formText]} onPress={handleLogout}>
           <Text style={styles.questionText}>Logout</Text>
         </Pressable>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

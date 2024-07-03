@@ -93,6 +93,10 @@ const UserBookAppointment = ({ navigation }) => {
         <Keyboard>
             <ScrollView contentContainerStyle={styles.container}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', top: 50, marginBottom: 90 }}>
+                    <AntDesign name="left" size={24} color="black" />
+                        <Pressable style={[styles.formText]} onPress={() => navigation.goBack()}>
+                            <Text style={styles.text}> back </Text>
+                        </Pressable>
                     <Text style={[styles.pageTitle]}> Book Appointment </Text>
                 </View>
 
