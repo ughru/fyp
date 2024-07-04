@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, TouchableHighlight, Image, Platform } from 'react-native';
-import { firebase } from '../../firebaseConfig';
+import { storage } from '../../firebaseConfig';
 import { Feather, AntDesign } from '@expo/vector-icons';
 import axios from 'axios';
 import RNPickerSelect from 'react-native-picker-select';
@@ -41,7 +41,7 @@ const Forum = ({ navigation }) => {
   const [visibleComments, setVisibleComments] = useState({});
   const [sortOrder, setSortOrder] = useState('newest');
   const [activeButton, setActiveButton] = useState('General');
-  const [imageUrl, setImageUrl] = useState(null);
+  const [imageUrl, setImageUrls] = useState(null);
   const [isModalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
@@ -61,12 +61,24 @@ const Forum = ({ navigation }) => {
 
     const fetchImage = async () => {
       try {
-        const url = await firebase.storage().ref('adminAd/ad.png').getDownloadURL();
-        setImageUrl(url);
+        const storageRef = storage.ref('adminAd');
+        const images = await storageRef.listAll();
+    
+        // Get all image URLs or up to 5 if fewer
+        const randomImages = [];
+        const totalImages = Math.min(images.items.length, 5); // Limit to 5 or fewer images
+    
+        for (let i = 0; i < totalImages; i++) {
+          const randomIndex = Math.floor(Math.random() * images.items.length);
+          const imageUrl = await images.items[randomIndex].getDownloadURL();
+          randomImages.push(imageUrl);
+        }
+    
+        setImageUrls(randomImages); 
       } catch (error) {
-        console.error('Error fetching image:', error);
+        console.error('Error fetching images:', error);
       }
-    };
+    };     
 
     fetchForumPosts();
     fetchImage();
@@ -128,13 +140,17 @@ const Forum = ({ navigation }) => {
   return (
     <Keyboard>
       <ScrollView style={styles.container5}>
-        <View style={styles.container4}>
-          <View style={[styles.container2, { paddingTop: 20, paddingHorizontal: 20 }, Platform.OS!=="web"&& {paddingTop:50}]}>
-          <Text style={styles.pageTitle}> Community Forum </Text>
-        </View>
+        <View style = {[styles.container4,  Platform.OS!=="web"&& {paddingTop:50}]}>
+          <View style={[styles.container2, { paddingTop: 20, paddingHorizontal: 20 }]}>
+            <Text style={styles.pageTitle}> Community Forum </Text>
+          </View>
 
-        <View style={[styles.adImageContainer, { width: "100%", alignItems: 'center' }]}>
-          {imageUrl && <Image source={{ uri: imageUrl }} style={styles.adImage} />}
+        <View style={[styles.adImageContainer, { width: '100%', alignItems: 'center' }]}>
+          {imageUrl && (
+            imageUrl.map((url, index) => (
+              <Image key={index} source={{ uri: url }} style={styles.adImage} />
+            ))
+          )}
         </View>
       </View>
 

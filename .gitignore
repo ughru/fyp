@@ -3,6 +3,7 @@
 # dependencies
 node_modules/
 src/components/config.js
+functions/
 
 # Expo
 .expo/

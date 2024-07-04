@@ -10,6 +10,7 @@ const RegisterSpecialist= ({navigation}) => {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [uen, setUEN] = useState('');
+  const [specialisation, setSpecialisation] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
 
@@ -17,59 +18,58 @@ const RegisterSpecialist= ({navigation}) => {
   const [lastNameError, setError2] = useState('');
   const [emailError, setError3] = useState('');
   const [uenError, setError4] = useState('');
-  const [pwError, setError5] = useState('');
-  const [confirmPwError, setError6] = useState('');
+  const [specialisationError, setError5] = useState('');
+  const [pwError, setError6] = useState('');
+  const [confirmPwError, setError7] = useState('');
 
   const handleRegistration = async () => {
     let valid = true; 
 
     try {
       // Handle Name Errors
-      if (!firstName) {
+      if (!firstName.trim()) {
         // Check if empty
         setError1('* Required field');
         valid = false;
-      }
-      else if ((!/^[a-zA-Z\-]+$/.test(firstName))) {
+      } else if (firstName[0] !== firstName[0].toUpperCase()) {
+        setError1('* First letter must be uppercase');
+        valid = false;
+      } else if ((!/^[a-zA-Z\-]+$/.test(firstName))) {
         setError1('* Invalid First Name');
         valid = false;
-      }
-      else if (firstName.length < 2 ) {
+      } else if (firstName.length < 2 ) {
         setError1('* Minimum 2 characters');
         valid = false;
-      }
-      else {
+      } else {
         setError1('');
       }
 
       // Handle Name Errors
-      if (!lastName) {
+      if (!lastName.trim()) {
         // Check if empty
         setError2('* Required field');
         valid = false;
-      }
-      else if ((!/^[a-zA-Z\-]+$/.test(lastName))) {
+      } else if (lastName[0] !== lastName[0].toUpperCase()) {
+        setError2('* First letter must be uppercase');
+        valid = false;
+      } else if ((!/^[a-zA-Z\-]+$/.test(lastName))) {
         setError2('* Invalid Last Name');
         valid = false;
-      }
-      else if (lastName.length < 2 ) {
+      } else if (lastName.length < 2 ) {
         setError2('* Minimum 2 characters');
         valid = false;
-      }
-      else {
+      } else {
         setError2('');
       }
 
       // Handle Email Errors
-      if (!email) {
+      if (!email.trim()) {
         setError3('* Required field');
         valid = false;
-      }
-      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         setError3('* Invalid email format');
         valid = false;
-      }
-      else {
+      } else {
         setError3('');
       }
 
@@ -83,38 +83,45 @@ const RegisterSpecialist= ({navigation}) => {
         ‘Tyy’ / ‘Syy’ / ‘yyyy’= year of issuance 
         ‘X’ = a check alphabet
       */
-      if (!uen) {
+      if (!uen.trim()) {
         setError4('* Required field');
         valid = false;
-      }
-      else if (
+      } else if (
         !/^[0-9]{8}[A-Za-z]$/.test(uen) &&
         !/^[A-Za-z]{4}[0-9]{5}[A-Za-z]$/.test(uen) &&
         !/^([TS]\d{2})[A-Za-z][A-Za-z0-9]\d{4}[A-Za-z]$/.test(uen)
-    ) {
+      ) {
         setError4('* Invalid UEN');
         valid = false;
-      }
-      else {
+      } else {
         setError4('');
       }
 
-      // Handle Password Errors
-      if (!password || !confirmPw) {
-         // Check if empty
+      // Handle specialisation error
+      if (!specialisation.trim()) {
         setError5('* Required field');
-        setError6('* Required field');
         valid = false;
-      }
-      else if (password !== confirmPw) {
-        // Check if passwords match
-        setError5('* Password do not match');
-        setError6('* Password do not match');
+      } else if ((!/^[a-zA-Z\-]+$/.test(specialisation))) {
+        setError5('* Invalid Specialisation');
         valid = false;
-      }
-      else {
+      } else {
         setError5('');
+      }
+
+      // Handle Password Errors
+      if (!password.trim() || !confirmPw.trim()) {
+         // Check if empty
+        setError6('* Required field');
+        setError7('* Required field');
+        valid = false;
+      } else if (password !== confirmPw) {
+        // Check if passwords match
+        setError6('* Password do not match');
+        setError7('* Password do not match');
+        valid = false;
+      } else {
         setError6('');
+        setError7('');
       }
 
       if (valid) {
@@ -164,6 +171,11 @@ const RegisterSpecialist= ({navigation}) => {
           <View style={{ marginBottom: 30 }}>
             <Text style= {[styles.formText, {marginBottom: 10}]}> UEN {uenError ? <Text style={styles.error}>{uenError}</Text> : null} </Text>
             <TextInput style={[styles.input]} value = {uen} onChangeText = {setUEN}/>
+          </View>
+
+          <View style={{ marginBottom: 30 }}>
+            <Text style={[styles.formText, {marginBottom: 10}]}> Specialisation {specialisationError ? <Text style={styles.error}>{specialisationError}</Text> : null} </Text>
+            <TextInput style={[styles.input]} value={specialisation} onChangeText={setSpecialisation} />
           </View>
     
           <View style={{ marginBottom: 30 }}>

@@ -80,13 +80,10 @@ const AdminSettings= ({navigation}) => {
 
       <View style = {[styles.container4]}>
         <Text style= {[styles.questionText, {marginBottom: 20}]}> Others </Text>
-        <Pressable style={[styles.formText, {marginBottom: 20}]} onPress={() => navigation.navigate("Forum")}>
-          <Text style={styles.text}> Community Forum </Text>
+        <Pressable style={[styles.formText, {marginBottom: 20}]} onPress={() => navigation.navigate("AdminAdvertisements")}>
+          <Text style={styles.text}> Advertisements </Text>
         </Pressable>
-        <Pressable style={[styles.formText, {marginBottom: 20}]}>
-          <Text style={styles.text}> Advertisement </Text>
-        </Pressable>
-        <Pressable style={[styles.formText, {marginBottom: 20}]}>
+        <Pressable style={[styles.formText, {marginBottom: 20}]} onPress={() => navigation.navigate("Home")}>
           <Text style={styles.text}> Manage Users </Text>
         </Pressable>
         <Pressable style={[styles.formText, {marginBottom: 20}]}>

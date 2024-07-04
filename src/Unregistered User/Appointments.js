@@ -1,26 +1,49 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, ScrollView, TextInput, Image, Platform, TouchableOpacity } from 'react-native';
 import styles from '../components/styles';
-import { firebase } from '../../firebaseConfig';
-import { Feather, AntDesign } from '@expo/vector-icons';
+import { storage } from '../../firebaseConfig';
+import { AntDesign } from '@expo/vector-icons';
 import ModalStyle from '../components/ModalStyle';
 
 const Appointments = ({navigation}) => {
-  const [imageUrl, setImageUrl] = useState(null);
+  const [imageUrl, setImageUrls] = useState(null); // ads display
   const [activeButton, setActiveButton] = useState('Upcoming');
   const [isModalVisible, setModalVisible] = useState(false);
+  const [image, setImageUrl] = useState(null); // 404 not found display
 
   useEffect(() => {
-    const fetchImage = async() => {
-      try{
-        const url = await firebase.storage().ref('adminAd/ad.png').getDownloadURL();
+    const fetchImage = async () => {
+      try {
+        const storageRef = storage.ref('adminAd');
+        const images = await storageRef.listAll();
+    
+        // Get all image URLs or up to 5 if fewer
+        const randomImages = [];
+        const totalImages = Math.min(images.items.length, 5); // Limit to 5 or fewer images
+    
+        for (let i = 0; i < totalImages; i++) {
+          const randomIndex = Math.floor(Math.random() * images.items.length);
+          const imageUrl = await images.items[randomIndex].getDownloadURL();
+          randomImages.push(imageUrl);
+        }
+    
+        setImageUrls(randomImages); 
+      } catch (error) {
+        console.error('Error fetching images:', error);
+      }
+    };     
+
+    const fetchImage2 = async () => {
+      try {
+       const url = await storage.ref('miscellaneous/error.png').getDownloadURL();
         setImageUrl(url);
-      } catch(error){
-        console.error('Error fetching image', error);
+      } catch (error) {
+        console.error('Error fetching image:', error);
       }
     };
 
     fetchImage();
+    fetchImage2();
   }, []);
 
   const handleCategoryButtonClick = (category) => {
@@ -37,14 +60,20 @@ const Appointments = ({navigation}) => {
       <View style = {[styles.container4 , Platform.OS!=="web"&&{paddingTop:50}]}>
         <Text style={[styles.pageTitle]}> Appointments</Text>
 
-        <View style={[styles.adImageContainer, {width: '100%', alignItems: 'center'}]}>
-        {imageUrl && <Image source={{ uri: imageUrl }} style={styles.adImage} />}
+        <View style={[styles.adImageContainer, { width: '100%', alignItems: 'center' }]}>
+          {imageUrl ? (
+            imageUrl.map((url, index) => (
+              <Image key={index} source={{ uri: url }} style={styles.adImage} />
+            ))
+          ) : (
+            <Text>Loading images...</Text>
+          )}
         </View>
       </View>
 
       <View style={[styles.container4, { marginBottom: 20}]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-          <AntDesign name="calendar" size={30} color="black" />
+          <AntDesign name="calendar" size={24} color="black" />
           <Pressable style={{ marginLeft: 10 }} onPress={toggleModal}>
             <Text style={styles.questionText}>Book Appointment</Text>
           </Pressable>
@@ -76,6 +105,11 @@ const Appointments = ({navigation}) => {
       </View>
 
       <ModalStyle  isVisible={isModalVisible} onClose={toggleModal} navigation={navigation} />
+
+      <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20, marginBottom: 40 }}>
+        {image && <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />}
+        <Text style= {[styles.formText, {fontStyle: 'italic'}]}> Oops! Nothing here yet </Text>
+      </View>
     </ScrollView>
   );
 };

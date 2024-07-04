@@ -2,6 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import AdminHome from './AdminHome';
+import AdminResource from './AdminResource';
 import AdminForum from './AdminForum';
 import AdminSettings from './AdminSettings';
 
@@ -19,6 +20,8 @@ export default function AdminHomePage() {
 
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Resources') {
+            iconName = focused ? 'book' : 'book-outline';
           } else if (route.name === 'Forum') {
             iconName = focused ? 'chatbubble' : 'chatbubble-outline';
           } else if (route.name === 'Settings') {
@@ -35,6 +38,7 @@ export default function AdminHomePage() {
       })}
     >
       <Tab.Screen name="Home" component={AdminHome} options={{ headerShown: false }} />
+      <Tab.Screen name="Resources" component={AdminResource} options={{ headerShown: false }} />
       <Tab.Screen name="Forum" component={AdminForum} options={{ headerShown: false }} />
       <Tab.Screen name="Settings" component={AdminSettings} options={{ headerShown: false }} />
     </Tab.Navigator>

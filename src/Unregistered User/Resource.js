@@ -6,7 +6,6 @@ import { Feather, Ionicons } from '@expo/vector-icons';
 import url from '../components/config';
 import Keyboard from '../components/Keyboard';
 import ModalStyle from '../components/ModalStyle';
-import { firebase } from '../../firebaseConfig'; 
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -68,7 +67,7 @@ const Resource = ({ navigation }) => {
     <ScrollView style={styles.container3} contentContainerStyle={{...Platform.select({web:{} , default:{paddingTop:50}})}}>
       <View onLayout={onLayoutTop} style={[styles.container2, { paddingTop: 20, left: 20, width: screenWidth * 0.9 }]}>
         <Text style={[styles.pageTitle]}>Resource Hub</Text>
-        <TouchableOpacity style={[styles.iconContainer]}>
+        <TouchableOpacity style={[styles.iconContainer]} onPress= {toggleModal}>
           <Feather name="download" size={24} color="black" />
         </TouchableOpacity>
       </View>

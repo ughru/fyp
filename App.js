@@ -6,7 +6,6 @@ import 'react-native-reanimated';
 // Main App Screens
 import Welcome from "./src/Welcome";
 import Personalisation from './src/Personalisation';
-import AccountType from './src/AccountType/';
 import RegisterUser from './src/RegisterUser/';
 import RegisterSpecialist from './src/RegisterSpecialist/';
 import Login from './src/Login/';
@@ -29,6 +28,7 @@ import UserDuringHome from './src/Registered User/UserDuringHome/';
 import UserPostHome from './src/Registered User/UserPostHome/';
 import UserResource from './src/Registered User/UserResource/';
 import UserResourceInfo from './src/Registered User/UserResourceInfo';
+import UserDownloads from './src/Registered User/UserDownloads';
 import UserForum from './src/Registered User/UserForum/';
 import UserCreatePost from './src/Registered User/UserCreatePost/';
 import UserUpdatePost from './src/Registered User/UserUpdatePost/';
@@ -39,7 +39,6 @@ import LogPeriod from './src/Registered User/LogPeriod/';
 import CycleHistory from './src/Registered User/CycleHistory/';
 import WeightTracker from './src/Registered User/WeightTracker/';
 import CreateWeightLog from './src/Registered User/CreateWeightLog/';
-import UpdateWeightLog from './src/Registered User/UpdateWeightLog/';
 
 // Specialist screens
 import SpecialistHome from './src/Specialist/SpecialistHome/';
@@ -54,13 +53,18 @@ import SpecialistUpdatePost from './src/Specialist/SpecialistUpdatePost/';
 import SpecialistAppointments from './src/Specialist/SpecialistAppointments/';
 import SpecialistSettings from './src/Specialist/SpecialistSettings/';
 import SpecialistEditProfile from './src/Specialist/SpecialistEditProfile/';
+import SpecialistAdvertisements from './src/Specialist/SpecialistAdvertisements/';
+import SpecialistCreateAds from './src/Specialist/SpecialistCreateAds/';
 
 // System admin screens
 import AdminHome from './src/Admin/AdminHome/';
 import AdminHomePage from './src/Admin/AdminHomePage/';
+import AdminResource from './src/Admin/AdminResource/';
 import AdminForum from './src/Admin/AdminForum/';
 import AdminSettings from './src/Admin/AdminSettings/';
 import AdminEditProfile from './src/Admin/AdminEditProfile/';
+import AdminAdvertisements from './src/Admin/AdminAdvertisements/';
+import CreateAds from './src/Admin/CreateAds/';
 
 // Create a stack navigator
 const Stack = createNativeStackNavigator();
@@ -75,7 +79,6 @@ export default function App() {
                 <Stack.Screen name="Personalisation" component= {Personalisation} options={{ headerShown: false }}/>
 
                 {/* Register & Login */}
-                <Stack.Screen name="AccountType" component= {AccountType} options={{ headerShown: false }}/>
                 <Stack.Screen name="RegisterUser" component= {RegisterUser} options={{ headerShown: false }}/> 
                 <Stack.Screen name="RegisterSpecialist" component= {RegisterSpecialist} options={{ headerShown: false }}/>
                 <Stack.Screen name="Login" component= {Login} options={{ headerShown: false }}/>
@@ -98,6 +101,7 @@ export default function App() {
                 <Stack.Screen name="UserPostHome" component= {UserPostHome} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserResource" component= {UserResource} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserResourceInfo" component= {UserResourceInfo} options={{ headerShown: false }}/>
+                <Stack.Screen name="UserDownloads" component= {UserDownloads} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserForum" component= {UserForum} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserCreatePost" component= {UserCreatePost} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserUpdatePost" component= {UserUpdatePost} options={{ headerShown: false }}/>
@@ -108,7 +112,6 @@ export default function App() {
                 <Stack.Screen name="LogPeriod" component= {LogPeriod} options={{ headerShown: false }}/>
                 <Stack.Screen name="WeightTracker" component= {WeightTracker} options={{ headerShown: false }}/>
                 <Stack.Screen name="CreateWeightLog" component= {CreateWeightLog} options={{ headerShown: false }}/>
-                <Stack.Screen name="UpdateWeightLog" component= {UpdateWeightLog} options={{ headerShown: false }}/>
 
                 {/* Specialist User Screens */}
                 <Stack.Screen name="SpecialistHome" component= {SpecialistHome} options={{ headerShown: false }}/>
@@ -123,13 +126,18 @@ export default function App() {
                 <Stack.Screen name="SpecialistAppointments" component= {SpecialistAppointments} options={{ headerShown: false }}/>
                 <Stack.Screen name="SpecialistSettings" component= {SpecialistSettings} options={{ headerShown: false }}/>
                 <Stack.Screen name="SpecialistEditProfile" component= {SpecialistEditProfile} options={{ headerShown: false }}/>
+                <Stack.Screen name="SpecialistAdvertisements" component= {SpecialistAdvertisements} options={{ headerShown: false }}/>
+                <Stack.Screen name="SpecialistCreateAds" component= {SpecialistCreateAds} options={{ headerShown: false }}/>
 
                 {/* Admin Screens */}
                 <Stack.Screen name="AdminHome" component= {AdminHome} options={{ headerShown: false }}/>
                 <Stack.Screen name="AdminHomePage" component= {AdminHomePage} options={{ headerShown: false }}/>
+                <Stack.Screen name="AdminResource" component= {AdminResource} options={{ headerShown: false }}/>
                 <Stack.Screen name="AdminForum" component= {AdminForum} options={{ headerShown: false }}/>
                 <Stack.Screen name="AdminSettings" component= {AdminSettings} options={{ headerShown: false }}/>
                 <Stack.Screen name="AdminEditProfile" component= {AdminEditProfile} options={{ headerShown: false }}/>
+                <Stack.Screen name="AdminAdvertisements" component= {AdminAdvertisements} options={{ headerShown: false }}/>
+                <Stack.Screen name="CreateAds" component= {CreateAds} options={{ headerShown: false }}/>
             </Stack.Navigator>
         </NavigationContainer>
     );

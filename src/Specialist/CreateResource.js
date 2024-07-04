@@ -27,6 +27,7 @@ const CreateResource = ({ navigation }) => {
     const [categoryError, setError2] = useState('');
     const [statusError, setError3] = useState('');
     const [descriptionError, setError4] = useState('');
+    const [imageError, setError5] = useState('');
 
     // set selected values
     const [selectedCategory, setSelectedCategory] = useState(null);
@@ -107,6 +108,11 @@ const CreateResource = ({ navigation }) => {
             setError4('');
         }
 
+        if (!imageUri) {
+            setError5('* Image is required');
+            valid = false;
+        }
+
         if (valid) {
             try {
                 let imageUrl = '';
@@ -155,25 +161,6 @@ const CreateResource = ({ navigation }) => {
                     { cancelable: false }
                 );
             }
-        }
-    };
-
-    const pickImage = async () => {
-        try {
-            let result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.All,
-                allowsEditing: true,
-                aspect: [4, 3],
-                quality: 1,
-              });
-
-            if (!result.canceled) {
-                // Set the selected image URI to the state
-                setImageUri(result.assets[0].uri);
-            } 
-        } catch (error) {
-            console.error('Error picking image:', error);
-            Alert.alert('Error', 'Failed to pick an image.');
         }
     };
 
@@ -292,7 +279,7 @@ const CreateResource = ({ navigation }) => {
 
             {/* Image Upload */}
             <View>
-                <Text style={[styles.text, { marginBottom: 10 }]}> Image </Text>
+                <Text style={[styles.text, { marginBottom: 10 }]}> Image {imageError ? <Text style={styles.error}>{imageError}</Text> : null} </Text>
                 <Pressable style={[styles.imageUpload, {marginBottom: 10}]} onPress={pickImage}>
                     <Text style={styles.text}> Upload an image </Text>
                 </Pressable>

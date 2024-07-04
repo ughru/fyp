@@ -4,7 +4,7 @@ import { View, Text, ScrollView, TextInput, TouchableOpacity, TouchableHighlight
 import { Feather, Entypo, AntDesign, MaterialIcons } from '@expo/vector-icons';
 import axios from 'axios';
 import RNPickerSelect from 'react-native-picker-select';
-import { firebase } from '../../firebaseConfig';
+import { storage } from '../../firebaseConfig';
 import styles from '../components/styles';
 import Keyboard from '../components/Keyboard';
 import url from '../components/config.js';
@@ -43,7 +43,7 @@ const UserForum = ({ navigation }) => {
     const [isDropdownVisible, setDropdownVisible] = useState(false);
     const [selectedPost, setSelectedPost] = useState(null);
     const [activeButton, setActiveButton] = useState('General');
-    const [imageUrl, setImageUrl] = useState(null);
+    const [imageUrl, setImageUrls] = useState(null);
     const [userEmail, setEmail] = useState('');
     const [isCommentDropdownVisible, setCommentDropdownVisible] = useState(false);
     const [selectedComment, setSelectedComment] = useState(null);
@@ -82,16 +82,28 @@ const UserForum = ({ navigation }) => {
   );
 
   useEffect(() => {
-      const fetchImage = async () => {
-          try {
-              const url = await firebase.storage().ref('adminAd/ad.png').getDownloadURL();
-              setImageUrl(url);
-          } catch (error) {
-              console.error('Error fetching image:', error);
-          }
-      };
+    const fetchImage = async () => {
+      try {
+        const storageRef = storage.ref('adminAd');
+        const images = await storageRef.listAll();
+    
+        // Get all image URLs or up to 5 if fewer
+        const randomImages = [];
+        const totalImages = Math.min(images.items.length, 5); // Limit to 5 or fewer images
+    
+        for (let i = 0; i < totalImages; i++) {
+          const randomIndex = Math.floor(Math.random() * images.items.length);
+          const imageUrl = await images.items[randomIndex].getDownloadURL();
+          randomImages.push(imageUrl);
+        }
+    
+        setImageUrls(randomImages); 
+      } catch (error) {
+        console.error('Error fetching images:', error);
+      }
+    };     
 
-      fetchImage();
+    fetchImage();
   }, []);
 
   const fetchComments = async (postID) => {
@@ -279,16 +291,20 @@ const addComment = async (postID, userEmail, userComment) => {
 return (
 <Keyboard>
 <ScrollView style={styles.container5}>
-  <View style={[styles.container4]}>
-    <View style={[styles.container2, {paddingTop: 20, paddingHorizontal: 20}, Platform.OS!=="web"&&{paddingTop:50}]}>
+  <View style = {[styles.container4,  Platform.OS!=="web"&& {paddingTop:50}]}>
+    <View style={[styles.container2, { paddingTop: 20, paddingHorizontal: 20 }]}>
       <Text style={styles.pageTitle}>Community Forum</Text>
       <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate("UserCreatePost")}>
           <Feather name="edit" size={24} color="black" />
       </TouchableOpacity>
     </View>
 
-    <View style={[styles.adImageContainer, {width: '100%', alignItems: 'center'}]}>
-        {imageUrl && <Image source={{ uri: imageUrl }} style={styles.adImage} />}
+    <View style={[styles.adImageContainer, { width: '100%', alignItems: 'center' }]}>
+      {imageUrl && (
+        imageUrl.map((url, index) => (
+          <Image key={index} source={{ uri: url }} style={styles.adImage} />
+        ))
+      )}
     </View>
   </View>
 

@@ -7,11 +7,11 @@ const UserDetailSchema = new mongoose.Schema(
     status: String,
     email: { type: String, unique: true },
     password: String,
+    state: String,
 },
 {
     collection: "UserInfo"
 });
-
 
 mongoose.model("userInfo", UserDetailSchema);
 
@@ -22,6 +22,7 @@ const SpecialistDetailSchema = new mongoose.Schema(
         uen: String,
         email: { type: String, unique: true },
         password: String,
+        state: String,
     },
     {
         collection: "SpecialistInfo"
@@ -36,6 +37,7 @@ const AdminDetailSchema = new mongoose.Schema(
         lastName: String,
         email: { type: String, unique: true },
         password: String,
+        state: String,
     },
     {
         collection: "AdminInfo"

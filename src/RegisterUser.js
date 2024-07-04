@@ -49,12 +49,16 @@ const RegisterUser= ({navigation}) => {
       email: email.trim(),
       password,
       status: selectedStatus, 
+      state: "active",
     };
 
     try {
       // Validate First Name
       if (!firstName.trim()) {
         setError1('* Required field');
+        valid = false;
+      } else if (firstName[0] !== firstName[0].toUpperCase()) {
+        setError1('* First letter must be uppercase');
         valid = false;
       } else if (!/^[a-zA-Z ]+$/.test(firstName)) {
         setError1('* Invalid First Name');
@@ -69,6 +73,9 @@ const RegisterUser= ({navigation}) => {
       // Validate Last Name
       if (!lastName.trim()) {
         setError2('* Required field');
+        valid = false;
+      }  else if (lastName[0] !== lastName[0].toUpperCase()) {
+        setError2('* First letter must be uppercase');
         valid = false;
       } else if (!/^[a-zA-Z\-]+$/.test(lastName)) {
         setError2('* Invalid Last Name');

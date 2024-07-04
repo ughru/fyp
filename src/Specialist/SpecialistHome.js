@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useCallback} from 'react';
-import { View, Text, Pressable, ScrollView, TouchableOpacity, Platform } from 'react-native';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { View, Text, Pressable, ScrollView, TouchableOpacity, Platform, Image } from 'react-native';
+import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import styles from '../components/styles';
 import url from '../components/config';
 import { useFocusEffect } from '@react-navigation/native';
+import { storage } from '../../firebaseConfig';
 
 const formatDate = (date) => {
   const options = { weekday: 'long', day: 'numeric', month: 'long' };
@@ -20,6 +21,7 @@ const SpecialistHome = ({navigation}) => {
     uen: '',
     email: ''
   });
+  const [image, setImageUrl] = useState(null); // 404 not found display
 
   const fetchSpecialistInfo = useCallback(async () => {
     try {
@@ -43,6 +45,16 @@ const SpecialistHome = ({navigation}) => {
       setCurrentDate(formattedDate);
     };
 
+    const fetchImage = async () => {
+      try {
+       const url = await storage.ref('miscellaneous/error.png').getDownloadURL();
+        setImageUrl(url);
+      } catch (error) {
+        console.error('Error fetching image:', error);
+      }
+    };
+
+    fetchImage();
     fetchSpecialistInfo();
     setCurrentDateFormatted();
   }, [fetchSpecialistInfo]);
@@ -62,6 +74,25 @@ const SpecialistHome = ({navigation}) => {
           <Ionicons name="notifications-outline" size={24} color="black" />
         </View>
         <Text style={[styles.textTitle, {marginTop: 10}]}>Welcome, {specialistInfo.firstName}!</Text>
+      </View>
+
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 20, marginBottom: 20 }}>
+        <FontAwesome5 name="ad" size={24} color="black" />
+        <Pressable style={{ marginLeft: 10 }} onPress={() => navigation.navigate("SpecialistAdvertisements")}>
+          <Text style={styles.questionText}>Advertisements</Text>
+        </Pressable>
+      </View>
+
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+        <Text style={[styles.formText, {flex:1}]}>Upcoming Appointments</Text>
+        <Pressable style= {{alignItems: 'flex-end'}} onPress={() => navigation.navigate("Appointments")}>
+          <Text style={styles.formText}>See All </Text>
+        </Pressable>
+      </View>
+
+      <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20, marginBottom: 40 }}>
+        {image && <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />}
+        <Text style= {[styles.formText, {fontStyle: 'italic'}]}> Oops! Nothing here yet </Text>
       </View>
     </ScrollView>
   );

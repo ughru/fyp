@@ -26,7 +26,7 @@ const ModalStyle = ({ isVisible, onClose, navigation }) => {
           </View>
 
           <Text style={[styles.formText, {marginBottom: 20}]}>To access more features, please register or login.</Text>
-          <Pressable style={styles.button} onPress={() => handleNavigation('AccountType')}>
+          <Pressable style={styles.button} onPress={() => handleNavigation('RegisterUser')}>
             <Text style={styles.text}>Register</Text>
           </Pressable>
 

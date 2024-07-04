@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, ScrollView, Dimensions, Platform } from 'react-native';
 import HTMLView from 'react-native-htmlview';
 import styles from '../components/styles';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Feather } from '@expo/vector-icons';
 import url from '../components/config';
 import axios from 'axios';
 
@@ -49,6 +49,11 @@ const UserResourceInfo = ({ navigation, route }) => {
                     <Pressable onPress={() => navigation.goBack()}>
                         <Text style={[styles.text, { top: 3 }]}> back</Text>
                     </Pressable>
+                    <View style= {{flex: 1, alignItems: 'flex-end'}}>
+                        <View style={[styles.iconContainer]}>
+                            <Feather name="download" size={24} color="black" />
+                        </View>
+                    </View>
                 </View>
             </View>
             <View style={{...styles.container4 , padding:20}}>

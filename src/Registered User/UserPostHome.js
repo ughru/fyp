@@ -74,12 +74,14 @@ const UserPostHome = ({navigation}) => {
 
       <View style={[styles.container4, { marginBottom: 20 }]}>
         <Text style={[styles.text, { marginBottom: 20 }]}>Upcoming Appointments</Text>
-        <View style={{ flex: 1, flexDirection: 'row', alignSelf: 'center' }}>
-          <View style={[styles.button4, { flexDirection: 'row' }]}>
-            <Feather name="calendar" size={24} color="black" />
-            <Text style={styles.textInputWithIcon2}>No Appointments Yet</Text>
+          <View style={[{width: 320, height: 40, padding: 5, borderRadius: 20, backgroundColor: '#E3C2D7'}]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style = {[{marginLeft: 20, marginRight: 20}]}>
+                <Feather name="calendar" size={24} color="black" />
+              </View>
+              <Text style={[styles.text, {fontStyle: 'italic'}]}>No Appointments Yet</Text>
+            </View>
           </View>
-        </View>
 
         <View style={[styles.container3, { flexDirection: 'row', alignItems: 'center', marginBottom: 20, marginTop: 40 }]}>
           <Ionicons name="scale-outline" size={24} color="black" style={{ marginRight: 10 }} />

@@ -4,7 +4,6 @@ import { View, Text, ScrollView, TextInput, TouchableOpacity, TouchableHighlight
 import { Feather, Entypo, AntDesign, MaterialIcons } from '@expo/vector-icons';
 import axios from 'axios';
 import RNPickerSelect from 'react-native-picker-select';
-import { firebase } from '../../firebaseConfig';
 import styles from '../components/styles';
 import Keyboard from '../components/Keyboard';
 import url from '../components/config.js';
@@ -42,7 +41,6 @@ const SpecialistForum = ({ navigation }) => {
     const [sortOrder, setSortOrder] = useState('newest');
     const [isDropdownVisible, setDropdownVisible] = useState(false);
     const [selectedPost, setSelectedPost] = useState(null);
-    const [imageUrl, setImageUrl] = useState(null);
     const [userEmail, setEmail] = useState('');
     const [isCommentDropdownVisible, setCommentDropdownVisible] = useState(false);
     const [selectedComment, setSelectedComment] = useState(null);
@@ -79,19 +77,6 @@ const SpecialistForum = ({ navigation }) => {
           fetchData();
       }, [fetchData])
   );
-
-  useEffect(() => {
-      const fetchImage = async () => {
-          try {
-              const url = await firebase.storage().ref('adminAd/ad.png').getDownloadURL();
-              setImageUrl(url);
-          } catch (error) {
-              console.error('Error fetching image:', error);
-          }
-      };
-
-      fetchImage();
-  }, []);
 
   const fetchComments = async (postID) => {
     try {
@@ -274,16 +259,12 @@ const addComment = async (postID, userEmail, userComment) => {
   return (
   <Keyboard>
   <ScrollView style={styles.container5}>
-    <View style={[styles.container4]}>
-      <View style={[styles.container2, {paddingTop: 20, paddingHorizontal: 20}, Platform.OS!=="web"&&{paddingTop:50}]}>
+    <View style = {[styles.container4,  Platform.OS!=="web"&& {paddingTop:50}]}>
+    <View style={[styles.container2, { paddingTop: 20, paddingHorizontal: 20, marginBottom: 20 }]}>
         <Text style={styles.pageTitle}>Community Forum</Text>
         <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate("SpecialistCreatePost")}>
             <Feather name="edit" size={24} color="black" />
         </TouchableOpacity>
-      </View>
-
-      <View style={[styles.adImageContainer, {width: '100%', alignItems: 'center'}]}>
-          {imageUrl && <Image source={{ uri: imageUrl }} style={styles.adImage} />}
       </View>
     </View>
 

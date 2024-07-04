@@ -18,6 +18,9 @@ mongoose.connect(mongoUrl).then(()=> {
 require('./UserDetails');
 require('./ResourceDetail');
 require('./ForumDetail');
+//require('./AppointmentDetail');
+require('./Ads');
+require('./UserFunctions');
 
 const User = mongoose.model("userInfo");
 const Specialist = mongoose.model("specialistInfo");
@@ -26,6 +29,9 @@ const ResourceCategory = mongoose.model("resourceCategory");
 const Resource = mongoose.model("resourceInfo");
 const ForumPost = mongoose.model('forumPosts');
 const ForumComment = mongoose.model('forumComments');
+const AdminAd = mongoose.model('adminAd');
+const SpecialistAd = mongoose.model('specialistAd');
+const WeightLog = mongoose.model('weightLog');
 
 // Function to get a random sample from an array
 function getRandomSample(array, sampleSize) {
@@ -53,19 +59,28 @@ app.use((req, res, next) => {
 ************************************************/
 // get user info 
 app.get('/userinfo', async (req, res) => {
-    const { email } = req.query;
-  
-    try {
-      const userInfo = await User.findOne({ email }); 
-      if (userInfo) {
-        res.json(userInfo);
+  const { email } = req.query;
+
+  try {
+      if (email) {
+          const userInfo = await User.findOne({ email });
+          if (userInfo) {
+              res.json(userInfo);
+          } else {
+              res.status(404).json({ message: 'User not found' });
+          }
       } else {
-        res.status(404).json({ message: 'User not found' });
+          const users = await User.find(); // Retrieve all users
+          if (users.length > 0) {
+              res.json({ users });
+          } else {
+              res.status(404).json({ message: 'No users found' });
+          }
       }
-    } catch (error) {
+  } catch (error) {
       console.error('Error retrieving user info:', error);
       res.status(500).json({ message: 'Internal server error' });
-    }
+  }
 });
 
 // get specialist info 
@@ -73,14 +88,23 @@ app.get('/specialistinfo', async (req, res) => {
   const { email } = req.query;
 
   try {
-    const specialistInfo = await Specialist.findOne({ email }); 
-    if (specialistInfo) {
-      res.json(specialistInfo);
+    if (email) {
+      const specialistInfo = await Specialist.findOne({ email });
+      if (specialistInfo) {
+        res.json(specialistInfo);
+      } else {
+        res.status(404).json({ message: 'Specialist not found' });
+      }
     } else {
-      res.status(404).json({ message: 'User not found' });
+      const specialists = await Specialist.find();
+      if (specialists.length > 0) {
+        res.json({ specialists });
+      } else {
+        res.status(404).json({ message: 'No specialists found' });
+      }
     }
   } catch (error) {
-    console.error('Error retrieving user info:', error);
+    console.error('Error retrieving specialist info:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -170,27 +194,56 @@ app.put('/editAdmin', async (req, res) => {
   }
 });
 
+// suspend user
+app.post('/suspendUser', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOneAndUpdate({ email }, { state: 'suspended' });
+    if (user) {
+      res.json({ success: true });
+    } else {
+      res.json({ success: false, error: 'User not found' });
+    }
+  } catch (error) {
+    console.error('Error suspending user:', error);
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// activate user
+app.post('/reactivateUser', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOneAndUpdate({ email }, { state: 'active' });
+    if (user) {
+      res.json({ success: true });
+    } else {
+      res.status(404).json({ success: false, error: 'User not found' });
+    }
+  } catch (error) {
+    console.error('Error reactivating user:', error);
+    res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+});
+
 /* **********************************************
 *************************************************
    REGISTER, LOGIN, LOGOUT, RESET PASSWORD
 *************************************************
 ************************************************/
 app.post("/register", async(req, res)=> {
-  const {firstName, lastName, status, email, password} = req.body;
-
-
+  const {firstName, lastName, status, email, password, state} = req.body;
   const oldUser = await User.findOne({email: email});
-
 
   if(oldUser) {
       return res.send({data: "User already exists!"});
   }
 
-
   try {
       // hashed password before storing
       const hashedPassword = await bcrypt.hash(password, 10);
-
 
       await User.create({
           firstName: firstName,
@@ -198,6 +251,7 @@ app.post("/register", async(req, res)=> {
           status,
           email: email,
           password: hashedPassword,
+          state, 
       });
       res.send({status: "ok", data:"User Created"})
   } catch (error) {
@@ -620,7 +674,7 @@ app.delete('/deleteComment', async (req, res) => {
 
 /* **********************************************
 *************************************************
-   SETTINGS
+   USER FUNCTIONS
 *************************************************
 ************************************************/
 // update user's pregnancy status
@@ -643,6 +697,346 @@ app.post('/updateStatus', async (req, res) => {
       console.error('Error updating status:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
+});
+
+// Get all admin ads
+app.get('/getAdminAds', async (req, res) => {
+  try {
+      // Retrieve all resources from the database
+      const adminAd = await AdminAd.find({});
+
+      // Send response with ads
+      res.json(adminAd);
+  } catch (err) {
+      res.status(500).send(err);
+  }
+});
+
+// Get all specialist ads
+app.get('/getSpecialistAds', async (req, res) => {
+  try {
+      // Retrieve all resources from the database
+      const ad = await SpecialistAd.find({});
+
+      // Send response with ads
+      res.json(ad);
+  } catch (err) {
+      res.status(500).send(err);
+  }
+});
+
+// Admin create Ad
+app.post("/createAd", async (req, res) => {
+  const { userEmail, title, company, description, imageUrl } = req.body;
+
+  try {
+    // Check if ad with the same title already exists
+    const existingAd = await AdminAd.findOne({ title });
+
+    if (existingAd) {
+      return res.status(400).json({ error: 'Ad with the same title already exists!' });
+    }
+
+    // Find the highest adID currently in the database
+    const latestAd = await AdminAd.findOne().sort({ adID: -1 });
+    let adID = 1;
+
+    if (latestAd) {
+      adID = latestAd.adID + 1;
+    }
+
+    // Create new ad document
+    const newAd = new AdminAd({
+      adID,
+      userEmail,
+      title,
+      company,
+      description,
+      imageUrl,
+      dateCreated: new Date(),
+    });
+
+    // Save the ad to the database
+    await newAd.save();
+
+    res.status(201).json({ status: 'ok', data: 'Ad created successfully.' });
+  } catch (error) {
+    console.error('Error creating ad:', error);
+    res.status(500).json({ status: 'error', data: error.message });
+  }
+});
+
+// Specialist create Ad
+app.post("/specialistCreateAd", async (req, res) => {
+  const { userEmail, title, type, description, imageUrl } = req.body;
+
+  try {
+    // Check if ad with the same title already exists
+    const existingAd = await SpecialistAd.findOne({ title });
+
+    if (existingAd) {
+      return res.status(400).json({ error: 'Ad with the same title already exists!' });
+    }
+
+    // Find the highest adID currently in the database
+    const latestAd = await SpecialistAd.findOne().sort({ adID: -1 });
+    let adID = 1;
+
+    if (latestAd) {
+      adID = latestAd.adID + 1;
+    }
+
+    // Create new ad document
+    const newAd = new SpecialistAd({
+      adID,
+      userEmail,
+      title,
+      type,
+      description,
+      imageUrl,
+      dateCreated: new Date(),
+    });
+
+    // Save the ad to the database
+    await newAd.save();
+
+    res.status(201).json({ status: 'ok', data: 'Ad created successfully.' });
+  } catch (error) {
+    console.error('Error creating ad:', error);
+    res.status(500).json({ status: 'error', data: error.message });
+  }
+});
+
+// Get add by id
+app.get('/getAd', async (req, res) => {
+  try {
+    const adId = req.query.adID;
+    const ad = await AdminAd.findById(adId);
+    if (!ad) {
+      return res.status(404).json({ message: "Ad not found" });
+    }
+    res.json(ad);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+// Delete an ad based on id
+// [Admin]
+app.delete('/deleteAd', async (req, res) => {
+  const adId = req.query.adID; // adID passed as a number
+
+  try {
+    const deletedAd = await AdminAd.findOneAndDelete({ adID: adId });
+
+    if (deletedAd) {
+      res.json({ status: 'ok', message: 'Ad deleted successfully' });
+    } else {
+      res.status(404).json({ status: 'error', message: 'Ad not found' });
+    }
+  } catch (err) {
+    console.error('Error deleting ad:', err);
+    res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+// [Specialist]
+app.delete('/deleteSpecialistAd', async (req, res) => {
+  const adId = req.query.adID; // adID passed as a number
+
+  try {
+    const deletedAd = await SpecialistAd.findOneAndDelete({ adID: adId });
+
+    if (deletedAd) {
+      res.json({ status: 'ok', message: 'Ad deleted successfully' });
+    } else {
+      res.status(404).json({ status: 'error', message: 'Ad not found' });
+    }
+  } catch (err) {
+    console.error('Error deleting ad:', err);
+    res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+// Create a new category (admin)
+app.post('/addCategory', async (req, res) => {
+  const { categoryName } = req.body;
+  try {
+    const newCategory = new ResourceCategory({ categoryName });
+    await newCategory.save();
+    res.status(201).json(newCategory);
+  } catch (err) {
+    res.status(500).json({ error: 'Error creating category' });
+  }
+});
+
+// add weight log
+app.post('/weightLog', async (req, res) => {
+  try {
+      const { userEmail, record } = req.body;
+      
+      // Check if the user already has a weight log
+      let weightLog = await WeightLog.findOne({ userEmail });
+
+        // Find the highestweightLogID currently in the database
+      const latestLog = await WeightLog.findOne().sort({ weightLogID: -1 });
+      let weightLogID = 1;
+
+      if (latestLog) {
+        weightLogID = latestLog.weightLogID + 1;
+      }
+
+
+      if (weightLog) {
+          // Append the new record to the existing weight log
+          weightLog.record.push(...record);
+      } else {
+          // Create a new weight log
+          weightLog = new WeightLog({
+              weightLogID,
+              userEmail,
+              record
+          });
+      }
+
+      // Save the weight log to the database
+      await weightLog.save();
+
+      res.status(201).json({ message: 'Weight Log successfully created!', weightLog });
+  } catch (error) {
+      console.error('Error creating weight log:', error);
+      res.status(500).json({ message: 'Failed to create Weight Log.', error });
+  }
+});
+
+// get weight log (display)
+// find today's date or earliest record
+app.get('/recentLog', async (req, res) => {
+  try {
+      const { userEmail } = req.query;
+
+      if (!userEmail) {
+          return res.status(400).json({ message: 'User email is required.' });
+      }
+
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+
+      const endOfDay = new Date();
+      endOfDay.setHours(23, 59, 59, 999);
+
+      let weightLog = await WeightLog.findOne({
+          userEmail,
+          'record.date': { $gte: startOfDay, $lt: endOfDay }
+      }, {
+          'record.$': 1
+      });
+
+      if (!weightLog) {
+          // If no log found for today, find the most recent log before today
+          weightLog = await WeightLog.findOne({
+              userEmail,
+              'record.date': { $lt: startOfDay }
+          }, {
+              'record.$': 1
+          }).sort({ 'record.date': -1 });
+
+          if (!weightLog) {
+              // If still not found, find the earliest log
+              weightLog = await WeightLog.findOne({
+                  userEmail
+              }, {
+                  'record.$': 1
+              }).sort({ 'record.date': 1 });
+          }
+      }
+
+      if (!weightLog) {
+          return res.status(404).json({ message: 'No weight log found.' });
+      }
+
+      res.status(200).json(weightLog.record[0]);
+  } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch weight log.', error });
+  }
+});
+
+// get all weight logs for user
+app.get('/allWeightLogs', async (req, res) => {
+  try {
+      const { userEmail } = req.query;
+
+      if (!userEmail) {
+          return res.status(400).json({ message: 'User email is required.' });
+      }
+
+      const weightLogs = await WeightLog.find({ userEmail });
+
+      if (!weightLogs.length) {
+          return res.status(404).json({ message: 'No weight logs found.' });
+      }
+
+      res.status(200).json(weightLogs);
+  } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch weight logs.', error });
+  }
+});
+
+// update a weight log (based on date, user)
+app.put('/updateWeightLog', async (req, res) => {
+  const { userEmail, date, height, weight, bmi, category } = req.body;
+
+  // Check for missing fields
+  if (!userEmail || !date || !height || !weight || !bmi || !category) {
+    return res.status(400).json({ message: 'All fields are required' });
+  }
+
+  try {
+    // Find and update the weight log by user email and date
+    const weightLog = await WeightLog.findOneAndUpdate(
+      { userEmail: userEmail, 'record.date': date },
+      {
+        $set: {
+          'record.$.height': parseFloat(height),
+          'record.$.weight': parseFloat(weight),
+          'record.$.bmi': parseFloat(bmi),
+          'record.$.category': category
+        }
+      },
+      { new: true }
+    );
+
+    if (!weightLog) {
+      return res.status(404).json({ message: 'Weight log not found' });
+    }
+
+    res.status(200).json({ message: 'Weight log updated successfully', weightLog });
+  } catch (error) {
+    console.error('Error updating weight log:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// delete a weight log (based on date, user)
+app.delete('/deleteWeightLog', async (req, res) => {
+  const { userEmail, date } = req.body;
+  
+  try {
+      const result = await WeightLog.updateOne(
+          { userEmail },
+          { $pull: { record: { date: new Date(date) } } }
+      );
+
+      if (result.nModified === 0) {
+          return res.status(404).send('Weight log not found');
+      }
+
+      res.send('Weight log deleted');
+  } catch (error) {
+      console.error(error);
+      res.status(500).send('Server error');
+  }
 });
 
 app.listen(5001, ()=> {

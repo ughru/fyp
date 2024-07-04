@@ -19,6 +19,10 @@ const SpecialistResource = ({ navigation }) => {
   const scrollRef = useRef(null);
   const itemRef = useRef([]);
   const [topHeight, setTopHeight] = useState(0);
+  const [categoryError, setError1] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [newCategory, setNewCategory] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
 
   const [isDropdownVisible, setDropdownVisible] = useState(false);
   const [selectedResource, setSelectedResource] = useState(null);
@@ -109,60 +113,105 @@ const SpecialistResource = ({ navigation }) => {
     }
   };
 
+  const openModal = () => {
+    setError1(''); // Reset category error 
+    setModalVisible(true);
+  };  
+
+  const closeModal = () => {
+    setModalVisible(false);
+    setNewCategory('');
+    fetchData();
+    setSelectedCategory(null);
+  };
+
+  const addCategory = async () => {
+    if (!newCategory.trim()) {
+      setError1('* Required field');
+      return;
+  }
+
+  // Check if the category already exists
+  const categoryExists = categories.some(category => category.categoryName.toLowerCase() === newCategory.toLowerCase());
+  if (categoryExists) {
+    setError1('* Category already exists');
+    return;
+  }
+
+  try {
+    await axios.post(`${url}/addCategory`, { categoryName: newCategory });
+
+    Alert.alert(
+      'Category Added',
+      'Category has been successfully added!',
+      [{ text: 'OK', onPress: () => closeModal() }]
+    );
+  } catch (error) {
+    console.error('Error adding category:', error);
+  }
+};  
+
   // Page Displays
   return (
     <Keyboard>
     <ScrollView style={styles.container3} contentContainerStyle={{...Platform.select({web:{} , default:{paddingTop:50}})}}>
-    <View onLayout={onLayoutTop} style={[styles.container2, { paddingTop: 20, left: 20, width: screenWidth * 0.9 }]}>
+      <View onLayout={onLayoutTop} style={[styles.container2, { paddingTop: 20, left: 20, width: screenWidth * 0.9 }]}>
         <Text style={[styles.pageTitle]}>Resource Hub</Text>
         <Pressable style={[styles.iconContainer]} onPress={() => navigation.navigate("CreateResource")}>
           <Feather name="edit" size={24} color="black" />
         </Pressable>
       </View>
 
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20, marginTop: 20, left: 20}}>
+        <Feather name="edit" size={24} color="black" />
+        <TouchableOpacity style={{ marginLeft: 10 }} onPress={openModal}>
+            <Text style={styles.questionText}>Create Category</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Search Bar */}
-      <View style={[styles.search, {paddingTop: 20, right: 10}]}>
-        <View style={[styles.iconContainer, {left: 40}]}>
+      <View style={[styles.search, {right:10}]}>
+          <View style={[styles.iconContainer, {left: 40}]}>
           <Ionicons name="search-outline" size={24} color="black" />
-        </View>
-        <TextInput
+          </View>
+          <TextInput
           style={[styles.input3, styles.textInputWithIcon]}
           value={search}
           onChangeText={setSearch}
           placeholder="Search"
           placeholderTextColor="black"
-        />
+          />
       </View>
 
       {/* Dynamic Navigation Buttons */}
       <View style={[styles.buttonContainer, {
-        ...Platform.select({
+          ...Platform.select({
           web:{width:screenWidth*0.9, paddingTop:20, left: 20 , paddingRight:10},
           default:{paddingTop:20, left: 20 , paddingRight:10}
-        }) }]}>
-        <ScrollView  ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
+          }) }]}>
+          <ScrollView  ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
               style={Platform.OS === 'web'? {width:'100%'}:{width:screenWidth * 0.9}}
               contentContainerStyle={[{ gap: 10, paddingVertical: 10, marginBottom: 10 }, Platform.OS!=='web' && {paddingRight:10}]}>
           {categories.map((category, index) => (
-            <TouchableOpacity
+              <TouchableOpacity
               key={index}
               ref={(el) => (itemRef.current[index] = el)}
               onPress={() => handleSelectCategory(index)}
               style={activeIndex === index ? styles.categoryBtnActive : styles.categoryBtn}
-            >
+              >
               <Text style={activeIndex === index ? styles.categoryBtnTxt : styles.categoryBtnTxt}>
-                {category.categoryName}
+                  {category.categoryName}
               </Text>
-            </TouchableOpacity>
+              </TouchableOpacity>
           ))}
-        </ScrollView>
+          </ScrollView>
       </View>
 
       {/* Resources */}
       <View style={[{ left: 20}, Platform.OS==="web"?{ width: screenWidth * 0.9}:{width:'100%'}]}>
-      <ScrollView style={styles.container3}
-        contentContainerStyle={Platform.OS==="web"? styles.resourceContainerWeb : styles.resourceContainerMobile}>
-        {resources.map((resource, index) => {
+          <ScrollView style={styles.container3}
+          contentContainerStyle={Platform.OS==="web"? styles.resourceContainerWeb : styles.resourceContainerMobile}>
+          {resources.map((resource, index) => {
         const activeCategory = categories[activeIndex]?.categoryName;
         const isSpecialistResource = resource.specialistName === `${specialistInfo.firstName} ${specialistInfo.lastName}`;
 
@@ -202,7 +251,7 @@ const SpecialistResource = ({ navigation }) => {
         return null;
       })}
 
-
+      {/* Resource Actions Modal */}
       <Modal
         transparent={true}
         animationType="fade"
@@ -232,6 +281,36 @@ const SpecialistResource = ({ navigation }) => {
       </Modal>
       </ScrollView>
     </View>
+
+    {/* Category Modal */}
+    <Modal
+          animationType="fade"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={closeModal}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={{width: '80%', backgroundColor: 'white', borderRadius: 10, padding: 20}}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 10}}>
+              <Text style={[styles.modalTitle]}>Create Category</Text>
+                <TouchableOpacity onPress={closeModal}>
+                  <Feather name="x" size={24} color="black"/>
+                </TouchableOpacity>
+              </View>
+              {categoryError ? <Text style={styles.error}>{categoryError}</Text> : null}
+              <TextInput
+                style={{height: 40, padding: 10,borderRadius: 20, borderWidth: 1, borderColor: '#979595', marginBottom: 20}}
+                value={newCategory}
+                onChangeText={setNewCategory}
+                placeholder="Category Name"
+                placeholderTextColor="#979595"
+              />
+              <TouchableOpacity style={styles.button3} onPress={addCategory}>
+                <Text style={styles.text}>Add</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
     </ScrollView>
     </Keyboard>
   ); 
