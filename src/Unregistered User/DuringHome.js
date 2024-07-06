@@ -4,7 +4,7 @@ import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-ic
 import styles from '../components/styles';
 import { fetchResources } from '../components/manageResource';
 import ModalStyle from '../components/ModalStyle';
-import { firebase } from '../../firebaseConfig'; 
+import { storage } from '../../firebaseConfig'; 
 
 const formatDate = (date) => {
   const options = { weekday: 'long', day: 'numeric', month: 'long' };
@@ -29,7 +29,7 @@ const DuringHome = ({ navigation }) => {
 
     const fetchImage = async () => {
       try {
-        const url = await firebase.storage().ref('miscellaneous/illustration.PNG').getDownloadURL();
+        const url = await storage.ref('miscellaneous/illustration.PNG').getDownloadURL();
         setImageUrl(url);
       } catch (error) {
         console.error('Error fetching image:', error);

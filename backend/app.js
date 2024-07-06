@@ -32,12 +32,28 @@ const ForumComment = mongoose.model('forumComments');
 const AdminAd = mongoose.model('adminAd');
 const SpecialistAd = mongoose.model('specialistAd');
 const WeightLog = mongoose.model('weightLog');
+const PeriodLog = mongoose.model('periodLog');
 
 // Function to get a random sample from an array
 function getRandomSample(array, sampleSize) {
   const shuffled = array.sort(() => 0.5 - Math.random());
   return shuffled.slice(0, sampleSize);
 }
+
+// for date
+const formatDate = (date) => {
+  let d = new Date(date),
+      month = '' + (d.getMonth() + 1),
+      day = '' + d.getDate(),
+      year = d.getFullYear();
+
+  if (month.length < 2) 
+      month = '0' + month;
+  if (day.length < 2) 
+      day = '0' + day;
+
+  return [year, month, day].join('-');
+};
 
 
 // Check db connection status
@@ -381,6 +397,18 @@ app.get('/resource', async (req, res) => {
   }
 });
 
+// Create a new category (admin)
+app.post('/addCategory', async (req, res) => {
+  const { categoryName } = req.body;
+  try {
+    const newCategory = new ResourceCategory({ categoryName });
+    await newCategory.save();
+    res.status(201).json(newCategory);
+  } catch (err) {
+    res.status(500).json({ error: 'Error creating category' });
+  }
+});
+
 
 // Get 10 resources
 app.get('/resourceReco', async (req, res) => {
@@ -699,214 +727,57 @@ app.post('/updateStatus', async (req, res) => {
     }
 });
 
-// Get all admin ads
-app.get('/getAdminAds', async (req, res) => {
-  try {
-      // Retrieve all resources from the database
-      const adminAd = await AdminAd.find({});
-
-      // Send response with ads
-      res.json(adminAd);
-  } catch (err) {
-      res.status(500).send(err);
-  }
-});
-
-// Get all specialist ads
-app.get('/getSpecialistAds', async (req, res) => {
-  try {
-      // Retrieve all resources from the database
-      const ad = await SpecialistAd.find({});
-
-      // Send response with ads
-      res.json(ad);
-  } catch (err) {
-      res.status(500).send(err);
-  }
-});
-
-// Admin create Ad
-app.post("/createAd", async (req, res) => {
-  const { userEmail, title, company, description, imageUrl } = req.body;
-
-  try {
-    // Check if ad with the same title already exists
-    const existingAd = await AdminAd.findOne({ title });
-
-    if (existingAd) {
-      return res.status(400).json({ error: 'Ad with the same title already exists!' });
-    }
-
-    // Find the highest adID currently in the database
-    const latestAd = await AdminAd.findOne().sort({ adID: -1 });
-    let adID = 1;
-
-    if (latestAd) {
-      adID = latestAd.adID + 1;
-    }
-
-    // Create new ad document
-    const newAd = new AdminAd({
-      adID,
-      userEmail,
-      title,
-      company,
-      description,
-      imageUrl,
-      dateCreated: new Date(),
-    });
-
-    // Save the ad to the database
-    await newAd.save();
-
-    res.status(201).json({ status: 'ok', data: 'Ad created successfully.' });
-  } catch (error) {
-    console.error('Error creating ad:', error);
-    res.status(500).json({ status: 'error', data: error.message });
-  }
-});
-
-// Specialist create Ad
-app.post("/specialistCreateAd", async (req, res) => {
-  const { userEmail, title, type, description, imageUrl } = req.body;
-
-  try {
-    // Check if ad with the same title already exists
-    const existingAd = await SpecialistAd.findOne({ title });
-
-    if (existingAd) {
-      return res.status(400).json({ error: 'Ad with the same title already exists!' });
-    }
-
-    // Find the highest adID currently in the database
-    const latestAd = await SpecialistAd.findOne().sort({ adID: -1 });
-    let adID = 1;
-
-    if (latestAd) {
-      adID = latestAd.adID + 1;
-    }
-
-    // Create new ad document
-    const newAd = new SpecialistAd({
-      adID,
-      userEmail,
-      title,
-      type,
-      description,
-      imageUrl,
-      dateCreated: new Date(),
-    });
-
-    // Save the ad to the database
-    await newAd.save();
-
-    res.status(201).json({ status: 'ok', data: 'Ad created successfully.' });
-  } catch (error) {
-    console.error('Error creating ad:', error);
-    res.status(500).json({ status: 'error', data: error.message });
-  }
-});
-
-// Get add by id
-app.get('/getAd', async (req, res) => {
-  try {
-    const adId = req.query.adID;
-    const ad = await AdminAd.findById(adId);
-    if (!ad) {
-      return res.status(404).json({ message: "Ad not found" });
-    }
-    res.json(ad);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
-
-// Delete an ad based on id
-// [Admin]
-app.delete('/deleteAd', async (req, res) => {
-  const adId = req.query.adID; // adID passed as a number
-
-  try {
-    const deletedAd = await AdminAd.findOneAndDelete({ adID: adId });
-
-    if (deletedAd) {
-      res.json({ status: 'ok', message: 'Ad deleted successfully' });
-    } else {
-      res.status(404).json({ status: 'error', message: 'Ad not found' });
-    }
-  } catch (err) {
-    console.error('Error deleting ad:', err);
-    res.status(500).json({ status: 'error', message: 'Internal Server Error' });
-  }
-});
-
-// [Specialist]
-app.delete('/deleteSpecialistAd', async (req, res) => {
-  const adId = req.query.adID; // adID passed as a number
-
-  try {
-    const deletedAd = await SpecialistAd.findOneAndDelete({ adID: adId });
-
-    if (deletedAd) {
-      res.json({ status: 'ok', message: 'Ad deleted successfully' });
-    } else {
-      res.status(404).json({ status: 'error', message: 'Ad not found' });
-    }
-  } catch (err) {
-    console.error('Error deleting ad:', err);
-    res.status(500).json({ status: 'error', message: 'Internal Server Error' });
-  }
-});
-
-// Create a new category (admin)
-app.post('/addCategory', async (req, res) => {
-  const { categoryName } = req.body;
-  try {
-    const newCategory = new ResourceCategory({ categoryName });
-    await newCategory.save();
-    res.status(201).json(newCategory);
-  } catch (err) {
-    res.status(500).json({ error: 'Error creating category' });
-  }
-});
-
 // add weight log
 app.post('/weightLog', async (req, res) => {
   try {
-      const { userEmail, record } = req.body;
-      
-      // Check if the user already has a weight log
-      let weightLog = await WeightLog.findOne({ userEmail });
+    const { userEmail, record } = req.body;
 
-        // Find the highestweightLogID currently in the database
-      const latestLog = await WeightLog.findOne().sort({ weightLogID: -1 });
-      let weightLogID = 1;
+    // Check if the user already has a weight log
+    let weightLog = await WeightLog.findOne({ userEmail });
 
-      if (latestLog) {
-        weightLogID = latestLog.weightLogID + 1;
+    // Find the highest weightLogID currently in the database
+    const latestLog = await WeightLog.findOne().sort({ weightLogID: -1 });
+    let weightLogID = 1;
+
+    if (latestLog) {
+      weightLogID = latestLog.weightLogID + 1;
+    }
+
+    if (!weightLog) {
+      // Create a new weight log
+      weightLog = new WeightLog({
+        weightLogID,
+        userEmail,
+        record,
+      });
+    } else {
+      // Fetch all existing weight logs for the user
+      const existingLogsResponse = await axios.get(`${url}/allWeightLogs`, {
+        params: { userEmail }
+      });
+
+      const existingLogs = existingLogsResponse.data || [];
+      const currentDate = record.date.toISOString().split('T')[0];
+
+      // Check if there's already a record for the same date
+      const logExists = existingLogs.some(log => {
+        return log.record.some(r => r.date.toISOString().split('T')[0] === currentDate);
+      });
+
+      if (logExists) {
+        res.status(400).json({ message: "Weight log for this date already exists!" });
       }
 
+      // Append the new record to the existing weight log
+      weightLog.record.push(record);
+    }
 
-      if (weightLog) {
-          // Append the new record to the existing weight log
-          weightLog.record.push(...record);
-      } else {
-          // Create a new weight log
-          weightLog = new WeightLog({
-              weightLogID,
-              userEmail,
-              record
-          });
-      }
+    // Save the weight log to the database
+    await weightLog.save();
 
-      // Save the weight log to the database
-      await weightLog.save();
-
-      res.status(201).json({ message: 'Weight Log successfully created!', weightLog });
+    res.status(201).json({ message: 'Weight Log successfully created!', weightLog });
   } catch (error) {
-      console.error('Error creating weight log:', error);
-      res.status(500).json({ message: 'Failed to create Weight Log.', error });
+    res.status(500).json({ message: 'Failed to create Weight Log.', error });
   }
 });
 
@@ -1036,6 +907,295 @@ app.delete('/deleteWeightLog', async (req, res) => {
   } catch (error) {
       console.error(error);
       res.status(500).send('Server error');
+  }
+});
+
+// create a period log
+// 1 periodLogID = 1 user for a month and year i.e. user 1,  July 2024 / user 1, August 2024.
+// for same month, year / periodLogID and user, adds on to the record [].
+// for each month, no repeated dates.
+app.post('/periodLog', async (req, res) => {
+  const { userEmail, date, record } = req.body;
+
+  if (!userEmail || !date || !record) {
+    return res.status(400).json({ msg: 'Please include userEmail, date, and record' });
+  }
+
+  try {
+    record.date = formatDate(record.date);
+
+    // Check if a period log with userEmail and date (month-year) already exists
+    let periodLog = await PeriodLog.findOne({ userEmail, date });
+
+    if (!periodLog) {
+      // If no existing log, create a new one
+      periodLog = new PeriodLog({
+        userEmail,
+        date,
+        record: [record],
+      });
+    } else {
+      // If log already exists, check if record.date already exists in the log for this userEmail
+      const existingRecord = periodLog.record.find((log) => log.date === record.date);
+
+      if (existingRecord) {
+        return res.status(400).json({ msg: `Record for date ${record.date} already exists for this user` });
+      }
+
+      // Add the new record to the existing log
+      periodLog.record.push(record);
+    }
+
+    // Save the updated or new period log to the database
+    await periodLog.save();
+    res.status(201).json({ msg: 'Period Log successfully created or updated', periodLog });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+// get period log
+app.get('/getPeriodLogMonth', async (req, res) => {
+  const { userEmail, date } = req.query;
+
+  if (!userEmail || !date) {
+    return res.status(400).json({ msg: 'Please provide userEmail and date' });
+  }
+
+  try {
+    const periodLogs = await PeriodLog.find({ userEmail, date });
+
+    // Return an empty array if no records are found
+    res.json(periodLogs || []);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// get all period logs for a user
+// no need to specify by month
+app.get('/allPeriodLog', async (req, res) => {
+  const { userEmail } = req.query;
+
+  if (!userEmail) {
+    return res.status(400).json({ msg: 'Please provide userEmail' });
+  }
+
+  try {
+    const periodLogs = await PeriodLog.find({ userEmail });
+
+    // Return an empty array if no records are found
+    res.json(periodLogs || []);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// update period log
+
+app.put('/updatePeriodLog', async (req, res) => {
+  const { userEmail, date, record } = req.body;
+
+  if (!userEmail || !date || !record) {
+    return res.status(400).json({ msg: 'Please include userEmail, date, and record' });
+  }
+
+  try {
+    record.date = formatDate(record.date);
+
+    // Check if a period log with userEmail and date (month-year) already exists
+    let periodLog = await PeriodLog.findOne({ userEmail, date });
+
+    if (!periodLog) {
+      return res.status(404).json({ msg: 'Period Log not found' });
+    }
+
+    // Find the index of the existing record to update
+    const existingRecordIndex = periodLog.record.findIndex((log) => log.date === record.date);
+
+    if (existingRecordIndex !== -1) {
+      // Update the existing record
+      periodLog.record[existingRecordIndex].flowType = record.flowType;
+      periodLog.record[existingRecordIndex].symptoms = record.symptoms;
+      periodLog.record[existingRecordIndex].mood = record.mood;
+    } else {
+      return res.status(404).json({ msg: 'Record not found in Period Log' });
+    }
+
+    // Save the updated period log to the database
+    await periodLog.save();
+
+    res.status(200).json({ msg: 'Period Log successfully updated', periodLog });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+/* **********************************************
+*************************************************
+   ADVERTISEMENTS
+*************************************************
+************************************************/
+// Get all admin ads
+app.get('/getAdminAds', async (req, res) => {
+  try {
+      // Retrieve all resources from the database
+      const adminAd = await AdminAd.find({});
+
+      // Send response with ads
+      res.json(adminAd);
+  } catch (err) {
+      res.status(500).send(err);
+  }
+});
+
+// Admin create Ad
+app.post("/createAd", async (req, res) => {
+  const { userEmail, title, company, description, imageUrl } = req.body;
+
+  try {
+    // Check if ad with the same title already exists
+    const existingAd = await AdminAd.findOne({ title });
+
+    if (existingAd) {
+      return res.status(400).json({ error: 'Ad with the same title already exists!' });
+    }
+
+    // Find the highest adID currently in the database
+    const latestAd = await AdminAd.findOne().sort({ adID: -1 });
+    let adID = 1;
+
+    if (latestAd) {
+      adID = latestAd.adID + 1;
+    }
+
+    // Create new ad document
+    const newAd = new AdminAd({
+      adID,
+      userEmail,
+      title,
+      company,
+      description,
+      imageUrl,
+      dateCreated: new Date(),
+    });
+
+    // Save the ad to the database
+    await newAd.save();
+
+    res.status(201).json({ status: 'ok', data: 'Ad created successfully.' });
+  } catch (error) {
+    console.error('Error creating ad:', error);
+    res.status(500).json({ status: 'error', data: error.message });
+  }
+});
+
+// Get all specialist ads
+app.get('/getSpecialistAds', async (req, res) => {
+  try {
+      // Retrieve all resources from the database
+      const ad = await SpecialistAd.find({});
+
+      // Send response with ads
+      res.json(ad);
+  } catch (err) {
+      res.status(500).send(err);
+  }
+});
+
+// Specialist create Ad
+app.post("/specialistCreateAd", async (req, res) => {
+  const { userEmail, title, type, description, imageUrl } = req.body;
+
+  try {
+    // Check if ad with the same title already exists
+    const existingAd = await SpecialistAd.findOne({ title });
+
+    if (existingAd) {
+      return res.status(400).json({ error: 'Ad with the same title already exists!' });
+    }
+
+    // Find the highest adID currently in the database
+    const latestAd = await SpecialistAd.findOne().sort({ adID: -1 });
+    let adID = 1;
+
+    if (latestAd) {
+      adID = latestAd.adID + 1;
+    }
+
+    // Create new ad document
+    const newAd = new SpecialistAd({
+      adID,
+      userEmail,
+      title,
+      type,
+      description,
+      imageUrl,
+      dateCreated: new Date(),
+    });
+
+    // Save the ad to the database
+    await newAd.save();
+
+    res.status(201).json({ status: 'ok', data: 'Ad created successfully.' });
+  } catch (error) {
+    console.error('Error creating ad:', error);
+    res.status(500).json({ status: 'error', data: error.message });
+  }
+});
+
+// Get add by id
+app.get('/getAd', async (req, res) => {
+  try {
+    const adId = req.query.adID;
+    const ad = await AdminAd.findById(adId);
+    if (!ad) {
+      return res.status(404).json({ message: "Ad not found" });
+    }
+    res.json(ad);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+// Admin delete an ad based on id
+app.delete('/deleteAd', async (req, res) => {
+  const adId = req.query.adID; // adID passed as a number
+
+  try {
+    const deletedAd = await AdminAd.findOneAndDelete({ adID: adId });
+
+    if (deletedAd) {
+      res.json({ status: 'ok', message: 'Ad deleted successfully' });
+    } else {
+      res.status(404).json({ status: 'error', message: 'Ad not found' });
+    }
+  } catch (err) {
+    console.error('Error deleting ad:', err);
+    res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+// Specialist delete ad by id
+app.delete('/deleteSpecialistAd', async (req, res) => {
+  const adId = req.query.adID; // adID passed as a number
+
+  try {
+    const deletedAd = await SpecialistAd.findOneAndDelete({ adID: adId });
+
+    if (deletedAd) {
+      res.json({ status: 'ok', message: 'Ad deleted successfully' });
+    } else {
+      res.status(404).json({ status: 'error', message: 'Ad not found' });
+    }
+  } catch (err) {
+    console.error('Error deleting ad:', err);
+    res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 });
 

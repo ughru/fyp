@@ -164,6 +164,25 @@ const CreateResource = ({ navigation }) => {
         }
     };
 
+    const pickImage = async () => {
+        try {
+            let result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.All,
+                allowsEditing: true,
+                aspect: [16, 9],
+                quality: 1,
+                });
+
+            if (!result.canceled) {
+                // Set the selected image URI to the state
+                setImageUri(result.assets[0].uri);
+            } 
+        } catch (error) {
+            console.error('Error picking image:', error);
+            Alert.alert('Error', 'Failed to pick an image.');
+        }
+    };
+
     const takePhoto = async () => {
         const { status } = await Camera.requestCameraPermissionsAsync();
         if (status === 'granted') {

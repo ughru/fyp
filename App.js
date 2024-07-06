@@ -36,6 +36,7 @@ import UserAppointments from './src/Registered User/UserAppointments/';
 import UserSettings from './src/Registered User/UserSettings/';
 import UserEditProfile from './src/Registered User/UserEditProfile/';
 import LogPeriod from './src/Registered User/LogPeriod/';
+import UpdatePeriodLog from './src/Registered User/UpdatePeriodLog/';
 import CycleHistory from './src/Registered User/CycleHistory/';
 import WeightTracker from './src/Registered User/WeightTracker/';
 import CreateWeightLog from './src/Registered User/CreateWeightLog/';
@@ -110,6 +111,7 @@ export default function App() {
                 <Stack.Screen name="UserEditProfile" component= {UserEditProfile} options={{ headerShown: false }}/>
                 <Stack.Screen name="CycleHistory" component= {CycleHistory} options={{ headerShown: false }}/>
                 <Stack.Screen name="LogPeriod" component= {LogPeriod} options={{ headerShown: false }}/>
+                <Stack.Screen name="UpdatePeriodLog" component= {UpdatePeriodLog} options={{ headerShown: false }}/>
                 <Stack.Screen name="WeightTracker" component= {WeightTracker} options={{ headerShown: false }}/>
                 <Stack.Screen name="CreateWeightLog" component= {CreateWeightLog} options={{ headerShown: false }}/>
 

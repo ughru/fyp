@@ -5,7 +5,7 @@ import styles from '../components/styles';
 import { AntDesign, Feather, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import url from '../components/config';
-import {firebase, storage} from '../../firebaseConfig';
+import {storage} from '../../firebaseConfig';
 
 const AdminAdvertisements = ({navigation}) => {
   const [adminAds, setAdminAds] = useState([]);
@@ -27,7 +27,7 @@ const AdminAdvertisements = ({navigation}) => {
   useEffect(() => {
     const fetchImage = async () => {
       try {
-       const url = await firebase.storage().ref('miscellaneous/error.png').getDownloadURL();
+       const url = await storage.ref('miscellaneous/error.png').getDownloadURL();
         setImageUrl(url);
       } catch (error) {
         console.error('Error fetching image:', error);

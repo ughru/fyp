@@ -79,22 +79,6 @@ const CreateWeightLog = ({ navigation }) => {
                 return;
               }
       
-              const existingLogsResponse = await axios.get(`${url}/allWeightLogs`, {
-                params: { userEmail: storedEmail }
-              });
-      
-              const existingLogs = existingLogsResponse.data || [];
-              const currentDate = new Date().toISOString().split('T')[0];
-      
-              const logExists = existingLogs.some(log => {
-                return log.record.some(record => record.date.split('T')[0] === currentDate);
-              });
-      
-              if (logExists) {
-                Alert.alert('Error', "Today's weight log already exists!");
-                return;
-              }
-      
               const weightLog = {
                 userEmail: storedEmail,
                 record: [{
@@ -105,23 +89,20 @@ const CreateWeightLog = ({ navigation }) => {
                   category: getCategory(parseFloat(bmi))
                 }]
               };
-      
-              await axios.post(`${url}/weightLog`, weightLog);
-      
-              // Alert success and navigate back
-              Alert.alert('Success', 'Weight Log successfully created!', [{
-                text: 'OK', onPress: async () => {
-                  navigation.goBack();
-                }
-              }], { cancelable: false });
-      
+        
+              const response = await axios.post(`${url}/weightLog`, weightLog);
+        
+              if (response.status === 201) {
+                Alert.alert('Success', 'Weight Log successfully created!', [{
+                  text: 'OK', onPress: () => navigation.goBack()
+                }]);
+              } else {
+                Alert.alert('Failure', 'Weight Log was not created.');
+              }
             } catch (error) {
-              console.error('Weight Log error:', error.message);
-      
-              // Alert failure
-              Alert.alert('Failure', 'Weight Log was not created!', [{ text: 'OK' }], { cancelable: false });
+              Alert.alert('Failure', 'Weight Log was not created.');
             }
-          }
+        }
     };
 
     const getCategory = (bmi) => {

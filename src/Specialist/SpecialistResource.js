@@ -23,6 +23,7 @@ const SpecialistResource = ({ navigation }) => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [newCategory, setNewCategory] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
+  const [image, setImageUrl] = useState(null);
 
   const [isDropdownVisible, setDropdownVisible] = useState(false);
   const [selectedResource, setSelectedResource] = useState(null);
@@ -53,7 +54,17 @@ const SpecialistResource = ({ navigation }) => {
 
   // useEffect to fetch data initially
   useEffect(() => {
+    const fetchImage = async () => {
+      try {
+        const url = await storage.ref('miscellaneous/error.png').getDownloadURL();
+        setImageUrl(url);
+      } catch (error) {
+        console.error('Error fetching image:', error);
+      }
+    };
+
     fetchData();
+    fetchImage();
   }, [fetchData]);
 
   // useFocusEffect to fetch data when screen is focused
@@ -209,9 +220,9 @@ const SpecialistResource = ({ navigation }) => {
 
       {/* Resources */}
       <View style={[{ left: 20}, Platform.OS==="web"?{ width: screenWidth * 0.9}:{width:'100%'}]}>
-          <ScrollView style={styles.container3}
-          contentContainerStyle={Platform.OS==="web"? styles.resourceContainerWeb : styles.resourceContainerMobile}>
-          {resources.map((resource, index) => {
+        <ScrollView style={styles.container3}
+        contentContainerStyle={Platform.OS==="web"? styles.resourceContainerWeb : styles.resourceContainerMobile}>
+        {resources.map((resource, index) => {
         const activeCategory = categories[activeIndex]?.categoryName;
         const isSpecialistResource = resource.specialistName === `${specialistInfo.firstName} ${specialistInfo.lastName}`;
 
@@ -250,9 +261,11 @@ const SpecialistResource = ({ navigation }) => {
         }
         return null;
       })}
+      </ScrollView>
+    </View>
 
-      {/* Resource Actions Modal */}
-      <Modal
+    {/* Resource Actions Modal */}
+    <Modal
         transparent={true}
         animationType="fade"
         visible={isDropdownVisible}
@@ -279,8 +292,6 @@ const SpecialistResource = ({ navigation }) => {
           </View>
         </View>
       </Modal>
-      </ScrollView>
-    </View>
 
     {/* Category Modal */}
     <Modal

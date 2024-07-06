@@ -331,9 +331,6 @@ const WeightTracker = ({ navigation }) => {
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10, backgroundColor: '#E3C2D7' }}>
             <Text style={{ width: 50, fontWeight: 'bold' }}>Date</Text>
             <Text style={{ width: 60, fontWeight: 'bold' }}>Weight</Text>
-            {userInfo.status === "During" && (
-              <Text style={{ width: 40, fontWeight: 'bold' }}>+/-</Text>
-            )}
             <Text style={{ width: 40, fontWeight: 'bold' }}>Bmi</Text>
             <Text style={{ width: 80, fontWeight: 'bold' }}>Category</Text>
             <Text style={{ width: 50, fontWeight: 'bold' }}></Text>
@@ -346,9 +343,6 @@ const WeightTracker = ({ navigation }) => {
                 <View key={`${log._id}-${index}`} style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10, borderBottomWidth: 1, borderBottomColor: '#E3C2D7' }}>
                   <Text style={{ width: 50 }}>{formatDate(record.date)}</Text>
                   <Text style={{ width: 60 }}>{record.weight} kg</Text>
-                  {userInfo.status === "During" && (
-                    <Text style={{ width: 40 }}></Text>
-                  )}
                   <Text style={{ width: 40 }}>{record.bmi}</Text>
                   <Text style={{ width: 80, color: getCategoryColor(record.category) }}>{record.category}</Text>
                   <TouchableOpacity style={{ width: 22, marginRight: 5 }} onPress={() => openModal(record)}>

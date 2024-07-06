@@ -6,7 +6,7 @@ import axios from 'axios';
 import styles from '../components/styles';
 import url from '../components/config';
 import { useFocusEffect } from '@react-navigation/native';
-import { firebase } from '../../firebaseConfig'; 
+import {storage } from '../../firebaseConfig'; 
 
 const formatDate = (date) => {
   const options = { weekday: 'long', day: 'numeric', month: 'long' };
@@ -65,7 +65,7 @@ const AdminHome = ({navigation}) => {
 
     const fetchImage = async () => {
       try {
-       const url = await firebase.storage().ref('miscellaneous/error.png').getDownloadURL();
+       const url = await storage.ref('miscellaneous/error.png').getDownloadURL();
         setImageUrl(url);
       } catch (error) {
         console.error('Error fetching image:', error);

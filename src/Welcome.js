@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, Image } from 'react-native';
-import { firebase } from '../firebaseConfig'; 
+import { storage } from '../firebaseConfig'; 
 import styles from './components/styles';
 
 const Welcome = ({ navigation }) => {
@@ -9,7 +9,7 @@ const Welcome = ({ navigation }) => {
   useEffect(() => {
     const fetchImage = async () => {
       try {
-       const url = await firebase.storage().ref('miscellaneous/logo.png').getDownloadURL();
+       const url = await storage.ref('miscellaneous/logo.png').getDownloadURL();
         setImageUrl(url);
       } catch (error) {
         console.error('Error fetching image:', error);
