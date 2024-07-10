@@ -10,11 +10,13 @@ const ResourceDetailSchema = new mongoose.Schema(
 
 const ResourceInfoSchema = new mongoose.Schema(
 {
+    resourceID: {type: Number},
     title: String,
     category: String,
     status: [String],
     description: String,
     specialistName: String,
+    imageUrl: String,
 },
 {
     collection: "Resource"

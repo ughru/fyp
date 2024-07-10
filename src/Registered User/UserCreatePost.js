@@ -6,7 +6,6 @@ import { RichEditor } from 'react-native-pell-rich-editor';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Keyboard from '../components/Keyboard'; 
 import url from '../components/config';
-import { Feather, AntDesign } from '@expo/vector-icons';
 
 // import own code
 import styles from '../components/styles';
@@ -103,15 +102,7 @@ const UserCreatePost = ({ navigation }) => {
         <Keyboard>
             <ScrollView contentContainerStyle={styles.container}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', top: 50, marginBottom: 90 }}>
-<<<<<<<< Updated upstream:src/Registered User/UserCreatePost.js
                     <Text style={[styles.pageTitle]}> Create Post </Text>
-========
-                    <AntDesign name="left" size={24} color="black" />
-                        <Pressable style={[styles.formText]} onPress={() => navigation.goBack()}>
-                            <Text style={styles.text}> back </Text>
-                        </Pressable>
-                    <Text style={[styles.pageTitle]}> Book Appointment </Text>
->>>>>>>> Stashed changes:src/Registered User/UserCreateAppointment.js
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 20 }}>
                         <Pressable style={[styles.formText, {}]} onPress={() => navigation.goBack()}>
                             <Entypo name="cross" size={30} color="black" />

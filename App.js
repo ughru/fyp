@@ -30,34 +30,42 @@ import UserPostHome from './src/Registered User/UserPostHome/';
 import UserResource from './src/Registered User/UserResource/';
 import UserResourceInfo from './src/Registered User/UserResourceInfo';
 import UserForum from './src/Registered User/UserForum/';
-<<<<<<< Updated upstream
-=======
 import UserCreatePost from './src/Registered User/UserCreatePost/';
-import UserCreateAppointment from './src/Registered User/UserCreateAppointment';
-import UserBookAppointment from './src/Registered User/UserBookAppointment';
 import UserUpdatePost from './src/Registered User/UserUpdatePost/';
->>>>>>> Stashed changes
 import UserAppointments from './src/Registered User/UserAppointments/';
+import UserBookAppointment from './src/Registered User/UserBookAppointment';
+import UserCreateAppointment from './src/Registered User/UserCreateAppointment';
 import UserSettings from './src/Registered User/UserSettings/';
+import UserEditProfile from './src/Registered User/UserEditProfile/';
 import LogPeriod from './src/Registered User/LogPeriod/';
 import CycleHistory from './src/Registered User/CycleHistory/';
 import WeightTracker from './src/Registered User/WeightTracker/';
+import CreateWeightLog from './src/Registered User/CreateWeightLog/';
+import UpdateWeightLog from './src/Registered User/UpdateWeightLog/';
 
 // Specialist screens
 import SpecialistHome from './src/Specialist/SpecialistHome/';
 import SpecialistHomePage from './src/Specialist/SpecialistHomePage/';
 import CreateResource from './src/Specialist/CreateResource/';
+import UpdateResource from './src/Specialist/UpdateResource/';
 import SpecialistResource from './src/Specialist/SpecialistResource/';
 import SpecialistResourceInfo from './src/Specialist/SpecialistResourceInfo';
 import SpecialistForum from './src/Specialist/SpecialistForum/';
+import SpecialistCreatePost from './src/Specialist/SpecialistCreatePost/';
+import SpecialistUpdatePost from './src/Specialist/SpecialistUpdatePost/';
 import SpecialistAppointments from './src/Specialist/SpecialistAppointments/';
 import SpecialistSettings from './src/Specialist/SpecialistSettings/';
+import SpecialistEditProfile from './src/Specialist/SpecialistEditProfile/';
+import SpecialistCreateAppointment from './src/Specialist/SpecialistCreateAppointment';
+import SpecialistViewSchedule from './src/Specialist/SpecialistViewSchedule';
+import SpecialistCreateAd from './src/Specialist/SpecialistCreateAd';
 
 // System admin screens
 import AdminHome from './src/Admin/AdminHome/';
 import AdminHomePage from './src/Admin/AdminHomePage/';
 import AdminForum from './src/Admin/AdminForum/';
 import AdminSettings from './src/Admin/AdminSettings/';
+import AdminEditProfile from './src/Admin/AdminEditProfile/';
 
 // Create a stack navigator
 const Stack = createNativeStackNavigator();
@@ -96,34 +104,42 @@ export default function App() {
                 <Stack.Screen name="UserResource" component= {UserResource} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserResourceInfo" component= {UserResourceInfo} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserForum" component= {UserForum} options={{ headerShown: false }}/>
-<<<<<<< Updated upstream
-=======
                 <Stack.Screen name="UserCreatePost" component= {UserCreatePost} options={{ headerShown: false }}/>
-                <Stack.Screen name="UserCreateAppointment" component={UserCreateAppointment} options={{ headerShown: false }}/>
-                <Stack.Screen name="UserBookAppointment" component={UserBookAppointment} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserUpdatePost" component= {UserUpdatePost} options={{ headerShown: false }}/>
->>>>>>> Stashed changes
                 <Stack.Screen name="UserAppointments" component= {UserAppointments} options={{ headerShown: false }}/>
+                <Stack.Screen name="UserBookAppointment" component= {UserBookAppointment} options={{ headerShown: false }}/>
+                <Stack.Screen name="UserCreateAppointment" component= {UserCreateAppointment} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserSettings" component= {UserSettings} options={{ headerShown: false }}/>
+                <Stack.Screen name="UserEditProfile" component= {UserEditProfile} options={{ headerShown: false }}/>
                 <Stack.Screen name="CycleHistory" component= {CycleHistory} options={{ headerShown: false }}/>
                 <Stack.Screen name="LogPeriod" component= {LogPeriod} options={{ headerShown: false }}/>
                 <Stack.Screen name="WeightTracker" component= {WeightTracker} options={{ headerShown: false }}/>
+                <Stack.Screen name="CreateWeightLog" component= {CreateWeightLog} options={{ headerShown: false }}/>
+                <Stack.Screen name="UpdateWeightLog" component= {UpdateWeightLog} options={{ headerShown: false }}/>
 
                 {/* Specialist User Screens */}
                 <Stack.Screen name="SpecialistHome" component= {SpecialistHome} options={{ headerShown: false }}/>
                 <Stack.Screen name="SpecialistHomePage" component= {SpecialistHomePage} options={{ headerShown: false }}/>
                 <Stack.Screen name="CreateResource" component= {CreateResource} options={{ headerShown: false }}/>
+                <Stack.Screen name="UpdateResource" component= {UpdateResource} options={{ headerShown: false }}/>
                 <Stack.Screen name="SpecialistResource" component= {SpecialistResource} options={{ headerShown: false }}/>
                 <Stack.Screen name="SpecialistResourceInfo" component= {SpecialistResourceInfo} options={{ headerShown: false }}/>
                 <Stack.Screen name="SpecialistForum" component= {SpecialistForum} options={{ headerShown: false }}/>
+                <Stack.Screen name="SpecialistCreatePost" component= {SpecialistCreatePost} options={{ headerShown: false }}/>
+                <Stack.Screen name="SpecialistUpdatePost" component= {SpecialistUpdatePost} options={{ headerShown: false }}/>
                 <Stack.Screen name="SpecialistAppointments" component= {SpecialistAppointments} options={{ headerShown: false }}/>
                 <Stack.Screen name="SpecialistSettings" component= {SpecialistSettings} options={{ headerShown: false }}/>
+                <Stack.Screen name="SpecialistEditProfile" component= {SpecialistEditProfile} options={{ headerShown: false }}/>
+                <Stack.Screen name="SpecialistCreateAppointment" component={SpecialistCreateAppointment} options={{ headerShown: false }} />
+                <Stack.Screen name="SpecialistCreateAd" component={SpecialistCreateAd} options={{ headerShown: false }} />
+                <Stack.Screen name="SpecialistViewSchedule" component={SpecialistViewSchedule} options={{ headerShown: false }} />
 
                 {/* Admin Screens */}
                 <Stack.Screen name="AdminHome" component= {AdminHome} options={{ headerShown: false }}/>
                 <Stack.Screen name="AdminHomePage" component= {AdminHomePage} options={{ headerShown: false }}/>
                 <Stack.Screen name="AdminForum" component= {AdminForum} options={{ headerShown: false }}/>
                 <Stack.Screen name="AdminSettings" component= {AdminSettings} options={{ headerShown: false }}/>
+                <Stack.Screen name="AdminEditProfile" component= {AdminEditProfile} options={{ headerShown: false }}/>
             </Stack.Navigator>
         </NavigationContainer>
     );

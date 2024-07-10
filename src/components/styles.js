@@ -407,15 +407,14 @@ export const styles = StyleSheet.create({
         borderRadius: 20,
         width: 300,
         height: 150,
-        marginBottom: 30
+        marginBottom: 30,
     },
     appointmentContainer3: {
         flex: 1,
         flexDirection: 'row'
     },
     appointmentText: {
-        padding: 10,
-        marginTop: 10,
+        paddingTop: 20,
         paddingLeft: 20,
         fontSize: 15
     },
@@ -460,6 +459,27 @@ export const styles = StyleSheet.create({
         marginTop: 10,
         marginLeft: 20
     },
+    specialAppointmentIcon: {
+        paddingTop: 20,
+        paddingLeft: 20,
+        paddingRight: 10
+    },
+    appointmentText6: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        paddingTop: 23
+    },
+    danThreeDot: {
+        paddingTop: 20,
+        paddingLeft: 180
+    },
+    specialistAppointmentContainer: {
+        borderWidth: 1,
+        borderRadius: 20,
+        width: 300,
+        height: 100,
+        marginBottom: 30,
+    }
 });
 
 export default styles;

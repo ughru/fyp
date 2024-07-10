@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, Pressable, ScrollView, Alert, TouchableOpacity, Platform } from 'react-native';
 import { Entypo } from '@expo/vector-icons';
 import axios from 'axios';
 import { RichEditor } from 'react-native-pell-rich-editor';
@@ -8,9 +8,9 @@ import Keyboard from '../components/Keyboard';
 import url from '../components/config';
 import { Calendar } from 'react-native-calendars';
 import { Feather, AntDesign } from '@expo/vector-icons';
-
-// import own code
+import ModalStyle from '../components/ModalStyle';
 import styles from '../components/styles';
+import moment from 'moment';
 
 const UserBookAppointment = ({ navigation }) => {
     // values
@@ -90,16 +90,18 @@ const UserBookAppointment = ({ navigation }) => {
     
 
     return (
-        <Keyboard>
-            <ScrollView contentContainerStyle={styles.container}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', top: 50, marginBottom: 90 }}>
+        <ScrollView contentContainerStyle={styles.container}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', top: 50, marginBottom: 90 }}>
+                    <View style={{flexDirection: 'row'}}>
                     <AntDesign name="left" size={24} color="black" />
                         <Pressable style={[styles.formText]} onPress={() => navigation.goBack()}>
                             <Text style={styles.text}> back </Text>
                         </Pressable>
-                    <Text style={[styles.pageTitle]}> Book Appointment </Text>
                 </View>
+                    <Text style={[styles.pageTitle]}> Book Appointment </Text>
+            </View>
 
+                {/* Display specialist details */}
                 <View style={styles.appointmentContainer}>
                   <View style={styles.appointmentContainer2}>
 
@@ -117,6 +119,7 @@ const UserBookAppointment = ({ navigation }) => {
                 </View>
 
                 <Calendar
+                    minDate={moment().format('YYYY-MM-DD')}
                     onDayPress={onDayPress}
                     markedDates={{
                         [selectedDate]: { selected: true, selectedColor: '#CBC3E3' },
@@ -171,7 +174,6 @@ const UserBookAppointment = ({ navigation }) => {
 
                 
             </ScrollView>
-        </Keyboard>
     );
 };
 
