@@ -59,11 +59,16 @@ const UserResourceInfo = ({ navigation, route }) => {
             <View style={{...styles.container4 , padding:20}}>
                 {resource && (
                     <View>
+                        {/* Title */}
                         <Text style={[styles.pageTitle, { marginBottom: 20 }]}>{resource.title}</Text>
                         <Text style={[styles.titleNote, { marginBottom: 20 }]}>Written by: Dr {resource.specialistName}</Text>
+
+                        {/* Category */}
                         <Pressable style={[styles.resourceCategoryButton, { marginBottom: 20 }]}>
                             <Text style={[styles.categoryBtnTxt]}>{resource.category}</Text>
                         </Pressable>
+
+                        {/* Status */}
                         <View style={{ marginBottom: 20 }}>
                             <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
                                 {resource.status && sortStatus(resource.status).map((status, index) => (
@@ -73,6 +78,14 @@ const UserResourceInfo = ({ navigation, route }) => {
                                 ))}
                             </View>
                         </View>
+
+                        {/* Week Number */}
+                        {resource.category === 'Pregnancy Summary' && (
+                        <View style={{ marginBottom: 20 }}>
+                            <Text style= {styles.text3}> Week: {resource.weekNumber} </Text>
+                        </View>
+                        )}
+
                         {/* Description */}
                         <View style={[styles.container4]}>
                             <HTMLView value={resource.description} />

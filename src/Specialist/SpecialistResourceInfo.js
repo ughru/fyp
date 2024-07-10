@@ -81,6 +81,13 @@ const SpecialistResourceInfo = ({ navigation, route }) => {
                             </View>
                         </View>
 
+                        {/* Week Number */}
+                        {resource.category === 'Pregnancy Summary' && (
+                        <View style={{ marginBottom: 20 }}>
+                            <Text style= {styles.text3}> Week: {resource.weekNumber} </Text>
+                        </View>
+                        )}
+
                         {/* Description */}
                         <View style={[styles.container4]}>
                             <HTMLView value={resource.description} />

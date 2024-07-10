@@ -3,9 +3,10 @@ import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Dimensions, Platform, StyleSheet, Image, Modal, Alert } from 'react-native';
 import axios from 'axios';
 import styles from '../components/styles';
-import { Ionicons, Feather } from '@expo/vector-icons';
+import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
 import url from '../components/config';
 import Keyboard from '../components/Keyboard';
+import { storage } from '../../firebaseConfig'; 
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -18,9 +19,12 @@ const AdminResource = ({ navigation }) => {
   const itemRef = useRef([]);
   const [topHeight, setTopHeight] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
+  const [modal2Visible, setModal2Visible] = useState(false);
+  const [modal3Visible, setModal3Visible] = useState(false);
   const [newCategory, setNewCategory] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [categoryError, setError1] = useState('');
+  const [image, setImageUrl] = useState(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -36,6 +40,16 @@ const AdminResource = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
+    const fetchImage = async () => {
+      try {
+        const url = await storage.ref('miscellaneous/error.png').getDownloadURL();
+        setImageUrl(url);
+      } catch (error) {
+        console.error('Error fetching image:', error);
+      }
+    };
+
+    fetchImage();
     fetchData();
   }, [fetchData]);
 
@@ -71,31 +85,166 @@ const AdminResource = ({ navigation }) => {
     setSelectedCategory(null);
   };
 
+  const openManageModal = () => {
+    setModal2Visible(true);
+  };
+
+  const closeManageModal = () => {
+    setModal2Visible(false);
+  };
+
+  const openModal3 = (category) => {
+    setNewCategory(category);
+    setSelectedCategory(category);
+    setModal3Visible(true);
+    closeManageModal();
+  };
+
+  const closeModal3 = () => {
+    setModal3Visible(false);
+    openManageModal();
+  };
+
+  // add category function
   const addCategory = async () => {
+    let valid = true;
+
     if (!newCategory.trim()) {
       setError1('* Required field');
-      return;
+      valid = false;
+    }  else if (newCategory[0] !== newCategory[0].toUpperCase()) {
+      setError1('* First letter must be caps');
+      valid = false;
+    } else if (!/^[a-zA-Z ]+$/.test(newCategory)) {
+      setError1('* Invalid category');
+      valid = false;
+    } else {
+      setError1('');
     }
   
     // Check if the category already exists
     const categoryExists = categories.some(category => category.categoryName.toLowerCase() === newCategory.toLowerCase());
     if (categoryExists) {
       setError1('* Category already exists');
-      return;
+      valid = false;
     }
+    
+    if (valid) {
+      try {
+        await axios.post(`${url}/addCategory`, { categoryName: newCategory });
   
-    try {
-      await axios.post(`${url}/addCategory`, { categoryName: newCategory });
-
-      Alert.alert(
-        'Category Added',
-        'Category has been successfully added!',
-        [{ text: 'OK', onPress: () => closeModal() }]
-      );
-    } catch (error) {
-      console.error('Error adding category:', error);
+        Alert.alert(
+          'Category Added',
+          'Category has been successfully added!',
+          [{ text: 'OK', onPress: () => closeModal() }]
+        );
+        fetchData();
+      } catch (error) {
+        console.error('Error adding category:', error);
+      }
     }
   };  
+
+  // update category function
+  const updateCategory = async () => {
+    let valid = true;
+  
+    // Validation checks
+    if (!newCategory.trim()) {
+      setError1('* Required field');
+      valid = false;
+    } else if (newCategory[0] !== newCategory[0].toUpperCase()) {
+      setError1('* First letter must be caps');
+      valid = false;
+    } else if (!/^[a-zA-Z ]+$/.test(newCategory)) {
+      setError1('* Invalid category');
+      valid = false;
+    } else {
+      setError1('');
+    }
+
+    // Check if the category already exists (excluding current category)
+    const categoryExists = categories.some(
+      category =>
+        category.categoryName.toLowerCase() === newCategory.toLowerCase() &&
+        category.categoryName !== selectedCategory.toLowerCase()
+    );
+    if (categoryExists) {
+      setError1('* Category already exists');
+      valid = false;
+    }
+  
+    // If validation passes, attempt to update category
+    if (valid) {
+      try {
+        const response = await axios.put(`${url}/updateCategory`, {
+          oldCategoryName: selectedCategory,
+          newCategoryName: newCategory.trim() // Trim to ensure no leading/trailing spaces
+        });
+  
+        // Check response status and handle accordingly
+        if (response.status === 200) {
+          Alert.alert(
+            'Category Updated',
+            'Category has been successfully updated!',
+            [{ text: 'OK', onPress: () => closeModal3() }]
+          );
+  
+          // Fetch updated data after successful update
+          fetchData();
+        } else {
+          console.error('Failed to update category:', response.data);
+          // Handle error scenario, e.g., display error message
+        }
+      } catch (error) {
+        console.error('Error updating category:', error);
+        // Handle network or server errors
+      }
+    }
+  };
+
+  const filteredResources = resources.filter(resource => {
+    const activeCategory = categories[activeIndex]?.categoryName;
+    const matchesCategory = activeCategory === "All" || resource.category === activeCategory;
+    const matchesSearch = resource.title.toLowerCase().includes(search.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  // display all categories without "All"
+  const filteredCategories = categories.filter(category => category.categoryName !== "All");
+
+  const handleEditCategory = (category) => {
+    setNewCategory(category);
+    setSelectedCategory(category);
+    openModal3(category); 
+  };
+
+  // delete category function
+  const handleDeleteCategory = async (categoryName) => {
+    Alert.alert(
+      'Confirm Delete',
+      `Are you sure you want to delete the category "${categoryName}"?`,
+      [
+        {
+          text: 'Cancel',
+        },
+        {
+          text: 'Delete',
+          onPress: async () => {
+            try {
+              await axios.delete(`${url}/deleteCategory`, { data: { categoryName } });
+              setCategories(categories.filter(category => category.categoryName !== categoryName));
+              Alert.alert('Success', 'Category deleted successfully');
+            } catch (error) {
+              console.error('Error deleting category:', error);
+            }
+          },
+          style: 'destructive'
+        }
+      ],
+      { cancelable: true }
+    );
+  };
 
   return (
   <Keyboard>
@@ -108,6 +257,13 @@ const AdminResource = ({ navigation }) => {
         <Feather name="edit" size={24} color="black" />
         <TouchableOpacity style={{ marginLeft: 10 }} onPress={openModal}>
             <Text style={styles.questionText}>Create Category</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20, left: 20}}>
+        <MaterialIcons name="category" size={24} color="black" />
+        <TouchableOpacity style={{ marginLeft: 10 }} onPress={openManageModal}>
+            <Text style={styles.questionText}>Manage Category</Text>
         </TouchableOpacity>
       </View>
 
@@ -153,7 +309,7 @@ const AdminResource = ({ navigation }) => {
       <View style={[{ left: 20}, Platform.OS==="web"?{ width: screenWidth * 0.9}:{width:'100%'}]}>
           <ScrollView style={styles.container3}
           contentContainerStyle={Platform.OS==="web"? styles.resourceContainerWeb : styles.resourceContainerMobile}>
-          {resources.map((resource, index) => {
+          {filteredResources.length > 0 ? filteredResources.map((resource, index) => {
               const activeCategory = categories[activeIndex]?.categoryName;
               if (activeCategory === "All" || resource.category === activeCategory) {
               return (
@@ -177,14 +333,19 @@ const AdminResource = ({ navigation }) => {
                   {resource.title} 
                   </Text>
                   </View>
-              );
+                );
               }
               return null;
-          })}
+            }) : (
+              <View style={{ marginLeft: 80, alignItems: 'center', marginTop: 20, marginBottom: 40 }}>
+                {image && <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />}
+                <Text style= {[styles.formText, {fontStyle: 'italic'}]}> Oops! Nothing here yet </Text>
+              </View>
+            )}
           </ScrollView>
       </View>
 
-      {/* Category Modal */}
+      {/* Add Category Modal */}
       <Modal
           animationType="fade"
           transparent={true}
@@ -210,6 +371,70 @@ const AdminResource = ({ navigation }) => {
               <TouchableOpacity style={styles.button3} onPress={addCategory}>
                   <Text style={styles.text}>Add</Text>
                 </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Manage Category Modal */}
+        <Modal
+          visible={modal2Visible}
+          animationType="fade"
+          transparent={true}
+          onRequestClose={closeManageModal}
+        >
+           <View style={styles.modalOverlay}>
+            <View style={{width: '90%', backgroundColor: 'white', borderRadius: 10, padding: 20}}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 10}}>
+                <Text style={[styles.modalTitle]}>Manage Category</Text>
+                <TouchableOpacity onPress={closeManageModal}>
+                  <Feather name="x" size={24} color="black"/>
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView>
+                {/* Display Category and functions */}
+                {filteredCategories.map((category, index) => (
+                  <View key={index} style={{ flexDirection: 'row', width: '100%', marginBottom: 10}}>
+                    <Text style={[styles.text, {flex: 1, marginBottom: 20}]}>{category.categoryName}</Text>
+                    <TouchableOpacity style= {{marginRight: 10}} onPress={() => handleEditCategory(category.categoryName)} >
+                      <Feather name="edit" size={22} color="black" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => handleDeleteCategory(category.categoryName)}>
+                      <MaterialIcons name="delete" size={24} />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Update Category Modal */}
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={modal3Visible}
+          onRequestClose={closeModal3}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={{ width: '80%', backgroundColor: 'white', borderRadius: 10, padding: 20 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 10 }}>
+                <Text style={[styles.modalTitle]}>Update Category</Text>
+                <TouchableOpacity onPress={closeModal3}>
+                  <Feather name="x" size={24} color="black" />
+                </TouchableOpacity>
+              </View>
+              {categoryError ? <Text style={styles.error}>{categoryError}</Text> : null}
+              <TextInput
+                style={{ height: 40, padding: 10, borderRadius: 20, borderWidth: 1, borderColor: '#979595', marginBottom: 20 }}
+                value={newCategory}
+                onChangeText={setNewCategory}
+                placeholder="Category Name"
+                placeholderTextColor="#979595"
+              />
+              <TouchableOpacity style={styles.button3} onPress={updateCategory}>
+                <Text style={styles.text}>Update</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </Modal>

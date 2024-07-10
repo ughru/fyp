@@ -21,6 +21,7 @@ const CreateResource = ({ navigation }) => {
     const [description, setDescription] = useState('');
     const [specialistInfo, setSpecialistInfo] = useState({ firstName: '', lastName: '' });
     const [imageUri, setImageUri] = useState(null);
+    const [weekNumber, setWeekNumber] = useState('');
 
     // errors
     const [titleError, setError1] = useState('');
@@ -28,6 +29,7 @@ const CreateResource = ({ navigation }) => {
     const [statusError, setError3] = useState('');
     const [descriptionError, setError4] = useState('');
     const [imageError, setError5] = useState('');
+    const [weekError, setError6] = useState('');
 
     // set selected values
     const [selectedCategory, setSelectedCategory] = useState(null);
@@ -113,6 +115,13 @@ const CreateResource = ({ navigation }) => {
             valid = false;
         }
 
+        if (selectedCategory === 'Pregnancy Summary' && !weekNumber.trim()) {
+            setError6('* Required field');
+            valid = false;
+        } else {
+            setError6('');
+        }
+
         if (valid) {
             try {
                 let imageUrl = '';
@@ -130,6 +139,7 @@ const CreateResource = ({ navigation }) => {
                     title,
                     category: selectedCategory,
                     status: selectedStatuses,
+                    weekNumber: selectedCategory === 'Pregnancy Summary' ? weekNumber : '-',
                     description,
                     specialistName: `${specialistInfo.firstName} ${specialistInfo.lastName}`,
                     imageUrl
@@ -140,6 +150,11 @@ const CreateResource = ({ navigation }) => {
                 // Handle response and check if the resource already exists
                 if (response.data && response.data.error === "Resource with the same title already exists!") {
                     setError1('* Resource with the same title already exists');
+                    return;
+                }
+
+                if (response.data && response.data.error === "Resource for this week already exists!") {
+                    setError6('* Resource with the same week already exists');
                     return;
                 }
 
@@ -243,38 +258,63 @@ const CreateResource = ({ navigation }) => {
             <View style={[styles.container4, { marginBottom: 20 }]}>
                 <Text style={[styles.text, { marginBottom: 20 }]}> Status {statusError ? <Text style={styles.error}>{statusError}</Text> : null} </Text>
                 <View style={[styles.buttonPosition]}>
-                    <Pressable
-                        style={[
-                            styles.button6, { marginHorizontal: 10 },
-                            selectedStatuses.includes('Pre') ? styles.button6 : styles.defaultButton,
-                        ]}
-                        onPress={() => handleStatusSelection('Pre')}
-                    >
-                        <Text>Pre</Text>
-                    </Pressable>
+                    {selectedCategory !== 'Pregnancy Summary' ? (
+                        <>
+                            <Pressable
+                                style={[
+                                    styles.button6,
+                                    { marginHorizontal: 10 },
+                                    selectedStatuses.includes('Pre') ? styles.button6 : styles.defaultButton,
+                                ]}
+                                onPress={() => handleStatusSelection('Pre')}
+                            >
+                                <Text>Pre</Text>
+                            </Pressable>
 
-                    <Pressable
-                        style={[
-                            styles.button6, { marginHorizontal: 10 },
-                            selectedStatuses.includes('During') ? styles.button6 : styles.defaultButton,
-                        ]}
-                        onPress={() => handleStatusSelection('During')}
-                    >
-                        <Text>During</Text>
-                    </Pressable>
+                            <Pressable
+                                style={[
+                                    styles.button6,
+                                    { marginHorizontal: 10 },
+                                    selectedStatuses.includes('During') ? styles.button6 : styles.defaultButton,
+                                ]}
+                                onPress={() => handleStatusSelection('During')}
+                            >
+                                <Text>During</Text>
+                            </Pressable>
 
-                    <Pressable
-                        style={[
-                            styles.button6, { marginHorizontal: 10 },
-                            selectedStatuses.includes('Post') ? styles.button6 : styles.defaultButton,
-                        ]}
-                        onPress={() => handleStatusSelection('Post')}
-                    >
-                        <Text>Post</Text>
-                    </Pressable>
+                            <Pressable
+                                style={[
+                                    styles.button6,
+                                    { marginHorizontal: 10 },
+                                    selectedStatuses.includes('Post') ? styles.button6 : styles.defaultButton,
+                                ]}
+                                onPress={() => handleStatusSelection('Post')}
+                            >
+                                <Text>Post</Text>
+                            </Pressable>
+                        </>
+                    ) : (
+                        <Pressable style={[styles.button6, selectedStatuses.includes('During')]}  onPress={() => handleStatusSelection('During')}>
+                            <Text>During</Text>
+                        </Pressable>
+                    )}
                 </View>
             </View>
 
+            {/* Week No View */}
+            {selectedCategory === 'Pregnancy Summary' && (
+                <View style={{ marginBottom: 30 }}>
+                    <Text style={[styles.text, { marginBottom: 10 }]}> Week Number  {weekError ? <Text style={styles.error}>{weekError}</Text> : null}</Text>
+                    <TextInput
+                        style={[styles.input3]}
+                        value={weekNumber}
+                        onChangeText={setWeekNumber}
+                        keyboardType="numeric"
+                    />
+                </View>
+            )}
+
+            {/* Description */}
             <View style={[styles.container4, { marginBottom: 20 }]}>
                 <Text style={[styles.text, { marginBottom: 20 }]}> Description {descriptionError ? <Text style={styles.error}>{descriptionError}</Text> : null} </Text>
                 <RichToolbar

@@ -107,7 +107,10 @@ const SpecialistResource = ({ navigation }) => {
   };
 
   const toggleDropdown = (resource) => {
-    if (resource.specialistName === `${specialistInfo.firstName} ${specialistInfo.lastName}`) {
+    if (
+      resource.category === 'Pregnancy Summary' ||
+      resource.specialistName === `${specialistInfo.firstName} ${specialistInfo.lastName}`
+    ) {
       setSelectedResource(resource);
       setDropdownVisible(!isDropdownVisible);
     }
@@ -140,27 +143,34 @@ const SpecialistResource = ({ navigation }) => {
     if (!newCategory.trim()) {
       setError1('* Required field');
       return;
-  }
+    }
 
-  // Check if the category already exists
-  const categoryExists = categories.some(category => category.categoryName.toLowerCase() === newCategory.toLowerCase());
-  if (categoryExists) {
-    setError1('* Category already exists');
-    return;
-  }
+    // Check if the category already exists
+    const categoryExists = categories.some(category => category.categoryName.toLowerCase() === newCategory.toLowerCase());
+    if (categoryExists) {
+      setError1('* Category already exists');
+      return;
+    }
 
-  try {
-    await axios.post(`${url}/addCategory`, { categoryName: newCategory });
+    try {
+      await axios.post(`${url}/addCategory`, { categoryName: newCategory });
 
-    Alert.alert(
-      'Category Added',
-      'Category has been successfully added!',
-      [{ text: 'OK', onPress: () => closeModal() }]
-    );
-  } catch (error) {
-    console.error('Error adding category:', error);
-  }
+      Alert.alert(
+        'Category Added',
+        'Category has been successfully added!',
+        [{ text: 'OK', onPress: () => closeModal() }]
+      );
+    } catch (error) {
+      console.error('Error adding category:', error);
+    }
 };  
+
+const filteredResources = resources.filter(resource => {
+  const activeCategory = categories[activeIndex]?.categoryName;
+  const matchesCategory = activeCategory === "All" || resource.category === activeCategory;
+  const matchesSearch = resource.title.toLowerCase().includes(search.toLowerCase());
+  return matchesCategory && matchesSearch;
+});
 
   // Page Displays
   return (
@@ -181,17 +191,17 @@ const SpecialistResource = ({ navigation }) => {
       </View>
 
       {/* Search Bar */}
-      <View style={[styles.search, {right:10}]}>
-          <View style={[styles.iconContainer, {left: 40}]}>
+      <View style={[styles.search, { right: 10 }]}>
+        <View style={[styles.iconContainer, { left: 40 }]}>
           <Ionicons name="search-outline" size={24} color="black" />
-          </View>
-          <TextInput
+        </View>
+        <TextInput
           style={[styles.input3, styles.textInputWithIcon]}
           value={search}
           onChangeText={setSearch}
           placeholder="Search"
           placeholderTextColor="black"
-          />
+        />
       </View>
 
       {/* Dynamic Navigation Buttons */}
@@ -222,7 +232,7 @@ const SpecialistResource = ({ navigation }) => {
       <View style={[{ left: 20}, Platform.OS==="web"?{ width: screenWidth * 0.9}:{width:'100%'}]}>
         <ScrollView style={styles.container3}
         contentContainerStyle={Platform.OS==="web"? styles.resourceContainerWeb : styles.resourceContainerMobile}>
-        {resources.map((resource, index) => {
+        {filteredResources.length > 0 ? filteredResources.map((resource, index) => {
         const activeCategory = categories[activeIndex]?.categoryName;
         const isSpecialistResource = resource.specialistName === `${specialistInfo.firstName} ${specialistInfo.lastName}`;
 
@@ -246,7 +256,7 @@ const SpecialistResource = ({ navigation }) => {
               )}
 
               {/* More icon*/}
-              {isSpecialistResource && (
+              {(resource.category === 'Pregnancy Summary' || (isSpecialistResource)) && (
                 <TouchableHighlight style={[{ alignSelf: 'flex-end'}]} onPress={() => toggleDropdown(resource)}>
                     <Entypo name='dots-three-vertical' size={18} />
                 </TouchableHighlight>
@@ -260,7 +270,12 @@ const SpecialistResource = ({ navigation }) => {
           );
         }
         return null;
-      })}
+      }) : (
+        <View style={{ marginLeft: 80, alignItems: 'center', marginTop: 20, marginBottom: 40 }}>
+          {image && <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />}
+          <Text style= {[styles.formText, {fontStyle: 'italic'}]}> Oops! Nothing here yet </Text>
+        </View>
+      )}
       </ScrollView>
     </View>
 

@@ -23,12 +23,14 @@ const UpdateResource = ({ navigation, route }) => {
     const [specialistInfo, setSpecialistInfo] = useState({ firstName: '', lastName: '' });
     const [resource, setResource] = useState(null);
     const [imageUri, setImageUri] = useState(null);
+    const [weekNumber, setWeekNumber] = useState('');
 
     // Errors
     const [titleError, setTitleError] = useState('');
     const [categoryError, setCategoryError] = useState('');
     const [statusError, setStatusError] = useState('');
     const [descriptionError, setDescriptionError] = useState('');
+    const [weekError, setWeekError] = useState('');
 
     // Selected values
     const [selectedCategory, setSelectedCategory] = useState(null);
@@ -78,6 +80,7 @@ const UpdateResource = ({ navigation, route }) => {
                     setSelectedCategory(matchedResource.category); // Set selected category state
                     setSelectedStatuses(matchedResource.status); // Set selected statuses state
                     setDescription(matchedResource.description); // Set description state
+                    setWeekNumber(matchedResource.weekNumber); // Set week number state
                     setImageUri(matchedResource.imageUrl);
                 } 
             } catch (error) {
@@ -130,6 +133,13 @@ const UpdateResource = ({ navigation, route }) => {
             setDescriptionError('');
         }
 
+        if (!weekNumber.trim()) {
+            setWeekError('* Required field');
+            valid = false;
+        } else {
+            setWeekError('');
+        }
+
         if (valid) {
             try {
                 let imageUrl = resource.imageUrl;
@@ -152,6 +162,7 @@ const UpdateResource = ({ navigation, route }) => {
                     title,
                     category: selectedCategory,
                     status: selectedStatuses,
+                    weekNumber,
                     description,
                     specialistName: `${specialistInfo.firstName} ${specialistInfo.lastName}`,
                     imageUrl
@@ -262,6 +273,8 @@ const UpdateResource = ({ navigation, route }) => {
             <View style={[styles.container4, { marginBottom: 20 }]}>
                 <Text style={[styles.text, { marginBottom: 20 }]}> Status </Text>
                 <View style={[styles.buttonPosition]}>
+                {selectedCategory !== 'Pregnancy Summary' ? (
+                    <>
                     <Pressable
                         style={[
                             styles.button6, { marginHorizontal: 10 },
@@ -291,9 +304,28 @@ const UpdateResource = ({ navigation, route }) => {
                     >
                         <Text>Post</Text>
                     </Pressable>
+                    </>
+                    ) : (
+                        <Pressable style={[styles.button6, selectedStatuses.includes('During')]}>
+                            <Text>During</Text>
+                        </Pressable>
+                    )}
                 </View>
                 {statusError ? <Text style={styles.error}>{statusError}</Text> : null}
             </View>
+
+            {/* Week No View */}
+            {selectedCategory === 'Pregnancy Summary' && (
+                <View style={{ marginBottom: 30 }}>
+                    <Text style={[styles.text, { marginBottom: 10 }]}> Week Number  {weekError ? <Text style={styles.error}>{weekError}</Text> : null}</Text>
+                    <TextInput
+                        style={[styles.input3]}
+                        value={weekNumber}
+                        onChangeText={setWeekNumber}
+                        keyboardType="numeric"
+                    />
+                </View>
+            )}
 
             <View style={[styles.container4, { marginBottom: 20 }]}>
                 <Text style={[styles.text, { marginBottom: 20 }]}> Description </Text>

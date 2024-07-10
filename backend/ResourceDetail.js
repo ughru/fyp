@@ -14,6 +14,7 @@ const ResourceInfoSchema = new mongoose.Schema(
     title: String,
     category: String,
     status: [String],
+    weekNumber: String,
     description: String,
     specialistName: String,
     imageUrl: String,

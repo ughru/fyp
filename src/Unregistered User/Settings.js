@@ -8,7 +8,6 @@ const Settings = ({ navigation, selectedStatus, setSelectedStatus }) => {
   const handleStatusSelection = async (status) => {
     setSelectedStatus(status);
 
-    // Store user selection locally
     try {
       await AsyncStorage.setItem('selectedStatus', status);
     } catch (error) {
@@ -16,18 +15,32 @@ const Settings = ({ navigation, selectedStatus, setSelectedStatus }) => {
     }
   };
 
-  // Page Displays
+  useEffect(() => {
+    const fetchSelectedStatus = async () => {
+      try {
+        const storedStatus = await AsyncStorage.getItem('selectedStatus');
+        if (storedStatus !== null) {
+          setSelectedStatus(storedStatus);
+        }
+      } catch (error) {
+        console.error('Error retrieving selected status:', error);
+      }
+    };
+
+    fetchSelectedStatus();
+  }, []);
+
   return (
-    <View style = {[styles.container]}>
-      <Text style={[styles.pageTitle , Platform.OS!=="web"&&{paddingTop:50}]}> Settings </Text>
-      <Text style={[styles.titleNote, {paddingTop:10 , paddingBottom:10}]}> Manage your account </Text>
-      
-      <View style = {[styles.container4]}>
-        <Text style={[styles.questionText, {marginBottom: 20}]}> Pregnancy Status </Text>
+    <View style={[styles.container]}>
+      <Text style={[styles.pageTitle, Platform.OS !== "web" && { paddingTop: 50 }]}> Settings </Text>
+      <Text style={[styles.titleNote, { paddingTop: 10, paddingBottom: 10 }]}> Manage your account </Text>
+
+      <View style={[styles.container4]}>
+        <Text style={[styles.questionText, { marginBottom: 20 }]}> Pregnancy Status </Text>
         <View style={styles.buttonPosition}>
           <Pressable
             style={[
-              styles.button6, {marginHorizontal: 10},
+              styles.button6, { marginHorizontal: 10 },
               selectedStatus === 'Pre' ? styles.button6 : styles.defaultButton,
             ]}
             disabled={!selectedStatus}
@@ -38,7 +51,7 @@ const Settings = ({ navigation, selectedStatus, setSelectedStatus }) => {
 
           <Pressable
             style={[
-              styles.button6, {marginHorizontal: 10},
+              styles.button6, { marginHorizontal: 10 },
               selectedStatus === 'During' ? styles.button6 : styles.defaultButton,
             ]}
             disabled={!selectedStatus}
@@ -49,7 +62,7 @@ const Settings = ({ navigation, selectedStatus, setSelectedStatus }) => {
 
           <Pressable
             style={[
-              styles.button6, {marginHorizontal: 10},
+              styles.button6, { marginHorizontal: 10 },
               selectedStatus === 'Post' ? styles.button6 : styles.defaultButton,
             ]}
             disabled={!selectedStatus}
@@ -59,9 +72,9 @@ const Settings = ({ navigation, selectedStatus, setSelectedStatus }) => {
           </Pressable>
         </View>
       </View>
-      
-      <View style = {[styles.container3, {alignItems: 'center' , paddingHorizontal:20 , justifyContent:'center'}]}>
-        <Text style={[styles.pageTitle, {marginBottom: 20}]}> Join Bloom </Text>
+
+      <View style={[styles.container3, { alignItems: 'center', paddingHorizontal: 20, justifyContent: 'center' }]}>
+        <Text style={[styles.pageTitle, { marginBottom: 20 }]}> Join Bloom </Text>
         <Pressable style={styles.button5} onPress={() => navigation.navigate("RegisterUser")}>
           <Text style={styles.questionText}> Register </Text>
         </Pressable>

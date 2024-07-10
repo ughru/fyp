@@ -376,7 +376,6 @@ app.get('/categories', async (req, res) => {
   }
 });
 
-
 // get resources, alphabetically sorted
 // GET all resources and count
 app.get('/resource', async (req, res) => {
@@ -397,7 +396,7 @@ app.get('/resource', async (req, res) => {
   }
 });
 
-// Create a new category (admin)
+// Create a new category (admin/specialist)
 app.post('/addCategory', async (req, res) => {
   const { categoryName } = req.body;
   try {
@@ -409,6 +408,51 @@ app.post('/addCategory', async (req, res) => {
   }
 });
 
+// Update category
+app.put('/updateCategory', async (req, res) => {
+  const { oldCategoryName, newCategoryName } = req.body;
+
+  try {
+    // Find and update the category in MongoDB
+    const updatedCategory = await ResourceCategory.findOneAndUpdate(
+      { categoryName: oldCategoryName },
+      { $set: { categoryName: newCategoryName } },
+      { new: true }
+    );
+
+    // Update category name for associated resources
+    await Resource.updateMany(
+      { category: oldCategoryName },
+      { $set: { category: newCategoryName } }
+    );
+
+    if (!updatedCategory) {
+      return res.status(404).json({ message: 'Category not found' });
+    }
+
+    res.status(200).json(updatedCategory);
+  } catch (error) {
+    console.error('Error updating category:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Delete category by name (Admin only)
+app.delete('/deleteCategory', async (req, res) => {
+  const { categoryName } = req.body;
+
+  try {
+    const category = await ResourceCategory.findOneAndDelete({ categoryName });
+    
+    if (!category) {
+      return res.status(404).send({ message: 'Category not found' });
+    }
+
+    res.send({ message: 'Category deleted successfully' });
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
 
 // Get 10 resources
 app.get('/resourceReco', async (req, res) => {
@@ -423,14 +467,23 @@ app.get('/resourceReco', async (req, res) => {
 
 // specialist creates a resource
 app.post('/addresource', async (req, res) => {
-  const { title, category, status, description, specialistName, imageUrl } = req.body;
+  const { title, category, status, weekNumber, description, specialistName, imageUrl } = req.body;
 
   try {
     const existingResource = await Resource.findOne({ title });
 
+    // check if title exist
     if (existingResource) {
       return res.send({ error: "Resource with the same title already exists!" });
     }
+
+    // Check if weekNumber exists for "Pregnancy Summary" category
+    if (category === 'Pregnancy Summary') {
+      const existingWeekResource = await Resource.findOne({ category, weekNumber });
+      if (existingWeekResource) {
+          return res.send({ error: "Resource for this week already exists!" });
+      }
+  }
 
     // Find the highest resourceID currently in the database
     const latestResource = await Resource.findOne().sort({ resourceID: -1 });
@@ -445,6 +498,7 @@ app.post('/addresource', async (req, res) => {
       title,
       category,
       status,
+      weekNumber,
       description,
       specialistName,
       imageUrl,
@@ -459,12 +513,12 @@ app.post('/addresource', async (req, res) => {
 
 // Update resource by ID
 app.put('/updateresource', async (req, res) => {
-  const { resourceID, title, category, status, description, specialistName, imageUrl } = req.body;
+  const { resourceID, title, category, status, weekNumber, description, specialistName, imageUrl } = req.body;
 
   try {
     const updatedResource = await Resource.findOneAndUpdate(
       { resourceID },
-      { title, category, status, description, specialistName, imageUrl },
+      { title, category, status, weekNumber, description, specialistName, imageUrl },
       { new: true } // Return the updated document
     );
 

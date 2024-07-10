@@ -101,7 +101,7 @@ const Login = () => {
           navigation.navigate('RegisterSpecialist');
           break;
         default:
-          navigation.navigate('RegisterUser');
+          navigation.navigate('Personalisation');
           break;
       }
     }
