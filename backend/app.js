@@ -215,7 +215,14 @@ app.post('/suspendUser', async (req, res) => {
   const { email } = req.body;
 
   try {
-    const user = await User.findOneAndUpdate({ email }, { state: 'suspended' });
+    // Check in User collection
+    let user = await User.findOneAndUpdate({ email }, { state: 'suspended' });
+    
+    if (!user) {
+      // If not found in User collection, check in Specialist collection
+      user = await Specialist.findOneAndUpdate({ email }, { state: 'suspended' });
+    }
+
     if (user) {
       res.json({ success: true });
     } else {
@@ -232,7 +239,14 @@ app.post('/reactivateUser', async (req, res) => {
   const { email } = req.body;
 
   try {
-    const user = await User.findOneAndUpdate({ email }, { state: 'active' });
+    // Check in User collection
+    let user = await User.findOneAndUpdate({ email }, { state: 'active' });
+
+    if (!user) {
+      // If not found in User collection, check in Specialist collection
+      user = await Specialist.findOneAndUpdate({ email }, { state: 'active' });
+    }
+
     if (user) {
       res.json({ success: true });
     } else {
@@ -281,14 +295,18 @@ app.post("/login", async (req, res) => {
   try {
       // Check user in User collection
       let user = await User.findOne({ email });
-      if (user && await bcrypt.compare(password, user.password)) {
-          return res.send({ status: "ok", type: "user" });
+      if (user && user.state === "suspended") {
+        return res.send({ error: "Suspended account", type: "user" });
+      } else if (user && await bcrypt.compare(password, user.password)) {
+        return res.send({ status: "ok", type: "user" });
       }
 
     // Check user in Specialist collection
     user = await Specialist.findOne({ email });
-    if (user && await bcrypt.compare(password, user.password)) {
-        return res.send({ status: "ok", type: "specialist" });
+    if (user && user.state === "suspended") {
+      return res.send({ error: "Suspended account", type: "specialist" });
+    } else if (user && await bcrypt.compare(password, user.password)) {
+      return res.send({ status: "ok", type: "specialist" });
     }
 
     // Check user in Admin collection
@@ -784,54 +802,66 @@ app.post('/updateStatus', async (req, res) => {
 // add weight log
 app.post('/weightLog', async (req, res) => {
   try {
-    const { userEmail, record } = req.body;
+      const { userEmail, record } = req.body;
 
-    // Check if the user already has a weight log
-    let weightLog = await WeightLog.findOne({ userEmail });
+      // Check if the user already has a weight log
+      let weightLog = await WeightLog.findOne({ userEmail });
 
-    // Find the highest weightLogID currently in the database
-    const latestLog = await WeightLog.findOne().sort({ weightLogID: -1 });
-    let weightLogID = 1;
+      // Find the highest weightLogID currently in the database
+      const latestLog = await WeightLog.findOne().sort({ weightLogID: -1 });
+      let weightLogID = 1;
 
-    if (latestLog) {
-      weightLogID = latestLog.weightLogID + 1;
-    }
-
-    if (!weightLog) {
-      // Create a new weight log
-      weightLog = new WeightLog({
-        weightLogID,
-        userEmail,
-        record,
-      });
-    } else {
-      // Fetch all existing weight logs for the user
-      const existingLogsResponse = await axios.get(`${url}/allWeightLogs`, {
-        params: { userEmail }
-      });
-
-      const existingLogs = existingLogsResponse.data || [];
-      const currentDate = record.date.toISOString().split('T')[0];
-
-      // Check if there's already a record for the same date
-      const logExists = existingLogs.some(log => {
-        return log.record.some(r => r.date.toISOString().split('T')[0] === currentDate);
-      });
-
-      if (logExists) {
-        res.status(400).json({ message: "Weight log for this date already exists!" });
+      if (latestLog) {
+          weightLogID = latestLog.weightLogID + 1;
       }
 
-      // Append the new record to the existing weight log
-      weightLog.record.push(record);
-    }
+      if (!weightLog) {
+          // Create a new weight log
+          weightLog = new WeightLog({
+              weightLogID,
+              userEmail,
+              record: [{
+                  ...record,
+                  difference: '-' // No previous log, so difference is '-'
+              }],
+          });
+      } else {
+        if (weightLog.record.length > 0) {
+          const existingLogs = weightLog.record || [];
+          const currentDate = new Date().toISOString().split('T')[0]; // Current date
+  
+          // Check if there's already a record for the same date
+          const logExists = existingLogs.some(r => {
+            const logDate = r.date.toISOString().split('T')[0];
+            return logDate === currentDate;
+          });
+  
+          if (logExists) {
+            return res.status(400).json({ message: "Weight log for today already exists!" });
+          }
+          const recentWeight = weightLog.record[weightLog.record.length - 1].weight;
+          const difference = record.weight - recentWeight;
 
-    // Save the weight log to the database
-    await weightLog.save();
+          // Append the new record to the existing weight log with difference
+          weightLog.record.push({
+              ...record,
+              difference: `${difference > 0 ? '+' : ''}${difference}` // Store difference with + or -
+          });
+        } else {
+            // No existing records, so difference is '-'
+            weightLog.record.push({
+                ...record,
+                difference: '-' // Store difference with -
+            });
+        }
+      }
 
-    res.status(201).json({ message: 'Weight Log successfully created!', weightLog });
+      // Save the weight log to the database
+      await weightLog.save();
+
+      res.status(201).json({ message: 'Weight Log successfully created!', weightLog });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to create Weight Log.', error });
+      res.status(500).json({ message: 'Failed to create Weight Log.', error });
   }
 });
 
@@ -918,6 +948,17 @@ app.put('/updateWeightLog', async (req, res) => {
   }
 
   try {
+    let recent = await WeightLog.findOne({ userEmail });
+    let firstRecord = await WeightLog.findOne({ userEmail, 'record.date': date });
+
+    let difference = '-';
+    if (recent && firstRecord && recent.record[0].date.toString() === firstRecord.record[0].date.toString()) {
+      difference = '-';
+    } else {
+      const recentWeight = recent.record[0].weight;
+      difference = weight - recentWeight;
+    }
+    
     // Find and update the weight log by user email and date
     const weightLog = await WeightLog.findOneAndUpdate(
       { userEmail: userEmail, 'record.date': date },
@@ -925,6 +966,7 @@ app.put('/updateWeightLog', async (req, res) => {
         $set: {
           'record.$.height': parseFloat(height),
           'record.$.weight': parseFloat(weight),
+          'record.$.difference': `${difference > 0 ? '+' : ''}${difference}`,
           'record.$.bmi': parseFloat(bmi),
           'record.$.category': category
         }
@@ -1109,7 +1151,7 @@ app.get('/getAdminAds', async (req, res) => {
 
 // Admin create Ad
 app.post("/createAd", async (req, res) => {
-  const { userEmail, title, company, description, imageUrl } = req.body;
+  const { userEmail, title, company, type, description, imageUrl } = req.body;
 
   try {
     // Check if ad with the same title already exists
@@ -1133,6 +1175,7 @@ app.post("/createAd", async (req, res) => {
       userEmail,
       title,
       company,
+      type, 
       description,
       imageUrl,
       dateCreated: new Date(),
@@ -1163,16 +1206,9 @@ app.get('/getSpecialistAds', async (req, res) => {
 
 // Specialist create Ad
 app.post("/specialistCreateAd", async (req, res) => {
-  const { userEmail, title, type, description, imageUrl } = req.body;
+  const { userEmail, title, company, description, imageUrl } = req.body;
 
   try {
-    // Check if ad with the same title already exists
-    const existingAd = await SpecialistAd.findOne({ title });
-
-    if (existingAd) {
-      return res.status(400).json({ error: 'Ad with the same title already exists!' });
-    }
-
     // Find the highest adID currently in the database
     const latestAd = await SpecialistAd.findOne().sort({ adID: -1 });
     let adID = 1;
@@ -1186,7 +1222,7 @@ app.post("/specialistCreateAd", async (req, res) => {
       adID,
       userEmail,
       title,
-      type,
+      company,
       description,
       imageUrl,
       dateCreated: new Date(),

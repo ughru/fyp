@@ -9,6 +9,7 @@ const WeightLogSchema = new mongoose.Schema(
         date: {type: Date},
         weight: {type: Number},
         height: {type: Number},
+        difference: {type: String},
         bmi: {type: Number},
         category: {type: String},
     }

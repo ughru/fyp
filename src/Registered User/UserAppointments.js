@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, ScrollView, TextInput, Image, Platform, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, Pressable, ScrollView, Image, Platform, TouchableOpacity, StyleSheet } from 'react-native';
 import styles from '../components/styles';
 import { storage } from '../../firebaseConfig';
 import { AntDesign } from '@expo/vector-icons';
@@ -8,26 +8,32 @@ const UserAppointments = ({navigation}) => {
   const [imageUrl, setImageUrls] = useState(null); // ads display
   const [image, setImageUrl] = useState(null); // 404 not found display
   const [activeButton, setActiveButton] = useState('Upcoming');
+  const scrollRef = useRef(null);
 
   useEffect(() => {
     const fetchImage = async () => {
       try {
-        const storageRef = storage.ref('adminAd');
-        const images = await storageRef.listAll();
-    
-        // Get all image URLs or up to 5 if fewer
-        const randomImages = [];
-        const totalImages = Math.min(images.items.length, 5); // Limit to 5 or fewer images
-    
-        for (let i = 0; i < totalImages; i++) {
-          const randomIndex = Math.floor(Math.random() * images.items.length);
-          const imageUrl = await images.items[randomIndex].getDownloadURL();
-          randomImages.push(imageUrl);
-        }
-    
-        setImageUrls(randomImages); 
+          const storageRef = storage.ref('specialistAd');
+          const images = await storageRef.listAll();
+
+          // Get all image URLs or up to 5 if fewer
+          const randomImages = [];
+          const totalImages = Math.min(images.items.length, 5); // Limit to 5 or fewer images
+
+          // Generate random indices without repetition
+          const randomIndices = new Set();
+          while (randomIndices.size < totalImages) {
+              randomIndices.add(Math.floor(Math.random() * images.items.length));
+          }
+
+          for (let index of randomIndices) {
+              const imageUrl = await images.items[index].getDownloadURL();
+              randomImages.push(imageUrl);
+          }
+
+          setImageUrls(randomImages);
       } catch (error) {
-        console.error('Error fetching images:', error);
+          console.error('Error fetching images:', error);
       }
     };     
 
@@ -55,17 +61,30 @@ const UserAppointments = ({navigation}) => {
         <Text style={[styles.pageTitle]}> Appointments</Text>
 
         <View style={[styles.adImageContainer, { width: '100%', alignItems: 'center' }]}>
-          {imageUrl ? (
-            imageUrl.map((url, index) => (
-              <Image key={index} source={{ uri: url }} style={styles.adImage} />
-            ))
-          ) : (
-            <Text>Loading images...</Text>
-          )}
-        </View>
+            <ScrollView
+              ref={scrollRef}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 20}}
+            >
+              {imageUrl && imageUrl.map((url, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={{ width: 250, height: 200 }}>
+                  {/* Image */}
+                  <View style={{ ...StyleSheet.absoluteFillObject }}>
+                    <Image
+                      source={{ uri: url }}
+                      style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'contain' }}
+                    />
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
       </View>
 
-      <View style={[styles.container4, { marginBottom: 20}]}>
+      <View style={[styles.container4, {marginBottom: 20}]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
           <AntDesign name="calendar" size={24} color="black" />
           <Pressable style={{ marginLeft: 10 }}>

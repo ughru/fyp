@@ -15,16 +15,20 @@ import styles from '../components/styles';
 const CreateAds = ({ navigation }) => {
     const [title, setTitle] = useState('');
     const [company, setCompany] = useState('');
+    const [type, setType] = useState('');
     const [description, setDescription] = useState('');
     const [imageUri, setImageUri] = useState(null);
 
     const [titleError, setError1] = useState('');
     const [companyError, setError2] = useState('');
-    const [descriptionError, setError3] = useState('');
-    const [imageError, setError4] = useState('');
+    const [typeError, setError3] = useState('');
+    const [descriptionError, setError4] = useState('');
+    const [imageError, setError5] = useState('');
     const [descriptionHeight, setDescriptionHeight] = useState(0);
 
     const [adminInfo, setAdminInfo] = useState([]);
+    const [selectedType, setSelectedType] = useState(null);
+    const [activeButton, setActiveButton] = useState('');
 
     useEffect(() => {
         const fetchAdminInfo = async () => {
@@ -46,12 +50,25 @@ const CreateAds = ({ navigation }) => {
 
     }, []);
 
+    const handleButtonClick = (type) => {
+        if (selectedType === type) {
+            setType(null);
+            setActiveButton('');
+        } else {
+            setType(type);
+            setActiveButton(type);
+        }
+    };
+
     const onSaveAd = async () => {
         let valid = true;
 
         // Validate input fields
         if (!title.trim()) {
             setError1('* Required field');
+            valid = false;
+        } else if (title[0] !== title[0].toUpperCase()) {
+            setError1('* First letter must be uppercase');
             valid = false;
         } else {
             setError1('');
@@ -64,15 +81,22 @@ const CreateAds = ({ navigation }) => {
             setError2('');
         }
 
-        if (!description.trim()) {
+        if (!type) {
             setError3('* Required field');
             valid = false;
         } else {
             setError3('');
         }
 
+        if (!description.trim()) {
+            setError4('* Required field');
+            valid = false;
+        } else {
+            setError4('');
+        }
+
         if (!imageUri) {
-            setError4('* Image is required');
+            setError5('* Image is required');
             valid = false;
         }
 
@@ -93,6 +117,7 @@ const CreateAds = ({ navigation }) => {
                     userEmail: `${adminInfo.email}`,
                     title,
                     company,
+                    type,
                     description,
                     imageUrl
                 };
@@ -193,6 +218,26 @@ const CreateAds = ({ navigation }) => {
             <View style={{ marginBottom: 30 }}>
                 <Text style={[styles.text, { marginBottom: 10 }]}> Company {companyError ? <Text style={styles.error}>{companyError}</Text> : null} </Text>
                 <TextInput style={[styles.input3]} value={company} onChangeText={setCompany} />
+            </View>
+
+            <View style={{ marginBottom: 30 }}>
+                <Text style={[styles.text, { marginBottom: 10 }]}> Type {typeError ? <Text style={styles.error}>{typeError}</Text> : null} </Text>
+
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <Pressable
+                        onPress={() => handleButtonClick('Events')}
+                        style={activeButton === 'Events' ? styles.categoryBtnActive : styles.categoryBtn}
+                    >
+                        <Text style={styles.text}> Events </Text>
+                    </Pressable>
+                    <Pressable
+                        onPress={() => handleButtonClick('Products')}
+                        style={activeButton === 'Products' ? styles.categoryBtnActive : styles.categoryBtn}
+                    >
+                        <Text style={styles.text}> Products </Text>
+                    </Pressable>
+                </View>
+
             </View>
 
             <View style={[styles.container4, { marginBottom: 20 }]}>

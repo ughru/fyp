@@ -11,15 +11,10 @@ import url from "../components/config";
 
 const AdminEditProfile = ({ navigation }) => {
     // values
-    const [userInfo, setUserInfo] = useState({
-        firstName: '',
-        lastName: '',
-        email: ''
-    });
+    const [userInfo, setUserInfo] = useState([]);
 
     const [firstNameError, setError1] = useState('');
     const [lastNameError, setError2] = useState('');
-    const [emailError, setError3] = useState('');
 
     // Handle input changes
     const handleChange = (name, value) => {
@@ -76,17 +71,6 @@ const AdminEditProfile = ({ navigation }) => {
             setError2('');
         }
 
-        // Validate Email
-        if (!userInfo.email.trim()) {
-            setError3('* Required field');
-            valid = false;
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userInfo.email)) {
-            setError3('* Invalid email format');
-            valid = false;
-        } else {
-            setError3('');
-        }
-
         if (valid) {
             try {
                 const storedEmail = await AsyncStorage.getItem('user');
@@ -131,10 +115,6 @@ const AdminEditProfile = ({ navigation }) => {
             <View style={{ marginBottom: 30 }}>
                 <Text style={[styles.formText, {marginBottom: 10}]}> Last Name {lastNameError ? <Text style={styles.error}>{lastNameError}</Text> : null} </Text>
                 <TextInput style={[styles.input]} value={userInfo.lastName} onChangeText={(text) => handleChange('lastName', text)}/>
-            </View>
-            <View style={{ marginBottom: 30 }}>
-                <Text style={[styles.formText, {marginBottom: 10}]}> Email {emailError ? <Text style={styles.error}>{emailError}</Text> : null} </Text>
-                <TextInput style={[styles.input]} value={userInfo.email} onChangeText={(text) => handleChange('email', text)} />
             </View>
         </View>
 

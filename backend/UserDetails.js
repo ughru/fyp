@@ -2,12 +2,12 @@ const mongoose = require("mongoose");
 
 const UserDetailSchema = new mongoose.Schema(
 {
-    firstName: String,
-    lastName: String,
-    status: String,
+    firstName: {type: String},
+    lastName: {type: String},
+    status: {type: String},
     email: { type: String, unique: true },
-    password: String,
-    state: String,
+    password: {type: String},
+    state: {type: String},
 },
 {
     collection: "UserInfo"
@@ -17,12 +17,12 @@ mongoose.model("userInfo", UserDetailSchema);
 
 const SpecialistDetailSchema = new mongoose.Schema(
     {
-        firstName: String,
-        lastName: String,
-        uen: String,
+        firstName: {type: String},
+        lastName: {type: String},
+        uen: {type: String},
         email: { type: String, unique: true },
-        password: String,
-        state: String,
+        password: {type: String},
+        state: {type: String},
     },
     {
         collection: "SpecialistInfo"

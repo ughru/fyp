@@ -73,34 +73,36 @@ const CreateWeightLog = ({ navigation }) => {
 
         if (valid) {
             try {
-              const storedEmail = await AsyncStorage.getItem('user');
-              if (!storedEmail) {
-                Alert.alert('Error', 'User email not found');
-                return;
-              }
-      
-              const weightLog = {
-                userEmail: storedEmail,
-                record: [{
-                  date: new Date(),
-                  height: parseFloat(height),
-                  weight: parseFloat(weight),
-                  bmi: parseFloat(bmi),
-                  category: getCategory(parseFloat(bmi))
-                }]
-              };
-        
-              const response = await axios.post(`${url}/weightLog`, weightLog);
-        
-              if (response.status === 201) {
-                Alert.alert('Success', 'Weight Log successfully created!', [{
-                  text: 'OK', onPress: () => navigation.goBack()
-                }]);
-              } else {
-                Alert.alert('Failure', 'Weight Log was not created.');
-              }
+                const storedEmail = await AsyncStorage.getItem('user');
+                if (!storedEmail) {
+                    Alert.alert('Error', 'User email not found');
+                    return;
+                }
+    
+                // Prepare weight log data
+                const weightLog = {
+                    userEmail: storedEmail,
+                    record: {
+                        date: new Date(),
+                        height: parseFloat(height),
+                        weight: parseFloat(weight),
+                        bmi: parseFloat(bmi),
+                        category: getCategory(parseFloat(bmi))
+                    }
+                };
+    
+                // Send weight log data to backend
+                const response = await axios.post(`${url}/weightLog`, weightLog);
+    
+                if (response.status === 201) {
+                    Alert.alert('Success', 'Weight Log successfully created!', [{
+                        text: 'OK', onPress: () => navigation.goBack()
+                    }]);
+                } else {
+                    Alert.alert('Failure', 'Weight Log was not created.');
+                }
             } catch (error) {
-              Alert.alert('Failure', 'Weight Log was not created.');
+                Alert.alert('Failure', 'Weight Log for today already exist.');
             }
         }
     };
@@ -128,12 +130,12 @@ const CreateWeightLog = ({ navigation }) => {
         <View style={[styles.container4, { marginBottom: 20 }]}>
             <View style={{ marginBottom: 30 }}>
                 <Text style={[styles.text, { marginBottom: 10 }]}> Height (cm) {heightError ? <Text style={styles.error}>{heightError}</Text> : null} </Text>
-                <TextInput style={[styles.input3]} value={height} onChangeText={setHeight} />
+                <TextInput style={[styles.input3]} value={height} onChangeText={setHeight} keyboardType="numeric" />
             </View>
 
             <View style={[styles.container4, { marginBottom: 20 }]}>
                 <Text style={[styles.text, { marginBottom: 20 }]}> Weight (kg) {weightError ? <Text style={styles.error}>{weightError}</Text> : null} </Text>
-                <TextInput style={[styles.input3]} value={weight} onChangeText={setWeight} />
+                <TextInput style={[styles.input3]} value={weight} onChangeText={setWeight} keyboardType="numeric"/>
             </View>
         </View>
 

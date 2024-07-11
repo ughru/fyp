@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, TouchableHighlight, Image, Platform } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, TouchableHighlight, Image, Platform, StyleSheet } from 'react-native';
 import { storage } from '../../firebaseConfig';
 import { Feather, AntDesign } from '@expo/vector-icons';
 import axios from 'axios';
@@ -43,6 +43,7 @@ const Forum = ({ navigation }) => {
   const [activeButton, setActiveButton] = useState('General');
   const [imageUrl, setImageUrls] = useState(null);
   const [isModalVisible, setModalVisible] = useState(false);
+  const scrollRef = useRef(null);
 
   useEffect(() => {
     const fetchForumPosts = async () => {
@@ -61,22 +62,27 @@ const Forum = ({ navigation }) => {
 
     const fetchImage = async () => {
       try {
-        const storageRef = storage.ref('adminAd');
-        const images = await storageRef.listAll();
-    
-        // Get all image URLs or up to 5 if fewer
-        const randomImages = [];
-        const totalImages = Math.min(images.items.length, 5); // Limit to 5 or fewer images
-    
-        for (let i = 0; i < totalImages; i++) {
-          const randomIndex = Math.floor(Math.random() * images.items.length);
-          const imageUrl = await images.items[randomIndex].getDownloadURL();
-          randomImages.push(imageUrl);
-        }
-    
-        setImageUrls(randomImages); 
+          const storageRef = storage.ref('adminAd');
+          const images = await storageRef.listAll();
+
+          // Get all image URLs or up to 5 if fewer
+          const randomImages = [];
+          const totalImages = Math.min(images.items.length, 5); // Limit to 5 or fewer images
+
+          // Generate random indices without repetition
+          const randomIndices = new Set();
+          while (randomIndices.size < totalImages) {
+              randomIndices.add(Math.floor(Math.random() * images.items.length));
+          }
+
+          for (let index of randomIndices) {
+              const imageUrl = await images.items[index].getDownloadURL();
+              randomImages.push(imageUrl);
+          }
+
+          setImageUrls(randomImages);
       } catch (error) {
-        console.error('Error fetching images:', error);
+          console.error('Error fetching images:', error);
       }
     };     
 
@@ -145,13 +151,28 @@ const Forum = ({ navigation }) => {
             <Text style={styles.pageTitle}> Community Forum </Text>
           </View>
 
-        <View style={[styles.adImageContainer, { width: '100%', alignItems: 'center' }]}>
-          {imageUrl && (
-            imageUrl.map((url, index) => (
-              <Image key={index} source={{ uri: url }} style={styles.adImage} />
-            ))
-          )}
-        </View>
+          <View style={[styles.adImageContainer, { width: '100%', alignItems: 'center' }]}>
+            <ScrollView
+              ref={scrollRef}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 20}}
+            >
+              {imageUrl && imageUrl.map((url, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={{ width: 300, height: 200 }}>
+                  {/* Image */}
+                  <View style={{ ...StyleSheet.absoluteFillObject }}>
+                    <Image
+                      source={{ uri: url }}
+                      style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'contain' }}
+                    />
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
       </View>
 
       {/* Sort section */}
@@ -205,7 +226,7 @@ const Forum = ({ navigation }) => {
                   <Text style={[styles.titleNote, {marginRight: 20}]}>{formatDate(post.dateCreated)}</Text>
                 </View>
 
-                <HTMLView style={{ margin: 10 }} value={post.description} />
+                <HTMLView style={{ margin: 10 }} stylesheet={{ div: styles.text }} value={post.description} />
 
                 {/* Comments */}
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>

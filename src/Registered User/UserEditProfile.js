@@ -3,6 +3,7 @@ import { View, Text, Pressable, ScrollView, TextInput, Alert } from 'react-nativ
 import { Entypo } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { auth } from '../../firebaseConfig';
 
 // import own code
 import styles from '../components/styles';
@@ -11,15 +12,10 @@ import url from "../components/config";
 
 const UserEditProfile = ({ navigation }) => {
     // values
-    const [userInfo, setUserInfo] = useState({
-        firstName: '',
-        lastName: '',
-        email: ''
-    });
+    const [userInfo, setUserInfo] = useState([]);
 
     const [firstNameError, setError1] = useState('');
     const [lastNameError, setError2] = useState('');
-    const [emailError, setError3] = useState('');
 
     // Handle input changes
     const handleChange = (name, value) => {
@@ -76,23 +72,14 @@ const UserEditProfile = ({ navigation }) => {
             setError2('');
         }
 
-        // Validate Email
-        if (!userInfo.email.trim()) {
-            setError3('* Required field');
-            valid = false;
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userInfo.email)) {
-            setError3('* Invalid email format');
-            valid = false;
-        } else {
-            setError3('');
-        }
-
         if (valid) {
             try {
                 const storedEmail = await AsyncStorage.getItem('user');
                 if (storedEmail) {
                     const response = await axios.put(`${url}/editUser?email=${storedEmail}`, userInfo);
+
                     await AsyncStorage.setItem('user', userInfo.email);
+
                     Alert.alert('Profile updated successfully', '',
                         [{
                             text: 'OK', onPress: async () => {
@@ -131,10 +118,6 @@ const UserEditProfile = ({ navigation }) => {
             <View style={{ marginBottom: 30 }}>
                 <Text style={[styles.formText, {marginBottom: 10}]}> Last Name {lastNameError ? <Text style={styles.error}>{lastNameError}</Text> : null} </Text>
                 <TextInput style={[styles.input]} value={userInfo.lastName} onChangeText={(text) => handleChange('lastName', text)}/>
-            </View>
-            <View style={{ marginBottom: 30 }}>
-                <Text style={[styles.formText, {marginBottom: 10}]}> Email {emailError ? <Text style={styles.error}>{emailError}</Text> : null} </Text>
-                <TextInput style={[styles.input]} value={userInfo.email} onChangeText={(text) => handleChange('email', text)} />
             </View>
         </View>
 

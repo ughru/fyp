@@ -14,12 +14,12 @@ import styles from '../components/styles';
 
 const SpecialistCreateAds = ({ navigation }) => {
     const [title, setTitle] = useState('');
-    const [type, setType] = useState('');
+    const [company, setCompany] = useState('');
     const [description, setDescription] = useState('');
     const [imageUri, setImageUri] = useState(null);
 
     const [titleError, setError1] = useState('');
-    const [typeError, setError2] = useState('');
+    const [companyError, setError2] = useState('');
     const [descriptionError, setError3] = useState('');
     const [imageError, setError4] = useState('');
     const [descriptionHeight, setDescriptionHeight] = useState(0);
@@ -53,11 +53,14 @@ const SpecialistCreateAds = ({ navigation }) => {
         if (!title.trim()) {
             setError1('* Required field');
             valid = false;
+        } else if (title[0] !== title[0].toUpperCase()) {
+            setError1('* First letter must be uppercase');
+            valid = false;
         } else {
             setError1('');
         }
 
-        if (!type.trim()) {
+        if (!company.trim()) {
             setError2('* Required field');
             valid = false;
         } else {
@@ -92,18 +95,12 @@ const SpecialistCreateAds = ({ navigation }) => {
                 const specialistAd = {
                     userEmail: `${specialistInfo.email}`,
                     title,
-                    type,
+                    company,
                     description,
                     imageUrl
                 };
 
                 const response = await axios.post(`${url}/specialistCreateAd`, specialistAd);
-
-                // Handle response and check if the resource already exists
-                if (response.data && response.data.error === "Ad with the same title already exists!") {
-                    setError1('* Ad with the same title already exists');
-                    return;
-                }
 
                 // Alert success and navigate back
                 Alert.alert('Success', 'Ad successfully created!',
@@ -191,8 +188,8 @@ const SpecialistCreateAds = ({ navigation }) => {
             </View>
 
             <View style={{ marginBottom: 30 }}>
-                <Text style={[styles.text, { marginBottom: 10 }]}> Type {typeError ? <Text style={styles.error}>{typeError}</Text> : null} </Text>
-                <TextInput style={[styles.input3]} value={type} onChangeText={setType} />
+                <Text style={[styles.text, { marginBottom: 10 }]}> Company {companyError ? <Text style={styles.error}>{companyError}</Text> : null} </Text>
+                <TextInput style={[styles.input3]} value={company} onChangeText={setCompany} />
             </View>
 
             <View style={[styles.container4, { marginBottom: 20 }]}>

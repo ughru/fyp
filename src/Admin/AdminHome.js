@@ -6,7 +6,7 @@ import axios from 'axios';
 import styles from '../components/styles';
 import url from '../components/config';
 import { useFocusEffect } from '@react-navigation/native';
-import {storage } from '../../firebaseConfig'; 
+import {storage, auth } from '../../firebaseConfig'; 
 
 const formatDate = (date) => {
   const options = { weekday: 'long', day: 'numeric', month: 'long' };

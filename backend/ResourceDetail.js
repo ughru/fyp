@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const ResourceDetailSchema = new mongoose.Schema(
 {
-    categoryName: String,
+    categoryName: {type: String},
 },
 {
     collection: "ResourceCategory"
@@ -11,13 +11,13 @@ const ResourceDetailSchema = new mongoose.Schema(
 const ResourceInfoSchema = new mongoose.Schema(
 {
     resourceID: {type: Number},
-    title: String,
-    category: String,
+    title: {type: String},
+    category: {type: String},
     status: [String],
-    weekNumber: String,
-    description: String,
-    specialistName: String,
-    imageUrl: String,
+    weekNumber: {type: String},
+    description: {type: String},
+    specialistName: {type: String},
+    imageUrl: {type: String},
 },
 {
     collection: "Resource"

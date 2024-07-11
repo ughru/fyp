@@ -31,7 +31,7 @@ const Personalisation = ({ navigation }) => {
         </View>
 
         <View style={[styles.container3, {paddingTop: 60, justifyContent: 'center', alignItems: 'center'}]}>
-          <Text style={styles.questionText}>What's your purpose of using Bloom?</Text>
+          <Text style={styles.questionText}>Which phase are you currently in?</Text>
           
           <Pressable style={styles.button2} onPress={() => handleStatusSelection('Pre')}>
             <Text style={styles.text}>Pre Pregnancy</Text>

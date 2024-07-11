@@ -74,7 +74,7 @@ const RegisterUser= ({navigation}) => {
       if (!lastName.trim()) {
         setError2('* Required field');
         valid = false;
-      }  else if (lastName[0] !== lastName[0].toUpperCase()) {
+      } else if (lastName[0] !== lastName[0].toUpperCase()) {
         setError2('* First letter must be uppercase');
         valid = false;
       } else if (!/^[a-zA-Z\-]+$/.test(lastName)) {

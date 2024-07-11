@@ -330,7 +330,10 @@ const WeightTracker = ({ navigation }) => {
           {/* Header Row */}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10, backgroundColor: '#E3C2D7' }}>
             <Text style={{ width: 50, fontWeight: 'bold' }}>Date</Text>
-            <Text style={{ width: 60, fontWeight: 'bold' }}>Weight</Text>
+            <Text style={{ width: 50, fontWeight: 'bold' }}>Weight</Text>
+            {userInfo.status === "During" && 
+              <Text style={{ width: 40, fontWeight: 'bold' }}>+/-</Text>
+            }
             <Text style={{ width: 40, fontWeight: 'bold' }}>Bmi</Text>
             <Text style={{ width: 80, fontWeight: 'bold' }}>Category</Text>
             <Text style={{ width: 50, fontWeight: 'bold' }}></Text>
@@ -342,7 +345,10 @@ const WeightTracker = ({ navigation }) => {
               log.record.map((record, index) => (
                 <View key={`${log._id}-${index}`} style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10, borderBottomWidth: 1, borderBottomColor: '#E3C2D7' }}>
                   <Text style={{ width: 50 }}>{formatDate(record.date)}</Text>
-                  <Text style={{ width: 60 }}>{record.weight} kg</Text>
+                  <Text style={{ width: 50 }}>{record.weight} kg</Text>
+                  {userInfo.status === "During" && 
+                    <Text style={{ width: 40}}>{record.difference}</Text>
+                  }
                   <Text style={{ width: 40 }}>{record.bmi}</Text>
                   <Text style={{ width: 80, color: getCategoryColor(record.category) }}>{record.category}</Text>
                   <TouchableOpacity style={{ width: 22, marginRight: 5 }} onPress={() => openModal(record)}>
@@ -383,12 +389,14 @@ const WeightTracker = ({ navigation }) => {
                 style={{height: 40, padding: 10,borderRadius: 20, borderWidth: 1, borderColor: '#979595', marginBottom: 20}}
                 value={newHeight}
                 onChangeText={setNewHeight}
+                keyboardType="numeric"
               />
               <Text style={[styles.text, {marginBottom: 10}]}>Weight(kg): {weightError ? <Text style={styles.error}>{weightError}</Text> : null}</Text>
               <TextInput
                 style={{height: 40, padding: 10,borderRadius: 20, borderWidth: 1, borderColor: '#979595', marginBottom: 20}}
                 value={newWeight}
                 onChangeText={setNewWeight}
+                keyboardType="numeric"
               />
               <TouchableOpacity style={styles.button3} onPress={handleUpdateLog}>
                 <Text style={styles.text}>Update Log</Text>

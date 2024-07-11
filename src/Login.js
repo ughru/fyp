@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text, Pressable, TextInput, ScrollView, View, Platform } from 'react-native';
+import { Text, Pressable, TextInput, ScrollView, View, Platform, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from './components/styles';
@@ -21,7 +21,7 @@ const Login = () => {
   navigation.addListener('focus', () => {
     setEmail('');
     setPassword('');
-  });
+  }); 
 
   const handleLogin = async () => {
     let valid = true;
@@ -51,28 +51,41 @@ const Login = () => {
 
       if (valid) {
         const response = await axios.post(`${url}/login`, { email, password });
-
-        // Check response for errors
-        if (response.data && response.data.error) {
+  
+        if (response.data.error) {
+          // Handle specific error messages
           if (response.data.error === 'Invalid email or password') {
             setError1('* Invalid email or password');
             setError2('* Invalid email or password');
+          } else if (response.data.error === 'Suspended account' && response.data.type === 'user') {
+            Alert.alert('Account Suspended', 'Please contact support for assistance.');
+          } else if (response.data.error === 'Suspended account' && response.data.type === 'specialist') {
+            Alert.alert('Not Verified Account', 'Account to be verified within 1 day. Please contact support for assistance.');
+          } else {
+            console.error('Login Error:', response.data.error);
           }
         } else {
           await AsyncStorage.setItem('user', email);
-
+  
           // Navigate based on user type
-          if (response.data.type === 'user') {
-            navigation.navigate("RegisteredHome");
-          } else if (response.data.type === 'specialist') {
-            navigation.navigate("SpecialistHomePage");
-          } else if (response.data.type === 'admin') {
-            navigation.navigate("AdminHomePage");
+          switch (response.data.type) {
+            case 'user':
+              navigation.navigate('RegisteredHome');
+              break;
+            case 'specialist':
+              navigation.navigate('SpecialistHomePage');
+              break;
+            case 'admin':
+              navigation.navigate('AdminHomePage');
+              break;
+            default:
+              break;
           }
         }
       }
     } catch (error) {
       console.error('Login Error:', error);
+      Alert.alert('Login Error', 'An error has occurred. Please try again.');
     }
   };
 

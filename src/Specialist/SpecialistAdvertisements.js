@@ -91,7 +91,7 @@ const SpecialistAdvertisements = ({navigation}) => {
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10, backgroundColor: '#E3C2D7' }}>
           <Text style={{ flex: 1, fontWeight: 'bold' }}>Specialist </Text>
           <Text style={{ flex: 1, marginLeft: 20, fontWeight: 'bold' }}>Title</Text>
-          <Text style={{ flex: 1, fontWeight: 'bold' }}>Type </Text>
+          <Text style={{ flex: 1, fontWeight: 'bold' }}>Company </Text>
           <Text style={{ width: 50, fontWeight: 'bold' }}>Action</Text>
           <Text style={{ width: 10, fontWeight: 'bold' }}> </Text>
         </View>
@@ -101,7 +101,7 @@ const SpecialistAdvertisements = ({navigation}) => {
           <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10, borderWidth: 1, borderColor: '#ddd' }}>
             <Text style={{ flex: 1 }}>{ad.userEmail}</Text>
             <Text style={{ flex: 1, marginLeft: 20, }}>{ad.title}</Text>
-            <Text style={{ flex: 1 }}>{ad.type}</Text>
+            <Text style={{ flex: 1 }}>{ad.company}</Text>
             <TouchableOpacity style={{ width: 25, marginRight: 5}} onPress={() => openModal(ad)}>
               <Ionicons name="eye-outline" size={24} color="black" />
             </TouchableOpacity>
@@ -151,7 +151,7 @@ const SpecialistAdvertisements = ({navigation}) => {
             </View>
             <ScrollView style= {styles.container5}>
                 <Text style= {[styles.text, {marginBottom: 10}]}>Created by: {selectedAd?.userEmail}</Text>
-                <Text style= {[styles.text, {marginBottom: 10}]}>Type: {selectedAd?.type}</Text>
+                <Text style= {[styles.text, {marginBottom: 10}]}>Company: {selectedAd?.company}</Text>
                 <Text style= {[styles.text, {marginBottom: 10}]}>Description: {selectedAd?.description}</Text>
                 <Image source={{ uri: selectedAd?.imageUrl }} style={{ aspectRatio: 16/9, resizeMode: 'cover', width: '100%', marginBottom: 10 }} />
             </ScrollView>

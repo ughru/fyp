@@ -383,7 +383,6 @@ export const styles = StyleSheet.create({
     },
     adImageContainer: {
         padding: 10,
-        marginBottom: 10,
     },
     adImage: {
         width: 320,

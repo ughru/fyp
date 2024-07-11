@@ -11,16 +11,10 @@ import url from "../components/config";
 
 const SpecialistEditProfile = ({ navigation }) => {
     // values
-    const [userInfo, setUserInfo] = useState({
-        firstName: '',
-        lastName: '',
-        email: '',
-        uen: ''
-    });
+    const [userInfo, setUserInfo] = useState([]);
 
     const [firstNameError, setError1] = useState('');
     const [lastNameError, setError2] = useState('');
-    const [emailError, setError3] = useState('');
     const [uenError, setError4] = useState('');
 
     // Handle input changes
@@ -76,17 +70,6 @@ const SpecialistEditProfile = ({ navigation }) => {
             valid = false;
         } else {
             setError2('');
-        }
-
-        // Validate Email
-        if (!userInfo.email.trim()) {
-            setError3('* Required field');
-            valid = false;
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userInfo.email)) {
-            setError3('* Invalid email format');
-            valid = false;
-        } else {
-            setError3('');
         }
 
         // Handle UEN errors
@@ -158,10 +141,6 @@ const SpecialistEditProfile = ({ navigation }) => {
             <View style={{ marginBottom: 30 }}>
                 <Text style={[styles.formText, {marginBottom: 10}]}> Last Name {lastNameError ? <Text style={styles.error}>{lastNameError}</Text> : null} </Text>
                 <TextInput style={[styles.input]} value={userInfo.lastName} onChangeText={(text) => handleChange('lastName', text)}/>
-            </View>
-            <View style={{ marginBottom: 30 }}>
-                <Text style={[styles.formText, {marginBottom: 10}]}> Email {emailError ? <Text style={styles.error}>{emailError}</Text> : null} </Text>
-                <TextInput style={[styles.input]} value={userInfo.email} onChangeText={(text) => handleChange('email', text)} />
             </View>
             <View style={{ marginBottom: 30 }}>
                 <Text style={[styles.formText, {marginBottom: 10}]}> UEN {uenError ? <Text style={styles.error}>{uenError}</Text> : null} </Text>

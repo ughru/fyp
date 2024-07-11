@@ -35,6 +35,7 @@ const UpdateResource = ({ navigation, route }) => {
     // Selected values
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [selectedStatuses, setSelectedStatuses] = useState([]);
+    const [oldTitle, setOldTitle] = useState('');
 
     const editor = useRef(null);
 
@@ -82,6 +83,7 @@ const UpdateResource = ({ navigation, route }) => {
                     setDescription(matchedResource.description); // Set description state
                     setWeekNumber(matchedResource.weekNumber); // Set week number state
                     setImageUri(matchedResource.imageUrl);
+                    setOldTitle(matchedResource.title);
                 } 
             } catch (error) {
                 console.error('Error fetching resources:', error);
@@ -143,10 +145,20 @@ const UpdateResource = ({ navigation, route }) => {
         if (valid) {
             try {
                 let imageUrl = resource.imageUrl;
+
+                if (oldTitle !== title && resource.imageUrl) {
+                    const oldStorageRef = storage.refFromURL(resource.imageUrl);
+                    const oldImage = await oldStorageRef.getDownloadURL();
+                    const response = await fetch(oldImage);
+                    const blob = await response.blob();
     
-                // If a new image is selected, upload it to Firebase Storage
-                if (imageUri ===  null) {
-                    imageUrl = null;
+                    const newFilename = `${title}.${blob.type.split('/')[1]}`;
+                    const newStorageRef = storage.ref().child(`resource/${newFilename}`);
+                    await newStorageRef.put(blob);
+                    imageUrl = await newStorageRef.getDownloadURL();
+    
+                    // Delete the old image
+                    await oldStorageRef.delete();
                 }
                 else {
                     const response = await fetch(imageUri);

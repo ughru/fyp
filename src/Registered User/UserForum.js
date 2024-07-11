@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, TouchableHighlight, Modal, Pressable, Image, Platform, Alert } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, TouchableHighlight, Modal, Pressable, Image, Platform, Alert, StyleSheet } from 'react-native';
 import { Feather, Entypo, AntDesign, MaterialIcons } from '@expo/vector-icons';
 import axios from 'axios';
 import RNPickerSelect from 'react-native-picker-select';
@@ -47,6 +47,7 @@ const UserForum = ({ navigation }) => {
     const [userEmail, setEmail] = useState('');
     const [isCommentDropdownVisible, setCommentDropdownVisible] = useState(false);
     const [selectedComment, setSelectedComment] = useState(null);
+    const scrollRef = useRef(null);
 
     const fetchData = useCallback(async () => {
       try {
@@ -84,24 +85,29 @@ const UserForum = ({ navigation }) => {
   useEffect(() => {
     const fetchImage = async () => {
       try {
-        const storageRef = storage.ref('adminAd');
-        const images = await storageRef.listAll();
-    
-        // Get all image URLs or up to 5 if fewer
-        const randomImages = [];
-        const totalImages = Math.min(images.items.length, 5); // Limit to 5 or fewer images
-    
-        for (let i = 0; i < totalImages; i++) {
-          const randomIndex = Math.floor(Math.random() * images.items.length);
-          const imageUrl = await images.items[randomIndex].getDownloadURL();
-          randomImages.push(imageUrl);
-        }
-    
-        setImageUrls(randomImages); 
+          const storageRef = storage.ref('adminAd');
+          const images = await storageRef.listAll();
+
+          // Get all image URLs or up to 5 if fewer
+          const randomImages = [];
+          const totalImages = Math.min(images.items.length, 5); // Limit to 5 or fewer images
+
+          // Generate random indices without repetition
+          const randomIndices = new Set();
+          while (randomIndices.size < totalImages) {
+              randomIndices.add(Math.floor(Math.random() * images.items.length));
+          }
+
+          for (let index of randomIndices) {
+              const imageUrl = await images.items[index].getDownloadURL();
+              randomImages.push(imageUrl);
+          }
+
+          setImageUrls(randomImages);
       } catch (error) {
-        console.error('Error fetching images:', error);
+          console.error('Error fetching images:', error);
       }
-    };     
+  };
 
     fetchImage();
   }, []);
@@ -300,11 +306,26 @@ return (
     </View>
 
     <View style={[styles.adImageContainer, { width: '100%', alignItems: 'center' }]}>
-      {imageUrl && (
-        imageUrl.map((url, index) => (
-          <Image key={index} source={{ uri: url }} style={styles.adImage} />
-        ))
-      )}
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ gap: 20}}
+      >
+        {imageUrl && imageUrl.map((url, index) => (
+          <TouchableOpacity
+            key={index}
+            style={{ width: 300, height: 200 }}>
+            {/* Image */}
+            <View style={{ ...StyleSheet.absoluteFillObject }}>
+              <Image
+                source={{ uri: url }}
+                style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'contain' }}
+              />
+            </View>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
     </View>
   </View>
 
@@ -398,7 +419,7 @@ return (
       </View>
       </Modal>
 
-      <HTMLView style={{ margin: 10 }} value={post.description} />
+      <HTMLView style={{ margin: 10 }} stylesheet={{ div: styles.text }} value={post.description} />
 
       {/* Comments */}
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>

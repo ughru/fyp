@@ -150,6 +150,12 @@ const UserSettings  = ({navigation, selectedStatus, setSelectedStatus}) => {
         <Pressable style={[styles.formText, {marginBottom: 20}]} onPress={() => navigation.navigate("LogPeriod")}>
           <Text style={styles.text}> Log Period </Text>
         </Pressable>
+        <Pressable style={[styles.formText, {marginBottom: 20}]} onPress={() => navigation.navigate("CycleHistory")}>
+          <Text style={styles.text}> Cycle History </Text>
+        </Pressable>
+        <Pressable style={[styles.formText, {marginBottom: 20}]} onPress={() => navigation.navigate("WeightTracker")}>
+          <Text style={styles.text}> Weight Tracker </Text>
+        </Pressable>
 
         <Text style= {[styles.questionText, {marginBottom: 20}]}> Info and Support </Text>
         <Pressable style={[styles.formText, {marginBottom: 20}]} onPress={() => navigation.navigate("ForgetPw", { origin: 'UserSettings' })}>

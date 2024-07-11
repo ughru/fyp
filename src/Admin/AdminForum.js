@@ -283,7 +283,7 @@ const AdminForum = ({ navigation }) => {
           </View>
           </Modal>
 
-          <HTMLView style={{ margin: 10 }} value={post.description} />
+          <HTMLView style={{ margin: 10 }} stylesheet={{ div: styles.text }} value={post.description} />
 
           {/* Comments */}
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>

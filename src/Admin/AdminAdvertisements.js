@@ -12,6 +12,7 @@ const AdminAdvertisements = ({navigation}) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedAd, setSelectedAd] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
+  const [activeButton, setActiveButton] = useState('Events');
 
   const fetchAdminAds = async () => {
     try {
@@ -42,6 +43,10 @@ const AdminAdvertisements = ({navigation}) => {
       fetchAdminAds();
     }, [])
   );
+
+  const handleButtonClick = (type) => {
+    setActiveButton(type);
+  };
 
   const handleDeleteAd = async (adId, imageUrl) => {
     // Confirm deletion with user
@@ -84,7 +89,9 @@ const AdminAdvertisements = ({navigation}) => {
   };  
 
   const renderAdminAds = () => {
-    if (adminAds.length > 0) {
+    const filteredAds = adminAds.filter(ad => ad.type === activeButton);
+
+    if (filteredAds.length > 0) {
     return (
       <View>
         {/* Header Row */}
@@ -178,6 +185,24 @@ const AdminAdvertisements = ({navigation}) => {
             <Feather name="edit" size={24} color="black" />
           </Pressable>
         </View>
+    </View>
+
+    {/* Type Filter Buttons */}
+    <View style={[styles.buttonContainer]}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 20 }}>
+        <TouchableOpacity
+            onPress={() => handleButtonClick('Events')}
+            style={activeButton === 'Events' ? styles.categoryBtnActive : styles.categoryBtn}
+        >
+            <Text style={styles.text}>Events</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+            onPress={() => handleButtonClick('Products')}
+            style={activeButton === 'Products' ? styles.categoryBtnActive : styles.categoryBtn}
+        >
+            <Text style={styles.text}>Products</Text>
+        </TouchableOpacity>
+      </View>
     </View>
 
     <ScrollView style={{ marginTop: 20 }}>
