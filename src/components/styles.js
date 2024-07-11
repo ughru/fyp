@@ -384,11 +384,6 @@ export const styles = StyleSheet.create({
     adImageContainer: {
         padding: 10,
     },
-    adImage: {
-        width: 320,
-        height: 200,
-        resizeMode: 'center',
-    },
     imageUpload: {
         borderWidth: 1,
          width: 150, 

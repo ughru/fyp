@@ -303,7 +303,7 @@ const AdminHome = ({navigation}) => {
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10, backgroundColor: '#E3C2D7' }}>
           <Text style={{ flex:1, fontWeight: 'bold' }}>Email</Text>
           <Text style={{ flex:1, fontWeight: 'bold'}}>Name</Text>
-          <Text style={{ flex:1, fontWeight: 'bold' }}>Field</Text>
+          <Text style={{ flex:1, marginRight: 5, fontWeight: 'bold' }}>Specialisation</Text>
           <Text style={{ width: 50, fontWeight: 'bold' }}>State</Text>
           <Text style={{ width: 40, fontWeight: 'bold' }}>Action</Text>
           <Text style={{ width: 10, fontWeight: 'bold' }}></Text>
@@ -313,7 +313,7 @@ const AdminHome = ({navigation}) => {
           <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10, borderWidth: 1, borderColor: '#ddd' }}>
             <Text style={{ flex: 1 }}>{specialist.email}</Text>
             <Text style={{ flex: 1}}>{specialist.firstName} {specialist.lastName}</Text>
-            <Text style={{ flex: 1 }}>{specialist.field}</Text>
+            <Text style={{ flex: 1, marginRight: 5 }}>{specialist.specialisation}</Text>
             <Text style={{ width: 50 }}>{specialist.state}</Text>
             <TouchableOpacity style={{ width: 30}} onPress={() => openModal(specialist)}>
               <Ionicons name="eye-outline" size={24} color="black" />

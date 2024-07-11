@@ -289,6 +289,35 @@ app.post("/register", async(req, res)=> {
   }
 });
 
+// register specialist
+app.post("/registerSpecialist", async(req, res)=> {
+  const {firstName, lastName, uen, specialisation, email, password, state} = req.body;
+  const oldUser = await Specialist.findOne({email: email});
+
+  if(oldUser) {
+      return res.send({data: "Specialist already exists!"});
+  }
+
+  try {
+      // hashed password before storing
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      await Specialist.create({
+          firstName: firstName,
+          lastName: lastName,
+          uen,
+          specialisation,
+          email: email,
+          password: hashedPassword,
+          state, 
+      });
+      res.send({status: "ok", data:"Specialist Created"})
+  } catch (error) {
+      console.error('Error creating specialist:', error.message);
+      res.send({status: "error", data: error.message})
+  }
+});
+
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 

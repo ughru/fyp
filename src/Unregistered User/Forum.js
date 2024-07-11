@@ -149,7 +149,10 @@ const Forum = ({ navigation }) => {
         <View style = {[styles.container4,  Platform.OS!=="web"&& {paddingTop:50}]}>
           <View style={[styles.container2, { paddingTop: 20, paddingHorizontal: 20 }]}>
             <Text style={styles.pageTitle}> Community Forum </Text>
-          </View>
+            <TouchableOpacity style={styles.iconContainer} onPress={toggleModal}>
+              <Feather name="edit" size={24} color="black" />
+            </TouchableOpacity>
+          </View> 
 
           <View style={[styles.adImageContainer, { width: '100%', alignItems: 'center' }]}>
             <ScrollView

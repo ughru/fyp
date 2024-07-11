@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Text, Pressable, TextInput, ScrollView, View, Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { auth } from '../firebaseConfig';
 import styles from './components/styles';
 import Keyboard from './components/Keyboard';
 import { AntDesign } from '@expo/vector-icons';
+import axios from 'axios';
+import url from "./components/config";
 
 const RegisterSpecialist= ({navigation}) => {
   const [firstName, setFirstName] = useState('');
@@ -22,8 +25,21 @@ const RegisterSpecialist= ({navigation}) => {
   const [pwError, setError6] = useState('');
   const [confirmPwError, setError7] = useState('');
 
+  const [registrationInProgress, setRegistrationInProgress] = useState(false);
+
   const handleRegistration = async () => {
     let valid = true; 
+    setRegistrationInProgress(true);
+
+    const userData = {
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      uen: uen.trim(),
+      specialisation: specialisation.trim(),
+      email: email.trim(),
+      password,
+      state: "suspended",
+    };
 
     try {
       // Handle Name Errors
@@ -101,7 +117,7 @@ const RegisterSpecialist= ({navigation}) => {
       if (!specialisation.trim()) {
         setError5('* Required field');
         valid = false;
-      } else if ((!/^[a-zA-Z\-]+$/.test(specialisation))) {
+      } else if ((!/^[a-zA-Z\ ]+$/.test(specialisation))) {
         setError5('* Invalid Specialisation');
         valid = false;
       } else {
@@ -125,14 +141,35 @@ const RegisterSpecialist= ({navigation}) => {
       }
 
       if (valid) {
-        // Call Firebase function to create user with email and password
-        await auth.createUserWithEmailAndPassword(auth, email, password);
-        
-        // Navigate to the home screen
-        navigation.navigate("Login");
+        try {
+          // Call Firebase function to create user with email and password
+          await auth.createUserWithEmailAndPassword(email, password);
+          
+          await AsyncStorage.setItem('user', email);
+
+            const response = await axios.post(`${url}/registerSpecialist`, userData);
+            if (response.data && response.data.error === 'Specialist already exists!') {
+              setError3('* Specialist already exists');
+              return;
+            }
+
+            navigation.navigate("Login");
+        } catch (authError) {
+          if (authError.code === 'auth/email-already-in-use') {
+            setError3('* Email already in use');
+          } else {
+            console.error('Firebase authentication error:', authError.message);
+          }
+        }
       }
     } catch (error) {
-      console.error('Registration error:', error.message);
+      if (error.code === 'auth/email-already-in-use') {
+        setError3('* Email already in use');
+      } else {
+        console.error('Registration error:', error.message);
+      }
+    } finally {
+      setRegistrationInProgress(false);
     }
   };
 

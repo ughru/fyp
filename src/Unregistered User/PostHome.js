@@ -61,23 +61,7 @@ const PostHome = ({ navigation }) => {
           </Pressable>
         </View>
 
-        <View style={[styles.container4]}>
-          <Text style={[styles.titleNote, {marginBottom: 20}]}>Suggested for you</Text>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}>
-            <View style={{alignItems: 'center'}}>
-              <MaterialCommunityIcons name="baby-face-outline" size={35} color="black" />
-              <Text style={[styles.text, {marginTop: 10, textAlign: 'center'}]}>Newborn Care</Text>
-            </View>
-            <View style={{alignItems: 'center'}}>
-              <MaterialCommunityIcons name="mother-heart" size={35} color="black" />
-              <Text style={[styles.text, {marginTop: 10, textAlign: 'center'}]}>Recovery</Text>
-            </View>
-            <View style={{alignItems: 'center'}}>
-              <MaterialIcons name="health-and-safety" size={35} color="black" />
-              <Text style={[styles.text, {marginTop: 10, textAlign: 'center'}]}>Health</Text>
-            </View>
-          </View>
-        </View>
+        <Text style={[styles.titleNote]}>Suggested for you</Text>
       </View>
 
       <View>

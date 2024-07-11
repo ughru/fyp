@@ -109,21 +109,7 @@ const UserDuringHome = ({navigation}) => {
         </Pressable>
       </View>
 
-      <Text style={[styles.titleNote, {marginBottom: 20}]}>What to expect</Text>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center'}}>
-        <View style={{alignItems: 'center'}}>
-          <MaterialCommunityIcons name="baby-face-outline" size={35} color="black" />
-          <Text style={[styles.text, {marginTop: 10, textAlign: 'center'}]}>Baby's growth</Text>
-        </View>
-        <View style={{alignItems: 'center'}}>
-          <MaterialCommunityIcons name="mother-heart" size={35} color="black" />
-          <Text style={[styles.text, {marginTop: 10, textAlign: 'center'}]}>Body changes</Text>
-        </View>
-        <View style={{alignItems: 'center'}}>
-          <MaterialIcons name="health-and-safety" size={35} color="black" />
-          <Text style={[styles.text, {marginTop: 10, textAlign: 'center'}]}>Health</Text>
-        </View>
-      </View>
+      <Text style={[styles.titleNote]}>Suggested for you</Text>
     </View>
 
       {/* Dynamically get 10 recommended resources */}
