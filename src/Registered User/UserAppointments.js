@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, Pressable, ScrollView, Image, Platform, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, Image, Platform, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import styles from '../components/styles';
 import { storage } from '../../firebaseConfig';
 import { AntDesign } from '@expo/vector-icons';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 const UserAppointments = ({navigation}) => {
   const [imageUrl, setImageUrls] = useState(null); // ads display
@@ -60,14 +62,13 @@ const UserAppointments = ({navigation}) => {
       <View style = {[styles.container4 , Platform.OS!=="web"&&{paddingTop:50}]}>
         <Text style={[styles.pageTitle]}> Appointments</Text>
 
-        <View style={[styles.adImageContainer, { width: '100%', alignItems: 'center' }]}>
-            <ScrollView
-              ref={scrollRef}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 20}}
-            >
-              {imageUrl && imageUrl.map((url, index) => (
+        <View style={[styles.adImageContainer, {
+        ...Platform.select({
+          web:{width:screenWidth*0.9, paddingTop:20, left: 20 , paddingRight:10},
+          default:{paddingTop:20, paddingRight:10}
+        }) }]}>
+            <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20}}>
+              {imageUrl && imageUrl.map((url, index) => ( 
                 <TouchableOpacity
                   key={index}
                   style={{ width: 250, height: 200 }}>

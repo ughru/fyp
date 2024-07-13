@@ -22,6 +22,7 @@ const RegisterUser= ({navigation}) => {
   const [confirmPwError, setError5] = useState('');
 
   const [selectedStatus, setSelectedStatus] = useState(null);
+  const [selections, setSelections] = useState({});
   const [registrationInProgress, setRegistrationInProgress] = useState(false);
 
   useEffect(() => {
@@ -36,7 +37,19 @@ const RegisterUser= ({navigation}) => {
       }
     };
 
+    const fetchSelections = async() => {
+      try {
+        const storedSelections = await AsyncStorage.getItem('userSelections');
+        if (storedSelections !== null) {
+          setSelections(storedSelections);
+        }
+      } catch (error) {
+        console.error('Error retrieving personalisation response:', error);
+      }
+    };
+
     fetchSelectedStatus();
+    fetchSelections();
   }, []);
 
   const handleRegistration = async () => {
@@ -50,6 +63,11 @@ const RegisterUser= ({navigation}) => {
       password,
       status: selectedStatus, 
       state: "active",
+    };
+
+    const personalisationData = {
+      userEmail: email.trim(),
+      personalisation: selections, 
     };
 
     try {
@@ -125,6 +143,8 @@ const RegisterUser= ({navigation}) => {
           await AsyncStorage.setItem('user', email);
 
           const response = await axios.post(`${url}/register`, userData);
+          await axios.post(`${url}/personalise`, personalisationData);
+
           if (response.data && response.data.error === 'User already exists!') {
             setError3('* User already exists');
             return;

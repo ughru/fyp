@@ -18,26 +18,56 @@ const UserDuringHome = ({navigation}) => {
   const [currentDate, setCurrentDate] = useState(null);
   const [resources, setResources] = useState([]);
   const [imageUrl, setImageUrl] = useState(null);
-  const [userInfo, setUserInfo] = useState({
-    firstName: '',
-    lastName: '',
-    email: ''
-  });
+  const [userInfo, setUserInfo] = useState([]);
   const scrollRef = useRef(null);
+  const [q5Option, setQ5Option] = useState('');
+  const [conceptionWeek, setConceptionWeek] = useState('');
+  const [personalisationData, setPersonalisationData] = useState([]);
+  const [selections, setSelections] = useState({});
 
   const fetchUserInfo = useCallback(async () => {
     try {
-        const storedEmail = await AsyncStorage.getItem('user');
-        if (storedEmail) {
+      const storedEmail = await AsyncStorage.getItem('user');
+      if (storedEmail) {
         const response = await axios.get(`${url}/userinfo?email=${storedEmail}`);
         if (response.data) {
-            setUserInfo(response.data);
+          setUserInfo(response.data);
         }
-        }
+      }
     } catch (error) {
-        console.error('Error fetching user info:', error);
+      console.error('Error fetching user info:', error);
     }
   }, []);
+
+  const fetchPersonalisationData = useCallback(async () => {
+    if (!userInfo.email) return;
+    try {
+      const response = await axios.get(`${url}/getPersonalisation`, {
+        params: { userEmail: userInfo.email }
+      });
+
+      setPersonalisationData(response.data);
+
+      if (response.data.personalisation !== '') {
+        const parsedSelections = JSON.parse(response.data.personalisation);
+        setSelections(parsedSelections);
+        
+        // Check for q5 option and set it
+        if (parsedSelections.q5) {
+          setQ5Option(parsedSelections.q5);
+          // Calculate conception week
+          try {
+            const dateObject = convertStringToDate(parsedSelections.q5);
+            const weeks = calculateWeeksSince(dateObject);
+            setConceptionWeek(weeks + 3); // Assuming this logic is correct
+          } catch (error) {
+            console.error('Error calculating conception week:', error);
+          }
+        }
+      }
+    } catch (error) {
+    }
+  }, [userInfo.email]);
 
   useEffect(() => {
     const fetchAndSetResources = async () => {
@@ -67,11 +97,36 @@ const UserDuringHome = ({navigation}) => {
     fetchImage();
   }, [fetchUserInfo]);
 
+  useEffect(() => {
+    if (userInfo.email) {
+      fetchPersonalisationData();
+    }
+  }, [userInfo.email, fetchPersonalisationData]);
+
   useFocusEffect(
     useCallback(() => {
-        fetchUserInfo();
+      fetchUserInfo();
     }, [fetchUserInfo])
   );
+
+  const convertStringToDate = (dateString) => {
+    if (dateString.length !== 8) {
+      throw new Error('Invalid date format. Expected ddmmyyyy.');
+    }
+
+    const day = parseInt(dateString.slice(0, 2), 10);
+    const month = parseInt(dateString.slice(2, 4), 10) - 1; // Months are 0-indexed in JS Date
+    const year = parseInt(dateString.slice(4, 8), 10);
+
+    return new Date(year, month, day);
+  };
+
+  const calculateWeeksSince = (startDate) => {
+    const today = new Date();
+    const diffInMilliseconds = today - startDate;
+    const diffInWeeks = Math.floor(diffInMilliseconds / (1000 * 60 * 60 * 24 * 7));
+    return diffInWeeks;
+  };
 
   // Page Displays
   return (
@@ -93,9 +148,11 @@ const UserDuringHome = ({navigation}) => {
     <View style={[styles.container4, { marginBottom: 20}]}>
     <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 20}}>
           {imageUrl && <Image source={{ uri: imageUrl }} style={{ width: 98, height: 120}} />}
-          <View style={{alignItems: 'center', marginLeft: 30}}>
+          <View style={{marginLeft: 30}}>
             <Text style={[styles.formText, { marginBottom: 10 }]}>You are Pregnant for</Text>
-            <Text style={[styles.questionText, { marginBottom: 20 }]}>Weeks</Text>
+            <Text style={[styles.questionText, { marginBottom: 20 }]}>
+              {conceptionWeek !== '' ? `${conceptionWeek} weeks` : '- weeks'}
+            </Text>
             <Pressable style={[styles.button3]} onPress={() => navigation.navigate('Details')}>
               <Text style={styles.text}>Details</Text>
             </Pressable>

@@ -1,5 +1,15 @@
 const mongoose = require("mongoose");
 
+const PersonalisationSchema = new mongoose.Schema(
+{
+    idNo: {type: Number},
+    userEmail: {type: String},
+    personalisation: [String],
+},
+{
+    collection: "Personalisation"
+});
+
 const WeightLogSchema = new mongoose.Schema(
 {
     weightLogID: {type: Number},
@@ -37,5 +47,6 @@ const PeriodLogSchema = new mongoose.Schema(
     collection: "PeriodLog"
 });
 
+mongoose.model("personalisation", PersonalisationSchema);
 mongoose.model("weightLog", WeightLogSchema);
 mongoose.model("periodLog", PeriodLogSchema);

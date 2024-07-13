@@ -14,7 +14,7 @@ import Appointments from './Appointments';
 const Tab = createBottomTabNavigator();
 
 // Page Display
-export default function HomePage() {
+const HomePage = () => {
   const [selectedStatus, setSelectedStatus] = useState(null);
 
   useEffect(() => {
@@ -79,10 +79,12 @@ export default function HomePage() {
       <Tab.Screen name="Forum" component={Forum} options={{ headerShown: false }} />
       <Tab.Screen name="Appointments" component={Appointments} options={{ headerShown: false }} />
       <Tab.Screen name="Settings" options={{ headerShown: false }}>
-        {({ navigation }) => ( // Ensure to destructure the navigation prop here
+      {({ navigation }) => ( 
         <Settings navigation={navigation} selectedStatus={selectedStatus} setSelectedStatus={setSelectedStatus} />
         )}
       </Tab.Screen>
     </Tab.Navigator>
   );
-}
+};
+
+export default HomePage;

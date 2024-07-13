@@ -33,6 +33,7 @@ const AdminAd = mongoose.model('adminAd');
 const SpecialistAd = mongoose.model('specialistAd');
 const WeightLog = mongoose.model('weightLog');
 const PeriodLog = mongoose.model('periodLog');
+const Personalisation = mongoose.model('personalisation');
 
 // Function to get a random sample from an array
 function getRandomSample(array, sampleSize) {
@@ -1167,14 +1168,22 @@ app.put('/updatePeriodLog', async (req, res) => {
 ************************************************/
 // Get all admin ads
 app.get('/getAdminAds', async (req, res) => {
-  try {
-      // Retrieve all resources from the database
-      const adminAd = await AdminAd.find({});
+  const { userEmail } = req.query;
+  if (!userEmail) {
+    return res.status(400).json({ message: 'Email is required' });
+  }
 
-      // Send response with ads
+  try {
+    // Retrieve resources from the database based on the email
+    const adminAd = await AdminAd.find({ userEmail });
+
+    if (adminAd.length > 0) {
       res.json(adminAd);
+    } else {
+      res.status(404).json({ message: 'Ad by admin not found' });
+    }
   } catch (err) {
-      res.status(500).send(err);
+    res.status(500).json({ message: 'Error retrieving ads', error: err.message });
   }
 });
 
@@ -1222,15 +1231,23 @@ app.post("/createAd", async (req, res) => {
 
 // Get all specialist ads
 app.get('/getSpecialistAds', async (req, res) => {
+  const { userEmail } = req.query;
+  if (!userEmail) {
+    return res.status(400).json({ message: 'Email is required' });
+  }
+
   try {
       // Retrieve all resources from the database
-      const ad = await SpecialistAd.find({});
+      const ad = await SpecialistAd.find({userEmail});
 
-      // Send response with ads
-      res.json(ad);
-  } catch (err) {
-      res.status(500).send(err);
-  }
+      if (ad.length > 0) {
+        res.json(ad);
+      } else {
+        res.status(404).json({ message: 'Ad by specialist not found' });
+      }
+    } catch (err) {
+      res.status(500).json({ message: 'Error retrieving ads', error: err.message });
+    }
 });
 
 // Specialist create Ad
@@ -1315,6 +1332,50 @@ app.delete('/deleteSpecialistAd', async (req, res) => {
   } catch (err) {
     console.error('Error deleting ad:', err);
     res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/* **********************************************
+*************************************************
+   PERSONALISATION
+*************************************************
+************************************************/
+app.post("/personalise", async(req, res)=> {
+  const {userEmail, personalisation} = req.body;
+  
+  try {
+    const latestRecord = await Personalisation.findOne().sort({ idNo: -1 });
+    let idNo = 1;
+
+    if (latestRecord) {
+      idNo = latestRecord.idNo + 1;
+    }
+
+    await Personalisation.create({
+      userEmail: userEmail,
+      personalisation,
+    });
+    res.send({status: "ok", data:"Personalisation data recorded"})
+
+  } catch (error) {
+    res.send({status: "error", data: error})
+}
+});
+
+app.get("/getPersonalisation", async(req, res)=> {
+  const {userEmail} = req.query;
+  
+  try {
+    const personalisationData = await Personalisation.findOne({ userEmail });
+
+    if (!personalisationData) {
+      return res.status(404).json({ error: 'Personalisation data not found' });
+    }
+
+    res.json(personalisationData);
+  } catch (error) {
+    console.error('Error retrieving personalisation data:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 

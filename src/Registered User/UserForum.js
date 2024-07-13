@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, TouchableHighlight, Modal, Pressable, Image, Platform, Alert, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, TouchableHighlight, Modal, Pressable, Image, Platform, Alert, StyleSheet, Dimensions } from 'react-native';
 import { Feather, Entypo, AntDesign, MaterialIcons } from '@expo/vector-icons';
 import axios from 'axios';
 import RNPickerSelect from 'react-native-picker-select';
@@ -10,6 +10,8 @@ import Keyboard from '../components/Keyboard';
 import url from '../components/config.js';
 import HTMLView from 'react-native-htmlview';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -305,13 +307,12 @@ return (
       </TouchableOpacity>
     </View>
 
-    <View style={[styles.adImageContainer, { width: '100%', alignItems: 'center' }]}>
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 20}}
-      >
+    <View style={[styles.adImageContainer, {
+      ...Platform.select({
+      web:{width:screenWidth*0.9, paddingTop:20, left: 20, paddingRight:10},
+      default:{paddingTop:20, left: 20, paddingRight:10}
+    }) }]}>
+      <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20}}>
         {imageUrl && imageUrl.map((url, index) => (
           <TouchableOpacity
             key={index}

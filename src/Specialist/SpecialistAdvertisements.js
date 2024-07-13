@@ -1,5 +1,6 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, Pressable, ScrollView, Platform, TouchableOpacity, Alert, Modal, Image } from 'react-native';
 import styles from '../components/styles';
 import { AntDesign, Feather, MaterialIcons, Ionicons } from '@expo/vector-icons';
@@ -15,12 +16,17 @@ const SpecialistAdvertisements = ({navigation}) => {
 
   const fetchSpecialistAds = async () => {
     try {
-      const response = await axios.get(`${url}/getSpecialistAds`);
-      if (response.data) {
-        setSpecialistAds(response.data);
+      const storedEmail = await AsyncStorage.getItem('user');
+
+      if (storedEmail) {
+        const response = await axios.get(`${url}/getSpecialistAds`, { params: { userEmail: storedEmail } });
+        if (response.data) {
+          setSpecialistAds(response.data); 
+        }
+      } else {
+        Alert.alert('Error', 'No email found in storage');
       }
     } catch (error) {
-      console.error('Error fetching specialist advertisements:', error);
     }
   };
 

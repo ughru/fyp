@@ -71,7 +71,7 @@ export const styles = StyleSheet.create({
         paddingVertical: 5,
         borderRadius: 20,
         backgroundColor: '#C2C7E3',
-        marginVertical: 20,
+        marginVertical: 15,
     },
     button3: {
         width: 100,
@@ -392,7 +392,21 @@ export const styles = StyleSheet.create({
          justifyContent: 'center', 
          alignItems: 'center', 
          borderColor: '#979595' 
-    }
+    },
+    progressBarContainer: {
+        height: 10,
+        width: '80%',
+        backgroundColor: '#979595',
+        borderRadius: 5,
+        overflow: 'hidden',
+        marginVertical: 20,
+    },
+    progressBar: {
+        height: '100%',
+        backgroundColor: '#E3C2D7',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
 });
 
 export default styles;

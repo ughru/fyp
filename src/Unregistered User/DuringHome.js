@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, Pressable, ScrollView, TouchableOpacity, Image, Platform, StyleSheet } from 'react-native';
-import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import styles from '../components/styles';
 import { fetchResources } from '../components/manageResource';
 import ModalStyle from '../components/ModalStyle';
 import { storage } from '../../firebaseConfig'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const formatDate = (date) => {
   const options = { weekday: 'long', day: 'numeric', month: 'long' };
@@ -17,6 +18,9 @@ const DuringHome = ({ navigation }) => {
   const scrollRef = useRef();
   const [isModalVisible, setModalVisible] = useState(false);
   const [imageUrl, setImageUrl] = useState(null);
+  const [selections, setSelections] = useState({});
+  const [q5Option, setQ5Option] = useState('');
+  const [conceptionWeek, setConceptionWeek] = useState('');
 
   useEffect(() => {
     const date = new Date();
@@ -36,10 +40,59 @@ const DuringHome = ({ navigation }) => {
       }
     };
 
+  const fetchSelections = async () => {
+    try {
+      const storedSelections = await AsyncStorage.getItem('userSelections');
+      if (storedSelections !== null) {
+        const parsedSelections = JSON.parse(storedSelections);
+        setSelections(parsedSelections);
+        
+        // Check for q5 option and set it
+        if (parsedSelections.q5) {
+          setQ5Option(parsedSelections.q5);
+        }
+      }
+    } catch (error) {
+      console.error('Error retrieving personalisation response:', error);
+    }
+  };
+
+    fetchSelections();
     fetchAndSetResources();
     setCurrentDate(formattedDate);
     fetchImage();
   }, []);
+
+  useEffect(() => {
+    if (q5Option) {
+      try {
+        const dateObject = convertStringToDate(q5Option);
+        const weeks = calculateWeeksSince(dateObject);
+        setConceptionWeek(weeks + 3); 
+      } catch (error) {
+        console.error('Error converting q5Option to date:', error.message);
+      }
+    }
+  }, [q5Option]);
+
+  const convertStringToDate = (dateString) => {
+    if (dateString.length !== 8) {
+      throw new Error('Invalid date format. Expected ddmmyyyy.');
+    }
+
+    const day = parseInt(dateString.slice(0, 2), 10);
+    const month = parseInt(dateString.slice(2, 4), 10) - 1; // Months are 0-indexed in JS Date
+    const year = parseInt(dateString.slice(4, 8), 10);
+
+    return new Date(year, month, day);
+  };
+
+  const calculateWeeksSince = (startDate) => {
+    const today = new Date();
+    const diffInMilliseconds = today - startDate;
+    const diffInWeeks = Math.floor(diffInMilliseconds / (1000 * 60 * 60 * 24 * 7));
+    return diffInWeeks;
+  };
 
   const toggleModal = () => {
     setModalVisible(!isModalVisible);
@@ -62,9 +115,11 @@ const DuringHome = ({ navigation }) => {
       <View style={[styles.container4, { marginBottom: 20}]}>
         <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 20}}>
           {imageUrl && <Image source={{ uri: imageUrl }} style={{ width: 98, height: 120}} />}
-          <View style={{alignItems: 'center', marginLeft: 30}}>
+          <View style={{ marginLeft: 30}}>
             <Text style={[styles.formText, { marginBottom: 10 }]}>You are Pregnant for</Text>
-            <Text style={[styles.questionText, { marginBottom: 20 }]}>Weeks</Text>
+            <Text style={[styles.questionText, { marginBottom: 20 }]}>
+              {conceptionWeek !== '' ? `${conceptionWeek} weeks` : '- weeks'}
+            </Text>
             <Pressable style={[styles.button3]} onPress={toggleModal}>
               <Text style={styles.text}>Details</Text>
             </Pressable>

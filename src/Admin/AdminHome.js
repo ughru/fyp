@@ -376,7 +376,7 @@ const AdminHome = ({navigation}) => {
               <Text style= {[styles.text, {marginBottom: 10}]}>Email: {selectedUser?.email}</Text>
               <Text style= {[styles.text, {marginBottom: 10}]}>Full Name: {selectedUser?.firstName} {selectedUser?.lastName}</Text>
               {selectedUser?.type === "Specialist" ? (
-              <Text style={[styles.text, {marginBottom: 10}]}>Field: {selectedUser?.field}</Text>
+              <Text style={[styles.text, {marginBottom: 10}]}>Specialisation: {selectedUser?.specialisation}</Text>
               ) : (
                 <Text style={[styles.text, {marginBottom: 10}]}>Status: {selectedUser?.status}</Text>
               )}

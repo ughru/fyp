@@ -46,7 +46,7 @@ const CreateAds = ({ navigation }) => {
             }
         };
 
-        fetchAdminInfo(); // Call fetchAdminInfo once component mounts
+        fetchAdminInfo(); 
 
     }, []);
 

@@ -22,6 +22,9 @@ const Settings = ({ navigation, selectedStatus, setSelectedStatus }) => {
         if (storedStatus !== null) {
           setSelectedStatus(storedStatus);
         }
+        else {
+          setSelectedStatus('Pre');
+        }
       } catch (error) {
         console.error('Error retrieving selected status:', error);
       }
@@ -37,7 +40,7 @@ const Settings = ({ navigation, selectedStatus, setSelectedStatus }) => {
 
       <View style={[styles.container4]}>
         <Text style={[styles.questionText, { marginBottom: 20 }]}> Pregnancy Status </Text>
-        <View style={styles.buttonPosition}>
+        <View style={[styles.buttonPosition, {marginBottom: 20}]}>
           <Pressable
             style={[
               styles.button6, { marginHorizontal: 10 },
@@ -71,6 +74,13 @@ const Settings = ({ navigation, selectedStatus, setSelectedStatus }) => {
             <Text>{selectedStatus === 'Post' ? 'Post' : 'Post'}</Text>
           </Pressable>
         </View>
+        
+        {/*
+        <Text style= {[styles.questionText, { marginBottom: 20 }]}>Others</Text>
+        <Pressable style={[styles.formText, {marginBottom: 20}]} onPress={() => navigation.navigate("Personalisation")}>
+          <Text style={[styles.text]}> Personalisation </Text>
+        </Pressable>
+        */}
       </View>
 
       <View style={[styles.container3, { alignItems: 'center', paddingHorizontal: 20, justifyContent: 'center' }]}>

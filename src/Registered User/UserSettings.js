@@ -144,6 +144,9 @@ const UserSettings  = ({navigation, selectedStatus, setSelectedStatus}) => {
         </View>
 
         <Text style= {[styles.questionText, {marginBottom: 20}]}> Others </Text>
+        <Pressable style={[styles.formText, {marginBottom: 20}]} onPress={() => navigation.navigate("Personalisation")}>
+          <Text style={[styles.text]}> Personalisation </Text>
+        </Pressable>
         <Pressable style={[styles.formText, {marginBottom: 20}]} onPress={() => navigation.navigate("Appointments")}>
           <Text style={styles.text}> Appointments </Text>
         </Pressable>

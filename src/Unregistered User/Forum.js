@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, TouchableHighlight, Image, Platform, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, TouchableHighlight, Image, Platform, StyleSheet, Dimensions } from 'react-native';
 import { storage } from '../../firebaseConfig';
 import { Feather, AntDesign } from '@expo/vector-icons';
 import axios from 'axios';
@@ -11,6 +11,8 @@ import ModalStyle from '../components/ModalStyle';
 import styles from '../components/styles';
 import Keyboard from '../components/Keyboard';
 import url from '../components/config.js';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
@@ -154,13 +156,12 @@ const Forum = ({ navigation }) => {
             </TouchableOpacity>
           </View> 
 
-          <View style={[styles.adImageContainer, { width: '100%', alignItems: 'center' }]}>
-            <ScrollView
-              ref={scrollRef}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 20}}
-            >
+          <View style={[styles.adImageContainer, {
+          ...Platform.select({
+            web:{width:screenWidth*0.9, paddingTop:20, left: 20, paddingRight:10},
+            default:{paddingTop:20, left: 20, paddingRight:10}
+          }) }]}>
+            <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20}}>
               {imageUrl && imageUrl.map((url, index) => (
                 <TouchableOpacity
                   key={index}
