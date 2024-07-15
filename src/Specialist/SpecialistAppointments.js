@@ -35,13 +35,13 @@ const SpecialistAppointments = ({navigation}) => {
       <View style={[styles.container4, { marginBottom: 20}]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 20, marginBottom: 20 }}>
           <AntDesign name="calendar" size={24} color="black" />
-          <Pressable style={{ marginLeft: 10 }}>
+          <Pressable style={{ marginLeft: 10 }} onPress={() => navigation.navigate('CreateAppointments')}>
             <Text style={styles.questionText}>Create Appointment</Text>
           </Pressable>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
         <MaterialCommunityIcons name="timetable" size={24} color="black" />
-          <Pressable style={{ marginLeft: 10 }}>
+          <Pressable style={{ marginLeft: 10 }}  onPress={() => navigation.navigate('ViewSchedule')}>
             <Text style={styles.questionText}>View Schedule</Text>
           </Pressable>
         </View>

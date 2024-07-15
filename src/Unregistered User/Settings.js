@@ -75,12 +75,10 @@ const Settings = ({ navigation, selectedStatus, setSelectedStatus }) => {
           </Pressable>
         </View>
         
-        {/*
         <Text style= {[styles.questionText, { marginBottom: 20 }]}>Others</Text>
         <Pressable style={[styles.formText, {marginBottom: 20}]} onPress={() => navigation.navigate("Personalisation")}>
           <Text style={[styles.text]}> Personalisation </Text>
         </Pressable>
-        */}
       </View>
 
       <View style={[styles.container3, { alignItems: 'center', paddingHorizontal: 20, justifyContent: 'center' }]}>

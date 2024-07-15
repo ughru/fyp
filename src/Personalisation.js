@@ -607,7 +607,7 @@ const Personalisation = ({navigation}) => {
   const saveSelections = async () => {
     try {
       await AsyncStorage.setItem('userSelections', JSON.stringify(selections));
-      console.log(selections);
+      //console.log(selections);
     } catch (error) {
       console.error('Error saving selections:', error);
     }

@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Text, Pressable, TextInput, ScrollView, View, Platform } from 'react-native';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { Text, Pressable, TextInput, ScrollView, View, Platform, TouchableOpacity, Dimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { auth } from '../firebaseConfig';
 import styles from './components/styles';
@@ -8,12 +9,15 @@ import { AntDesign } from '@expo/vector-icons';
 import axios from 'axios';
 import url from "./components/config";
 
-const RegisterSpecialist= ({navigation}) => {
+const { width: screenWidth } = Dimensions.get('window');
+
+const RegisterSpecialist = ({ navigation }) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [uen, setUEN] = useState('');
   const [specialisation, setSpecialisation] = useState('');
+  const [customSpecialisation, setCustomSpecialisation] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
 
@@ -26,16 +30,61 @@ const RegisterSpecialist= ({navigation}) => {
   const [confirmPwError, setError7] = useState('');
 
   const [registrationInProgress, setRegistrationInProgress] = useState(false);
+  const [specialisations, setSpecialisations] = useState([]);
+  const scrollRef = useRef(null);
+
+  const fetchSpecialisations = useCallback(async () => {
+    try {
+      const response = await axios.get(`${url}/specialisations`);
+      setSpecialisations(response.data);
+    } catch (error) {
+      console.error('Error fetching specialisations:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSpecialisations();
+  }, [fetchSpecialisations]);
+
+  useFocusEffect(
+    useCallback(() => {
+      setFirstName('');
+      setLastName('');
+      setEmail('');
+      setUEN('');
+      setSpecialisation('');
+      setCustomSpecialisation('');
+      setPassword('');
+      setConfirmPw('');
+      setError1('');
+      setError2('');
+      setError3('');
+      setError4('');
+      setError5('');
+      setError6('');
+      setError7('');
+
+      fetchSpecialisations();
+    }, [fetchSpecialisations])
+  );
+
+  const handleSpecialisationSelection = (selectedSpecialisation) => {
+    setSpecialisation(selectedSpecialisation);
+    setCustomSpecialisation('');
+    setError5('');
+  };
 
   const handleRegistration = async () => {
-    let valid = true; 
+    let valid = true;
     setRegistrationInProgress(true);
+
+    const finalSpecialisation = specialisation || customSpecialisation.trim();
 
     const userData = {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       uen: uen.trim(),
-      specialisation: specialisation.trim(),
+      specialisation: finalSpecialisation,
       email: email.trim(),
       password,
       state: "suspended",
@@ -53,7 +102,7 @@ const RegisterSpecialist= ({navigation}) => {
       } else if ((!/^[a-zA-Z\-]+$/.test(firstName))) {
         setError1('* Invalid First Name');
         valid = false;
-      } else if (firstName.length < 2 ) {
+      } else if (firstName.length < 2) {
         setError1('* Minimum 2 characters');
         valid = false;
       } else {
@@ -71,7 +120,7 @@ const RegisterSpecialist= ({navigation}) => {
       } else if ((!/^[a-zA-Z\-]+$/.test(lastName))) {
         setError2('* Invalid Last Name');
         valid = false;
-      } else if (lastName.length < 2 ) {
+      } else if (lastName.length < 2) {
         setError2('* Minimum 2 characters');
         valid = false;
       } else {
@@ -114,11 +163,11 @@ const RegisterSpecialist= ({navigation}) => {
       }
 
       // Handle specialisation error
-      if (!specialisation.trim()) {
+      if (!finalSpecialisation.trim()) {
         setError5('* Required field');
         valid = false;
-      } else if ((!/^[a-zA-Z\ ]+$/.test(specialisation))) {
-        setError5('* Invalid Specialisation');
+      } else if (!/^[a-zA-Z\ ]+$/.test(finalSpecialisation)) {
+        setError5('* Invalid format');
         valid = false;
       } else {
         setError5('');
@@ -126,7 +175,7 @@ const RegisterSpecialist= ({navigation}) => {
 
       // Handle Password Errors
       if (!password.trim() || !confirmPw.trim()) {
-         // Check if empty
+        // Check if empty
         setError6('* Required field');
         setError7('* Required field');
         valid = false;
@@ -142,18 +191,19 @@ const RegisterSpecialist= ({navigation}) => {
 
       if (valid) {
         try {
-          // Call Firebase function to create user with email and password
           await auth.createUserWithEmailAndPassword(email, password);
-          
+
           await AsyncStorage.setItem('user', email);
 
-            const response = await axios.post(`${url}/registerSpecialist`, userData);
-            if (response.data && response.data.error === 'Specialist already exists!') {
-              setError3('* Specialist already exists');
-              return;
-            }
+          const response = await axios.post(`${url}/registerSpecialist`, userData);
 
-            navigation.navigate("Login");
+          if (response.data && response.data.error === 'Specialist already exists!') {
+            setError3('* Specialist already exists');
+          }
+
+          await axios.post(`${url}/saveSpecialisation`, { specialisationName: customSpecialisation });
+
+          navigation.navigate("Login", { origin: 'RegisterSpecialist' });
         } catch (authError) {
           if (authError.code === 'auth/email-already-in-use') {
             setError3('* Email already in use');
@@ -177,7 +227,7 @@ const RegisterSpecialist= ({navigation}) => {
     <Keyboard>
       <ScrollView contentContainerStyle={[styles.container]}>
         {/* Back button */}
-        <View style = {[{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }, Platform.OS!=="web"&&{paddingTop:50}]}>
+        <View style={[{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }, Platform.OS !== "web" && { paddingTop: 50 }]}>
           <AntDesign name="left" size={24} color="black" />
           <Pressable style={[styles.formText]} onPress={() => navigation.goBack()}>
             <Text style={styles.text}> back </Text>
@@ -186,42 +236,79 @@ const RegisterSpecialist= ({navigation}) => {
 
         {/* Title */}
         <Text style={[styles.pageTitle, { marginBottom: 20 }]}> Get Started </Text>
-        <Text style={[styles.titleNote, { marginBottom: 30}]}> Register as a specialist </Text>
+        <Text style={[styles.titleNote, { marginBottom: 30 }]}> Register as a specialist </Text>
 
         {/* Form */}
-        <View style={[styles.container3, {alignItems: 'center'}]}>
+        <View style={[styles.container3, { alignItems: 'center' }]}>
           <View style={{ marginBottom: 30 }}>
-            <Text style={[styles.formText, {marginBottom: 10}]}> First Name {firstNameError ? <Text style={styles.error}>{firstNameError}</Text> : null} </Text>
+            <Text style={[styles.formText, { marginBottom: 10 }]}> First Name {firstNameError ? <Text style={styles.error}>{firstNameError}</Text> : null} </Text>
             <TextInput style={[styles.input]} value={firstName} onChangeText={setFirstName} />
           </View>
-    
+
           <View style={{ marginBottom: 30 }}>
-            <Text style={[styles.formText, {marginBottom: 10}]}> Last Name {lastNameError ? <Text style={styles.error}>{lastNameError}</Text> : null} </Text>
+            <Text style={[styles.formText, { marginBottom: 10 }]}> Last Name {lastNameError ? <Text style={styles.error}>{lastNameError}</Text> : null} </Text>
             <TextInput style={[styles.input]} value={lastName} onChangeText={setLastName} />
           </View>
-    
+
           <View style={{ marginBottom: 30 }}>
-            <Text style={[styles.formText, {marginBottom: 10}]}> Email {emailError ? <Text style={styles.error}>{emailError}</Text> : null} </Text>
+            <Text style={[styles.formText, { marginBottom: 10 }]}> Email {emailError ? <Text style={styles.error}>{emailError}</Text> : null} </Text>
             <TextInput style={[styles.input]} value={email} onChangeText={setEmail} keyboardType="email-address" />
           </View>
 
           <View style={{ marginBottom: 30 }}>
-            <Text style= {[styles.formText, {marginBottom: 10}]}> UEN {uenError ? <Text style={styles.error}>{uenError}</Text> : null} </Text>
-            <TextInput style={[styles.input]} value = {uen} onChangeText = {setUEN}/>
+            <Text style={[styles.formText, { marginBottom: 10 }]}> UEN {uenError ? <Text style={styles.error}>{uenError}</Text> : null} </Text>
+            <TextInput style={[styles.input]} value={uen} onChangeText={setUEN} />
           </View>
 
           <View style={{ marginBottom: 30 }}>
-            <Text style={[styles.formText, {marginBottom: 10}]}> Specialisation {specialisationError ? <Text style={styles.error}>{specialisationError}</Text> : null} </Text>
-            <TextInput style={[styles.input]} value={specialisation} onChangeText={setSpecialisation} />
+            <Text style={[styles.formText, { marginBottom: 10, marginLeft: 20 }]}> Specialisation {specialisationError ? <Text style={styles.error}>{specialisationError}</Text> : null} </Text>
+            {specialisations.length > 0 ? (
+              <View>
+              <View style={[styles.buttonContainer, {
+              ...Platform.select({
+                web: { width: screenWidth * 0.9, left: 20 },
+                default: {left: 20}
+              })
+            }]}>
+              <ScrollView
+                ref={scrollRef}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={Platform.OS === 'web' ? { width: '100%' } : { width: screenWidth * 0.9 }}
+                contentContainerStyle={[{ gap: 10, paddingVertical: 10 }, Platform.OS !== 'web' ]}
+              >
+                {specialisations.map((item, index) => (
+                  <TouchableOpacity key={index}
+                    style={[specialisation === item.specialisationName ? styles.categoryBtnActive : styles.categoryBtn]}
+                    onPress={() => handleSpecialisationSelection(item.specialisationName)}>
+                    <Text style={styles.text}>{item.specialisationName}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+                <Text style={[styles.formText, { marginTop: 20, marginLeft: 20 }]}>Or enter a custom specialisation</Text>
+                <TextInput
+                  style={[styles.input, { marginTop: 10, marginLeft: 20 }]}
+                  value={customSpecialisation}
+                  onChangeText={setCustomSpecialisation}
+                  placeholder="Custom Specialisation"
+                  onFocus={() => setSpecialisation('')}
+                />
+              </View>
+            ) : (
+              <TextInput style={[styles.input]} value={specialisation} onChangeText={setSpecialisation} />
+            )}
+            </View>
           </View>
-    
+
+          <View style={[styles.container3, { alignItems: 'center' }]}>
           <View style={{ marginBottom: 30 }}>
-            <Text style={[styles.formText, {marginBottom: 10}]}> Password {pwError ? <Text style={styles.error}>{pwError}</Text> : null} </Text>
+            <Text style={[styles.formText, { marginBottom: 10 }]}> Password {pwError ? <Text style={styles.error}>{pwError}</Text> : null} </Text>
             <TextInput style={[styles.input]} value={password} onChangeText={setPassword} secureTextEntry={true} textContentType={'oneTimeCode'} />
           </View>
-    
+
           <View style={{ marginBottom: 30 }}>
-            <Text style={[styles.formText, {marginBottom: 10}]}> Confirm Password {confirmPwError ? <Text style={styles.error}>{confirmPwError}</Text> : null} </Text>
+            <Text style={[styles.formText, { marginBottom: 10 }]}> Confirm Password {confirmPwError ? <Text style={styles.error}>{confirmPwError}</Text> : null} </Text>
             <TextInput style={[styles.input]} value={confirmPw} onChangeText={setConfirmPw} secureTextEntry={true} textContentType={'oneTimeCode'} />
           </View>
         </View>

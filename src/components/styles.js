@@ -167,7 +167,7 @@ export const styles = StyleSheet.create({
     },
     input2: {
         width: 240,
-        height: 30,
+        height: 40,
         padding: 10,
         borderWidth: 1,
     },

@@ -12,6 +12,7 @@ import url from "../components/config";
 const SpecialistEditProfile = ({ navigation }) => {
     // values
     const [userInfo, setUserInfo] = useState([]);
+    const [existingUEN, setExistingUEN] = useState('');
 
     const [firstNameError, setError1] = useState('');
     const [lastNameError, setError2] = useState('');
@@ -31,6 +32,7 @@ const SpecialistEditProfile = ({ navigation }) => {
                 const response = await axios.get(`${url}/specialistinfo?email=${storedEmail}`);
                 if (response.data) {
                     setUserInfo(response.data);
+                    setExistingUEN(response.data.uen);
                 }
                 }
             } catch (error) {
@@ -102,15 +104,30 @@ const SpecialistEditProfile = ({ navigation }) => {
                 const storedEmail = await AsyncStorage.getItem('user');
                 if (storedEmail) {
                     const response = await axios.put(`${url}/editSpecialist?email=${storedEmail}`, userInfo);
-                    await AsyncStorage.setItem('user', userInfo.email);
-                    Alert.alert('Profile updated successfully', '',
-                        [{
-                            text: 'OK', onPress: async () => {
-                                navigation.goBack();
-                            }
-                        }],
-                        { cancelable: false }
-                    );
+                    if (response.data.state === 'suspended') {
+                        Alert.alert(
+                            'Account Re-Verification',
+                            'Profile with UEN pdated successfully.\n Verification required.\n You will be logged out.',
+                            [{
+                                text: 'OK',
+                                onPress: async () => {
+                                    await AsyncStorage.removeItem('user');
+                                    navigation.navigate('Login');
+                                }
+                            }],
+                            { cancelable: false }
+                        );
+                    } else {
+                        await AsyncStorage.setItem('user', userInfo.email);
+                        Alert.alert('Profile updated successfully', '',
+                            [{
+                                text: 'OK', onPress: async () => {
+                                    navigation.goBack();
+                                }
+                            }],
+                            { cancelable: false }
+                        );
+                    }
                 }
             } catch (error) {
                 console.error('Error updating profile:', error);

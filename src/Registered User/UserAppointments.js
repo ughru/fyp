@@ -88,7 +88,7 @@ const UserAppointments = ({navigation}) => {
       <View style={[styles.container4, {marginBottom: 20}]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
           <AntDesign name="calendar" size={24} color="black" />
-          <Pressable style={{ marginLeft: 10 }}>
+          <Pressable style={{ marginLeft: 10 }} onPress={() => navigation.navigate('UserBookAppointment')}>
             <Text style={styles.questionText}>Book Appointment</Text>
           </Pressable>
         </View>

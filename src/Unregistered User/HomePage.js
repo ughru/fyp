@@ -14,7 +14,7 @@ import Appointments from './Appointments';
 const Tab = createBottomTabNavigator();
 
 // Page Display
-const HomePage = () => {
+export default function HomePage() {
   const [selectedStatus, setSelectedStatus] = useState(null);
 
   useEffect(() => {
@@ -85,6 +85,4 @@ const HomePage = () => {
       </Tab.Screen>
     </Tab.Navigator>
   );
-};
-
-export default HomePage;
+}

@@ -128,7 +128,7 @@ const CycleHistory = ({ navigation }) => {
   return (
     <Keyboard>
       <ScrollView contentContainerStyle={styles.container}>
-        <View style={[{ flexDirection: 'row', width: '100%', alignItems: 'center', marginBottom: 20 }, Platform.OS !== "web" && { paddingTop: 50 }]}>
+      <View style={[{ flexDirection: 'row', width: '100%', alignItems: 'center', marginBottom: 20 }, Platform.OS !== "web" && { paddingTop: 50 }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', paddingRight: 30 }}>
             <AntDesign name="left" size={24} color="black" />
             <Pressable style={[styles.formText]} onPress={() => navigation.goBack()}>

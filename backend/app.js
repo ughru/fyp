@@ -34,6 +34,7 @@ const SpecialistAd = mongoose.model('specialistAd');
 const WeightLog = mongoose.model('weightLog');
 const PeriodLog = mongoose.model('periodLog');
 const Personalisation = mongoose.model('personalisation');
+const Specialisation = mongoose.model('specialisation');
 
 // Function to get a random sample from an array
 function getRandomSample(array, sampleSize) {
@@ -173,6 +174,11 @@ app.put('/editSpecialist', async (req, res) => {
           return res.status(404).json({ message: 'Specialist not found' });
       }
 
+      // Check if UEN is different
+      if (updatedInfo.uen && updatedInfo.uen !== existingSpecialist.uen) {
+          updatedInfo.state = 'suspended';
+      }
+
       // Update the specialist info
       const updatedUser = await Specialist.findOneAndUpdate({ email }, updatedInfo, { new: true });
 
@@ -259,6 +265,41 @@ app.post('/reactivateUser', async (req, res) => {
   }
 });
 
+// get specialist's specialisation
+app.get('/specialisations', async (req, res) => {
+  try {
+    const specialisations = await Specialisation.find({});
+    res.json(specialisations);
+  } catch (error) {
+    console.error('Error fetching specialisations:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.post('/saveSpecialisation', async (req, res) => {
+  const { specialisationName } = req.body;
+
+  // Check if specailisation name already exists
+  const existingSpecialisation = await Specialisation.findOne({ specialisationName });
+
+  // If specialisation already exists, return message
+  if (existingSpecialisation) {
+      return res.status(201).json({ message: 'Specialisation already exists' });
+  }
+
+  try {
+      // Create new specialisation
+      const newSpecialisation = new Specialisation(req.body);
+
+      await newSpecialisation.save();
+
+      res.status(201).json({ message: 'Specialisation saved successfully' });
+  } catch (error) {
+      console.error('Error saving specialisation:', error);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 /* **********************************************
 *************************************************
    REGISTER, LOGIN, LOGOUT, RESET PASSWORD
@@ -312,6 +353,7 @@ app.post("/registerSpecialist", async(req, res)=> {
           password: hashedPassword,
           state, 
       });
+
       res.send({status: "ok", data:"Specialist Created"})
   } catch (error) {
       console.error('Error creating specialist:', error.message);

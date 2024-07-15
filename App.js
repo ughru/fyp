@@ -33,6 +33,7 @@ import UserForum from './src/Registered User/UserForum/';
 import UserCreatePost from './src/Registered User/UserCreatePost/';
 import UserUpdatePost from './src/Registered User/UserUpdatePost/';
 import UserAppointments from './src/Registered User/UserAppointments/';
+import UserBookAppointment from './src/Registered User/UserBookAppointment/';
 import UserSettings from './src/Registered User/UserSettings/';
 import UserEditProfile from './src/Registered User/UserEditProfile/';
 import LogPeriod from './src/Registered User/LogPeriod/';
@@ -52,6 +53,8 @@ import SpecialistForum from './src/Specialist/SpecialistForum/';
 import SpecialistCreatePost from './src/Specialist/SpecialistCreatePost/';
 import SpecialistUpdatePost from './src/Specialist/SpecialistUpdatePost/';
 import SpecialistAppointments from './src/Specialist/SpecialistAppointments/';
+import CreateAppointments from './src/Specialist/CreateAppointments/';
+import ViewSchedule from './src/Specialist/ViewSchedule/';
 import SpecialistSettings from './src/Specialist/SpecialistSettings/';
 import SpecialistEditProfile from './src/Specialist/SpecialistEditProfile/';
 import SpecialistAdvertisements from './src/Specialist/SpecialistAdvertisements/';
@@ -107,6 +110,7 @@ export default function App() {
                 <Stack.Screen name="UserCreatePost" component= {UserCreatePost} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserUpdatePost" component= {UserUpdatePost} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserAppointments" component= {UserAppointments} options={{ headerShown: false }}/>
+                <Stack.Screen name="UserBookAppointment" component= {UserBookAppointment} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserSettings" component= {UserSettings} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserEditProfile" component= {UserEditProfile} options={{ headerShown: false }}/>
                 <Stack.Screen name="CycleHistory" component= {CycleHistory} options={{ headerShown: false }}/>
@@ -126,6 +130,8 @@ export default function App() {
                 <Stack.Screen name="SpecialistCreatePost" component= {SpecialistCreatePost} options={{ headerShown: false }}/>
                 <Stack.Screen name="SpecialistUpdatePost" component= {SpecialistUpdatePost} options={{ headerShown: false }}/>
                 <Stack.Screen name="SpecialistAppointments" component= {SpecialistAppointments} options={{ headerShown: false }}/>
+                <Stack.Screen name="CreateAppointments" component= {CreateAppointments} options={{ headerShown: false }}/>
+                <Stack.Screen name="ViewSchedule" component= {ViewSchedule} options={{ headerShown: false }}/>
                 <Stack.Screen name="SpecialistSettings" component= {SpecialistSettings} options={{ headerShown: false }}/>
                 <Stack.Screen name="SpecialistEditProfile" component= {SpecialistEditProfile} options={{ headerShown: false }}/>
                 <Stack.Screen name="SpecialistAdvertisements" component= {SpecialistAdvertisements} options={{ headerShown: false }}/>

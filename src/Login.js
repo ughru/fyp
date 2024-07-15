@@ -113,8 +113,11 @@ const Login = () => {
         case 'RegisterSpecialist':
           navigation.navigate('RegisterSpecialist');
           break;
+        case 'RegisterUser':
+          navigation.navigate('RegisterUser');
+          break;
         default:
-          navigation.navigate('Personalisation');
+          navigation.navigate('Welcome');
           break;
       }
     }
