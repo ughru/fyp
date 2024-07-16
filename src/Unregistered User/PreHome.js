@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, Pressable, ScrollView, TouchableOpacity, Platform, StyleSheet, Image } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import styles from '../components/styles';
 import { fetchResources } from '../components/manageResource';
@@ -9,7 +10,7 @@ import Calendar from '../components/Calendar';
 const formatDate = (date) => {
   const options = { weekday: 'long', day: 'numeric', month: 'long' };
   return date.toLocaleDateString('en-GB', options);
-};  
+};
 
 const PreHome = ({ navigation }) => {
   const [currentDate, setCurrentDate] = useState(null);

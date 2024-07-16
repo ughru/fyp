@@ -41,6 +41,7 @@ import UpdatePeriodLog from './src/Registered User/UpdatePeriodLog/';
 import CycleHistory from './src/Registered User/CycleHistory/';
 import WeightTracker from './src/Registered User/WeightTracker/';
 import CreateWeightLog from './src/Registered User/CreateWeightLog/';
+import UserPersonalisation from './src/Registered User/UserPersonalisation/';
 
 // Specialist screens
 import SpecialistHome from './src/Specialist/SpecialistHome/';
@@ -118,6 +119,7 @@ export default function App() {
                 <Stack.Screen name="UpdatePeriodLog" component= {UpdatePeriodLog} options={{ headerShown: false }}/>
                 <Stack.Screen name="WeightTracker" component= {WeightTracker} options={{ headerShown: false }}/>
                 <Stack.Screen name="CreateWeightLog" component= {CreateWeightLog} options={{ headerShown: false }}/>
+                <Stack.Screen name="UserPersonalisation" component= {UserPersonalisation} options={{ headerShown: false }}/>
 
                 {/* Specialist User Screens */}
                 <Stack.Screen name="SpecialistHome" component= {SpecialistHome} options={{ headerShown: false }}/>

@@ -34,39 +34,39 @@ const formatDate = (dateString) => {
 };
 
 const SpecialistForum = ({ navigation }) => {
-    const [forumPosts, setForumPosts] = useState([]);
-    const [visibleComments, setVisibleComments] = useState({});
-    const [commentText, setCommentText] = useState({});
-    const [commentErrors, setCommentErrors] = useState({});
-    const [sortOrder, setSortOrder] = useState('newest');
-    const [isDropdownVisible, setDropdownVisible] = useState(false);
-    const [selectedPost, setSelectedPost] = useState(null);
-    const [userEmail, setEmail] = useState('');
-    const [isCommentDropdownVisible, setCommentDropdownVisible] = useState(false);
-    const [selectedComment, setSelectedComment] = useState(null);
+  const [forumPosts, setForumPosts] = useState([]);
+  const [visibleComments, setVisibleComments] = useState({});
+  const [commentText, setCommentText] = useState({});
+  const [commentErrors, setCommentErrors] = useState({});
+  const [sortOrder, setSortOrder] = useState('newest');
+  const [isDropdownVisible, setDropdownVisible] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [userEmail, setEmail] = useState('');
+  const [isCommentDropdownVisible, setCommentDropdownVisible] = useState(false);
+  const [selectedComment, setSelectedComment] = useState(null);
 
-    const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async () => {
       try {
-        const forumPostsResponse = await axios.get(`${url}/getForumPosts`);
+          const forumPostsResponse = await axios.get(`${url}/getForumPosts`);
 
-        if (forumPostsResponse.data.status === 'ok') {
-          const posts = forumPostsResponse.data.forumPosts;
-          setForumPosts(posts);
-        } else {
-          console.error('Error fetching forum posts:', forumPostsResponse.data.error);
-        }
-    
-        // Retrieve user's email from AsyncStorage
-        const storedEmail = await AsyncStorage.getItem('user');
-        if (storedEmail) {
-          setEmail(storedEmail);
-        } else {
-          console.error('Error: User email not found in AsyncStorage.');
-        }
+          if (forumPostsResponse.data.status === 'ok') {
+              const posts = forumPostsResponse.data.forumPosts;
+              setForumPosts(posts);
+          } else {
+              console.error('Error fetching forum posts:', forumPostsResponse.data.error);
+          }
+
+          // Retrieve user's email from AsyncStorage
+          const storedEmail = await AsyncStorage.getItem('user');
+          if (storedEmail) {
+              setEmail(storedEmail);
+          } else {
+              console.error('Error: User email not found in AsyncStorage.');
+          }
       } catch (error) {
-        console.error('Error fetching forum posts:', error);
+          console.error('Error fetching forum posts:', error);
       }
-    }, []);    
+  }, []);
 
   useEffect(() => {
       fetchData();
@@ -79,20 +79,20 @@ const SpecialistForum = ({ navigation }) => {
   );
 
   const fetchComments = async (postID) => {
-    try {
-      const response = await axios.get(`${url}/getComments`, { params: { postID } });
-      if (response.data.status === 'ok') {
-        const comments = response.data.comments;
-        setVisibleComments(prevState => ({
-          ...prevState,
-          [postID]: comments,
-        }));
-      } else {
-        console.error('Error fetching comments:', response.data.error);
+      try {
+          const response = await axios.get(`${url}/getComments`, { params: { postID } });
+          if (response.data.status === 'ok') {
+              const comments = response.data.comments;
+              setVisibleComments(prevState => ({
+                  ...prevState,
+                  [postID]: comments,
+              }));
+          } else {
+              console.error('Error fetching comments:', response.data.error);
+          }
+      } catch (error) {
+          console.error('Error fetching comments:', error);
       }
-    } catch (error) {
-      console.error('Error fetching comments:', error);
-    }
   };
 
   const sortForumPosts = (posts, order) => {
@@ -106,108 +106,108 @@ const SpecialistForum = ({ navigation }) => {
   const sortedPosts = sortForumPosts(forumPosts, sortOrder);
 
   const toggleCommentsVisibility = async (postID) => {
-    if (visibleComments[postID]) {
-      setVisibleComments(prevState => ({
-        ...prevState,
-        [postID]: false,
-      }));
-    } else {
-      await fetchComments(postID);
-    }
-  };  
+      if (visibleComments[postID]) {
+          setVisibleComments(prevState => ({
+              ...prevState,
+              [postID]: false,
+          }));
+      } else {
+          await fetchComments(postID);
+      }
+  };
 
   const toggleDropdown = (forumPost) => {
-    setSelectedPost(forumPost);
-    setDropdownVisible(!isDropdownVisible);
-  };  
+      setSelectedPost(forumPost);
+      setDropdownVisible(!isDropdownVisible);
+  };
 
   const deletePost = async (postID) => {
-    try {
-        await axios.delete(`${url}/deletePost`, { params: { postID } });
-        Alert.alert('Success', 'Post deleted successfully');
-        fetchData();
-        setDropdownVisible(false);
-    } catch (error) {
-        Alert.alert('Error', 'Failed to delete post');
-        console.error('Error deleting post:', error);
-    }
+      try {
+          await axios.delete(`${url}/deletePost`, { params: { postID } });
+          Alert.alert('Success', 'Post deleted successfully');
+          fetchData();
+          setDropdownVisible(false);
+      } catch (error) {
+          Alert.alert('Error', 'Failed to delete post');
+          console.error('Error deleting post:', error);
+      }
   };
-  
+
   const handleSelection = (action) => {
       setDropdownVisible(false);
       if (action === 'edit') {
-          navigation.navigate('SpecialistUpdatePost', { postID: selectedPost.postID});
+          navigation.navigate('SpecialistUpdatePost', { postID: selectedPost.postID });
       } else if (action === 'delete') {
-        if (Platform.OS === 'web') {
-          if (window.confirm('Are you sure you want to delete this post?')) {
-            deletePost(selectedPost.postID);
+          if (Platform.OS === 'web') {
+              if (window.confirm('Are you sure you want to delete this post?')) {
+                  deletePost(selectedPost.postID);
+              }
+          } else {
+              Alert.alert(
+                  'Deletion of Post',
+                  'Are you sure you want to delete this post?',
+                  [
+                      { text: 'Cancel' },
+                      { text: 'Delete', onPress: () => deletePost(selectedPost.postID) }
+                  ],
+                  { cancelable: false }
+              );
           }
-        } else {
-          Alert.alert(
-            'Deletion of Post',
-            'Are you sure you want to delete this post?',
-            [
-                { text: 'Cancel'},
-                { text: 'Delete', onPress: () => deletePost(selectedPost.postID) }
-            ],
-            { cancelable: false }
-          );
-        }
       } else if (action === 'report') {
           Alert.alert('Report functionality is not implemented yet.');
       }
   };
 
   const toggleCommentDropdown = (comment) => {
-    setSelectedComment(comment);
-    setCommentDropdownVisible(!isCommentDropdownVisible);
+      setSelectedComment(comment);
+      setCommentDropdownVisible(!isCommentDropdownVisible);
   };
 
   const handleCommentSelection = (action) => {
-    setCommentDropdownVisible(false);
-    if (action === 'delete') {
-      if (Platform.OS === 'web') {
-        if (window.confirm('Are you sure you want to delete this comment?')) {
-          deleteComment(selectedPost.postID, selectedComment._id);
-        }
-      } else {
-        Alert.alert(
-          'Deletion of Comment',
-          'Are you sure you want to delete this comment?',
-          [
-              { text: 'Cancel'},
-              { text: 'Delete', onPress: () => deleteComment(selectedPost.postID, selectedComment._id)}
-          ],
-          { cancelable: false }
-        );
+      setCommentDropdownVisible(false);
+      if (action === 'delete') {
+          if (Platform.OS === 'web') {
+              if (window.confirm('Are you sure you want to delete this comment?')) {
+                  deleteComment(selectedPost.postID, selectedComment._id);
+              }
+          } else {
+              Alert.alert(
+                  'Deletion of Comment',
+                  'Are you sure you want to delete this comment?',
+                  [
+                      { text: 'Cancel' },
+                      { text: 'Delete', onPress: () => deleteComment(selectedPost.postID, selectedComment._id) }
+                  ],
+                  { cancelable: false }
+              );
+          }
+      } else if (action === 'report') {
+          Alert.alert('Report functionality is not implemented yet.');
       }
-    } else if (action === 'report') {
-        Alert.alert('Report functionality is not implemented yet.');
-    }
   };
 
   const deleteComment = async (postID, commentID) => {
-    try {
-      const response = await axios.delete(`${url}/deleteComment`, { params: { postID, commentID } });
+      try {
+          const response = await axios.delete(`${url}/deleteComment`, { params: { postID, commentID } });
 
-      if (response.data.status === 'ok') {
-        Alert.alert('Success', 'Comment deleted successfully');
-        // Remove the deleted comment from visibleComments state
-        setVisibleComments(prevState => ({
-          ...prevState,
-          [postID]: prevState[postID].filter(comment => comment._id !== commentID),
-        }));
-        setCommentDropdownVisible(false);
-      } else {
-        console.error('Failed to delete comment:', response.data.error);
-        Alert.alert('Error', 'Failed to delete comment');
+          if (response.data.status === 'ok') {
+              Alert.alert('Success', 'Comment deleted successfully');
+              // Remove the deleted comment from visibleComments state
+              setVisibleComments(prevState => ({
+                  ...prevState,
+                  [postID]: prevState[postID].filter(comment => comment._id !== commentID),
+              }));
+              setCommentDropdownVisible(false);
+          } else {
+              console.error('Failed to delete comment:', response.data.error);
+              Alert.alert('Error', 'Failed to delete comment');
+          }
+      } catch (error) {
+          console.error('Error deleting comment:', error);
+          Alert.alert('Error', 'Failed to delete comment');
       }
-    } catch (error) {
-      console.error('Error deleting comment:', error);
-      Alert.alert('Error', 'Failed to delete comment');
-    }
   };
-    
+
   const handleCommentTextChange = (postID, text) => {
       setCommentText((prevState) => ({
           ...prevState,
@@ -215,45 +215,44 @@ const SpecialistForum = ({ navigation }) => {
       }));
   };
 
-const addComment = async (postID, userEmail, userComment) => {
-  try {
-      if (!commentText[postID]?.trim()) {
-          setCommentErrors((prevState) => ({
-              ...prevState,
-              [postID]: '* Comment cannot be empty',
-          }));
-          return;
-      }
+  const addComment = async (postID, userEmail, userComment) => {
+      try {
+          if (!commentText[postID]?.trim()) {
+              setCommentErrors((prevState) => ({
+                  ...prevState,
+                  [postID]: '  * Comment cannot be empty\n',
+              }));
+              return;
+          }
 
-      const response = await axios.post(`${url}/addComment`, {
-          postID,
-          userEmail,
-          userComment,
-          dateCreated: new Date(),
-      });
+          const response = await axios.post(`${url}/addComment`, {
+              postID,
+              userEmail,
+              userComment,
+              dateCreated: new Date(),
+          });
 
-      if (response.data.status === 'ok') {
-          setCommentText((prevState) => ({
-              ...prevState,
-              [postID]: '', // Clear comment after success
-          }));
+          if (response.data.status === 'ok') {
+              setCommentText((prevState) => ({
+                  ...prevState,
+                  [postID]: '', // Clear comment after success
+              }));
 
-          // Clear error for this post ID
-          setCommentErrors((prevState) => ({
-              ...prevState,
-              [postID]: null,
-          }));
+              // Clear error for this post ID
+              setCommentErrors((prevState) => ({
+                  ...prevState,
+                  [postID]: '',
+              }));
 
-          // Fetch updated comments for the post
-          await fetchComments(postID);
-      } else {
-          console.error('Failed to add comment:', response.data.error);
+              fetchComments(postID);
+          } else {
+              console.error('Failed to add comment:', response.data.error);
+              Alert.alert('Error', 'Failed to add comment');
+          }
+      } catch (error) {
+          console.error('Error adding comment:', error);
           Alert.alert('Error', 'Failed to add comment');
       }
-  } catch (error) {
-      console.error('Error adding comment:', error);
-      Alert.alert('Error', 'Failed to add comment');
-  }
   };
 
   return (
@@ -444,6 +443,7 @@ const addComment = async (postID, userEmail, userComment) => {
       </View>
     </Modal>
     )}
+
   </ScrollView>
   </Keyboard>
   );

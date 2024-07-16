@@ -814,7 +814,7 @@ app.delete('/deletePost', async (req, res) => {
 
 // Delete a comment
 app.delete('/deleteComment', async (req, res) => {
-  const { postID, commentID } = req.query; // Assuming postID and commentID are passed as query parameters
+  const { postID, commentID } = req.query; 
 
   try {
     // Find the forum comment by postID

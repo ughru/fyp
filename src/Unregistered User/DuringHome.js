@@ -4,8 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import styles from '../components/styles';
 import { fetchResources } from '../components/manageResource';
 import ModalStyle from '../components/ModalStyle';
-import { storage } from '../../firebaseConfig'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {storage} from '../../firebaseConfig';
 
 const formatDate = (date) => {
   const options = { weekday: 'long', day: 'numeric', month: 'long' };
@@ -40,22 +40,22 @@ const DuringHome = ({ navigation }) => {
       }
     };
 
-  const fetchSelections = async () => {
-    try {
-      const storedSelections = await AsyncStorage.getItem('userSelections');
-      if (storedSelections !== null) {
-        const parsedSelections = JSON.parse(storedSelections);
-        setSelections(parsedSelections);
-        
-        // Check for q5 option and set it
-        if (parsedSelections.q5) {
-          setQ5Option(parsedSelections.q5);
+    const fetchSelections = async () => {
+      try {
+        const storedSelections = await AsyncStorage.getItem('userSelections');
+        if (storedSelections !== null) {
+          const parsedSelections = JSON.parse(storedSelections);
+          setSelections(parsedSelections);
+          
+          // Check for q5 option and set it
+          if (parsedSelections.q5) {
+            setQ5Option(parsedSelections.q5);
+          }
         }
+      } catch (error) {
+        console.error('Error retrieving personalisation response:', error);
       }
-    } catch (error) {
-      console.error('Error retrieving personalisation response:', error);
-    }
-  };
+    };
 
     fetchSelections();
     fetchAndSetResources();
@@ -138,7 +138,7 @@ const DuringHome = ({ navigation }) => {
 
       <View>
         <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
+           contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
           {resources.map(
             (resource, index) => (
               <View key={index} style= {{marginBottom: 20}}>

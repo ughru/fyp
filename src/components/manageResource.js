@@ -12,40 +12,49 @@ const getRandomSample = (array, sampleSize) => {
   return shuffled.slice(0, sampleSize);
 };
 
+const fetchUserSelections = async () => {
+  try {
+    const selections = await AsyncStorage.getItem('userSelections');
+    return selections ? JSON.parse(selections) : null;
+  } catch (error) {
+    console.error('Error fetching user selections:', error);
+    return null;
+  }
+};
+
 export const fetchResources = async () => {
   const currentDate = formatDate(new Date());
 
   try {
-    const storedDate = await AsyncStorage.getItem('resourceDate');
-    const storedResources = await AsyncStorage.getItem('resources');
+    // Fetch all resources
+    const response = await axios.get(`${url}/resource`);
+    let resources = response.data.resources;
 
-    if (storedDate === currentDate && storedResources) {
-      // Use stored resources
-      return JSON.parse(storedResources);
-    } else {
-      // Clear outdated data
-      await AsyncStorage.removeItem('resourceDate');
-      await AsyncStorage.removeItem('resources');
+    // Fetch user selections
+    const userSelections = await fetchUserSelections();
 
-      // Fetch new resources and store them
-      const response = await axios.get(`${url}/resourceReco`);
-
-      // If no resource exist
-      if (response.data.length === 0) {
-        // Clear storage as the database is empty
-        await AsyncStorage.removeItem('resourceDate');
-        await AsyncStorage.removeItem('resources');
-        return [];
-      }
-      
-      const randomResources = getRandomSample(response.data, 10);
-
-      // Store resources and date
-      await AsyncStorage.setItem('resourceDate', currentDate);
-      await AsyncStorage.setItem('resources', JSON.stringify(randomResources));
-
-      return randomResources;
+    // Filter resources based on user selections if q4 exists
+    if (userSelections && userSelections.q4) {
+      const selectedCategories = userSelections.q4;
+      resources = resources.filter(resource => selectedCategories.includes(resource.category));
     }
+
+    // Determine final resources to display
+    let finalResources = [];
+
+    if (userSelections && userSelections.q4) {
+      // Display all filtered resources if <= 10
+      finalResources = resources;
+    } else {
+      // Otherwise, get a random sample of 10 resources from all resources
+      finalResources = getRandomSample(resources, 10);
+    }
+
+    // Store resources and date
+    await AsyncStorage.setItem('resourceDate', currentDate);
+    await AsyncStorage.setItem('resources', JSON.stringify(finalResources));
+
+    return finalResources;
   } catch (error) {
     console.error('Error fetching resources:', error);
     return [];

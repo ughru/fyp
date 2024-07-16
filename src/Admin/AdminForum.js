@@ -133,9 +133,15 @@ const AdminForum = ({ navigation }) => {
   };
   
   const handleSelection = (action) => {
-      setDropdownVisible(false);
-      /*
-      if (action === 'delete') {
+    setDropdownVisible(false);
+    if (action === 'edit') {
+        navigation.navigate('UserUpdatePost', { postID: selectedPost.postID});
+    } else if (action === 'delete') {
+      if (Platform.OS === 'web') {
+        if (window.confirm('Are you sure you want to delete this post?')) {
+          deletePost(selectedPost.postID);
+        }
+      } else {
         Alert.alert(
           'Deletion of Post',
           'Are you sure you want to delete this post?',
@@ -146,8 +152,8 @@ const AdminForum = ({ navigation }) => {
           { cancelable: false }
         );
       }
-      */
-  };
+    }
+};
 
   const toggleCommentDropdown = (comment) => {
     setSelectedComment(comment);

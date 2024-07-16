@@ -40,15 +40,12 @@ const UserSettings  = ({navigation, selectedStatus, setSelectedStatus}) => {
   );
   
   const handleStatusSelection = async (status) => {
-    try {
-      const email = userInfo.email;
-      const response = await axios.post(`${url}/updateStatus`, { email, status });
-      if (response.data) {
-        setSelectedStatus(status);
+    setSelectedStatus(status);
 
-        // Store user selection locally
-        await AsyncStorage.setItem('selectedStatus', status);
-      }
+    try {
+      await AsyncStorage.setItem('selectedStatus', status);
+      const email = userInfo.email;
+      await axios.post(`${url}/updateStatus`, { email, status });
     } catch (error) {
       console.error('Error updating status:', error);
     }
@@ -144,7 +141,7 @@ const UserSettings  = ({navigation, selectedStatus, setSelectedStatus}) => {
         </View>
 
         <Text style= {[styles.questionText, {marginBottom: 20}]}> Others </Text>
-        <Pressable style={[styles.formText, {marginBottom: 20}]} onPress={() => navigation.navigate("Personalisation")}>
+        <Pressable style={[styles.formText, {marginBottom: 20}]} onPress={() => navigation.navigate("UserPersonalisation")}>
           <Text style={[styles.text]}> Personalisation </Text>
         </Pressable>
         <Pressable style={[styles.formText, {marginBottom: 20}]} onPress={() => navigation.navigate("Appointments")}>

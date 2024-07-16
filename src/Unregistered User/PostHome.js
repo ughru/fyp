@@ -66,7 +66,7 @@ const PostHome = ({ navigation }) => {
 
       <View>
         <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
+           contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
           {resources.map(
             (resource, index) => (
               <View key={index} style= {{marginBottom: 20}}>
