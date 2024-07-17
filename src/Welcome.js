@@ -33,7 +33,7 @@ const Welcome = ({ navigation }) => {
       </Pressable>
 
       <Pressable style={[styles.formText, { marginBottom: 20, alignSelf: 'center' }]} onPress={() => navigation.navigate("RegisterSpecialist", { origin: 'RegisterSpecialist' })}>
-        <Text>Joining as a <Text style= {{fontWeight: 'bold'}}>SPECIALIST</Text>? <Text style={styles.buttonText}>Sign up</Text></Text>
+        <Text style= {styles.text}>Joining as a <Text style= {[styles.text, {fontWeight: 'bold'}]}>SPECIALIST</Text>? <Text style={styles.buttonText}>Sign up</Text></Text>
       </Pressable>
     </View>
   );

@@ -155,57 +155,65 @@ const AdminForum = ({ navigation }) => {
     }
 };
 
-  const toggleCommentDropdown = (comment) => {
-    setSelectedComment(comment);
-    setCommentDropdownVisible(!isCommentDropdownVisible);
-  };
+const toggleCommentDropdown = (comment , forumpost) => {
+  setSelectedComment(comment);
+  setSelectedPost(forumpost);
+  setCommentDropdownVisible(!isCommentDropdownVisible);
+};
 
-  const handleCommentSelection = (action) => {
-    setCommentDropdownVisible(false);
-    if (action === 'delete') {
-      if (Platform.OS === 'web') {
-        if (window.confirm('Are you sure you want to delete this comment?')) {
-          deleteComment(selectedPost.postID, selectedComment._id);
+const handleCommentSelection = (action) => {
+  setCommentDropdownVisible(false);
+  if (action === 'delete') {
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to delete this comment?')) {
+        deleteComment(selectedPost.postID, selectedComment._id);
+      }
+    } else {
+      Alert.alert(
+        'Deletion of Comment',
+        'Are you sure you want to delete this comment?',
+        [
+            { text: 'Cancel'},
+            { text: 'Delete', onPress: () => deleteComment(selectedPost.postID, selectedComment._id)}
+        ],
+        { cancelable: false }
+      );
+    }
+  } 
+};
+
+const deleteComment = async (postID, commentID) => {
+  try {
+    const response = await axios.delete(`${url}/deleteComment`, { params: { postID, commentID } });
+
+    if (response.data.status === 'ok') {
+      Alert.alert('Success', 'Comment deleted successfully');
+      // Remove the deleted comment from visibleComments state
+      setVisibleComments(prevState => ({
+        ...prevState,
+        [postID]: prevState[postID].filter(comment => comment._id !== commentID),
+      }));
+      setCommentDropdownVisible(false);
+      
+      setForumPosts(forumPosts.map(post => {
+        if (post.postID === postID) {
+          post.commentCount -= 1;
         }
-      } else {
-        Alert.alert(
-          'Deletion of Comment',
-          'Are you sure you want to delete this comment?',
-          [
-              { text: 'Cancel'},
-              { text: 'Delete', onPress: () => deleteComment(selectedPost.postID, selectedComment._id)}
-          ],
-          { cancelable: false }
-        );
-      }
-    } 
-  };
-
-  const deleteComment = async (postID, commentID) => {
-    try {
-      const response = await axios.delete(`${url}/deleteComment`, { params: { postID, commentID } });
-
-      if (response.data.status === 'ok') {
-        Alert.alert('Success', 'Comment deleted successfully');
-        // Remove the deleted comment from visibleComments state
-        setVisibleComments(prevState => ({
-          ...prevState,
-          [postID]: prevState[postID].filter(comment => comment._id !== commentID),
-        }));
-        setCommentDropdownVisible(false);
-      } else {
-        console.error('Failed to delete comment:', response.data.error);
-        Alert.alert('Error', 'Failed to delete comment');
-      }
-    } catch (error) {
-      console.error('Error deleting comment:', error);
+        return post;
+      }))
+    } else {
+      console.error('Failed to delete comment:', response.data.error);
       Alert.alert('Error', 'Failed to delete comment');
     }
-  };
+  } catch (error) {
+    console.error('Error deleting comment:', error);
+    Alert.alert('Error', 'Failed to delete comment');
+  }
+};
 
-  const handleCategoryButtonClick = (category) => {
-    setActiveButton(category);
-  };
+const handleCategoryButtonClick = (category) => {
+  setActiveButton(category);
+};
 
   return (
   <Keyboard>
@@ -293,37 +301,37 @@ const AdminForum = ({ navigation }) => {
 
           {/* Comments */}
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-              <TouchableHighlight
-                underlayColor={Platform.OS === 'web' ? 'transparent' : '#cccccc'}
-                style={styles.commentsIcon}
-                onPress={() => toggleCommentsVisibility(post.postID)}
-              >
-                <Feather name="message-circle" size={24} color="black" style={styles.commentsIcon} />
-              </TouchableHighlight>
-              <TouchableHighlight
-                underlayColor={Platform.OS === 'web' ? 'transparent' : '#cccccc'}
-                style={styles.commentsIcon}
-                onPress={() => toggleCommentsVisibility(post.postID)}
-              >
-                {post.commentCount === 0 ? (
-                  <Text style={styles.formText}>No replies yet</Text>
-                ) : post.commentCount === 1 ? (
-                  <Text style={styles.formText}>view {post.commentCount} reply</Text>
-                ) : (
-                  <Text style={styles.formText}>view {post.commentCount} replies</Text>
-                )}
-              </TouchableHighlight>
+            <TouchableHighlight
+              underlayColor={Platform.OS === 'web' ? 'transparent' : '#cccccc'}
+              style={styles.commentsIcon}
+              onPress={() => toggleCommentsVisibility(post.postID)}
+            >
+              <Feather name="message-circle" size={24} color="black" style={styles.commentsIcon} />
+            </TouchableHighlight>
+            <TouchableHighlight
+              underlayColor={Platform.OS === 'web' ? 'transparent' : '#cccccc'}
+              style={styles.commentsIcon}
+              onPress={() => toggleCommentsVisibility(post.postID)}
+            >
+              {post.commentCount === 0 ? (
+                <Text style={styles.formText}>No replies yet</Text>
+              ) : post.commentCount === 1 ? (
+                <Text style={styles.formText}>view {post.commentCount} reply</Text>
+              ) : (
+                <Text style={styles.formText}>view {post.commentCount} replies</Text>
+              )}
+            </TouchableHighlight>
           </View>
           <View>
           {visibleComments[post.postID] && visibleComments[post.postID].map((comment, commentIndex) => (
-            <View key={commentIndex} style={[styles.container3, {marginLeft: 20, marginBottom: 20}]}>
+            <View key={commentIndex} style={[styles.container4, {marginLeft: 20, marginBottom: 20, marginRight:10}]}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
                 <Text style={[styles.text3, { flex: 1, marginBottom: 10 }]}>{comment.userInfo.firstName} {comment.userInfo.lastName}</Text>
-                <Text style={[styles.formText, {marginLeft: 20}]}>{formatDate(comment.date)} </Text>
+                <Text style={[styles.formText, {marginBottom: 8, marginLeft: 20}]}>{formatDate(comment.date)} </Text>
                 <TouchableHighlight
-                  style={[styles.iconContainer, {marginLeft: 15}]}
+                  style={[styles.iconContainer, {marginBottom: 8, marginLeft: 15}]}
                   underlayColor={Platform.OS === 'web' ? 'transparent' : '#e0e0e0'}
-                  onPress={() => toggleCommentDropdown(comment)}>
+                  onPress={() => toggleCommentDropdown(comment, post)}>
                   <Entypo name="dots-three-vertical" size={16} />
                 </TouchableHighlight>
               </View>

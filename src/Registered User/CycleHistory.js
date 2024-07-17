@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, Pressable, ScrollView, Platform, Alert } from 'react-native';
 import styles from '../components/styles';
 import Keyboard from '../components/Keyboard';
@@ -7,7 +8,6 @@ import { Calendar } from 'react-native-calendars';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import url from '../components/config';
-import { useFocusEffect } from '@react-navigation/native';
 
 const CycleHistory = ({ navigation }) => {
   const today = new Date();

@@ -194,62 +194,69 @@ const UserForum = ({ navigation }) => {
       }
   };
 
-  const toggleCommentDropdown = (comment) => {
+  const toggleCommentDropdown = (comment, forumPost) => {
     setSelectedComment(comment);
+    setSelectedPost(forumPost);
     setCommentDropdownVisible(!isCommentDropdownVisible);
   };
 
-const handleCommentSelection = (action) => {
-  setCommentDropdownVisible(false);
-  if (action === 'delete') {
-    if (Platform.OS === 'web') {
-      if (window.confirm('Are you sure you want to delete this comment?')) {
-        deleteComment(selectedPost.postID, selectedComment._id);
+  const handleCommentSelection = (action) => {
+    setCommentDropdownVisible(false);
+    if (action === 'delete') {
+      if (Platform.OS === 'web') {
+        if (window.confirm('Are you sure you want to delete this comment?')) {
+          deleteComment(selectedPost.postID, selectedComment._id);
+        }
+      } else {
+        Alert.alert(
+          'Deletion of Comment',
+          'Are you sure you want to delete this comment?',
+          [
+            { text: 'Cancel' },
+            { text: 'Delete', onPress: () => deleteComment(selectedPost.postID, selectedComment._id) }
+          ],
+          { cancelable: false }
+        );
       }
-    } else {
-      Alert.alert(
-        'Deletion of Comment',
-        'Are you sure you want to delete this comment?',
-        [
-            { text: 'Cancel'},
-            { text: 'Delete', onPress: () => deleteComment(selectedPost.postID, selectedComment._id)}
-        ],
-        { cancelable: false }
-      );
-    }
-  } else if (action === 'report') {
+    } else if (action === 'report') {
       Alert.alert('Report functionality is not implemented yet.');
-  }
-};
+    }
+  };
 
-const deleteComment = async (postID, commentID) => {
-  try {
-    const response = await axios.delete(`${url}/deleteComment`, { params: { postID, commentID } });
+  const deleteComment = async (postID, commentID) => {
+    try {
+      const response = await axios.delete(`${url}/deleteComment`, { params: { postID, commentID } });
 
-    if (response.data.status === 'ok') {
-      Alert.alert('Success', 'Comment deleted successfully');
-      // Remove the deleted comment from visibleComments state
-      setVisibleComments(prevState => ({
-        ...prevState,
-        [postID]: prevState[postID].filter(comment => comment._id !== commentID),
-      }));
-      setCommentDropdownVisible(false);
-    } else {
-      console.error('Failed to delete comment:', response.data.error);
+      if (response.data.status === 'ok') {
+        Alert.alert('Success', 'Comment deleted successfully');
+        // Remove the deleted comment from visibleComments state
+        setVisibleComments(prevState => ({
+          ...prevState,
+          [postID]: prevState[postID].filter(comment => comment._id !== commentID),
+        }));
+        setForumPosts(forumPosts.map(post => {
+          if (post.postID === postID) {
+            post.commentCount -= 1;
+          }
+          return post;
+        }))
+        setCommentDropdownVisible(false);
+      } else {
+        console.error('Failed to delete comment:', response.data.error);
+        Alert.alert('Error', 'Failed to delete comment');
+      }
+    } catch (error) {
+      console.error('Error deleting comment:', error);
       Alert.alert('Error', 'Failed to delete comment');
     }
-  } catch (error) {
-    console.error('Error deleting comment:', error);
-    Alert.alert('Error', 'Failed to delete comment');
-  }
-};
-  
-const handleCommentTextChange = (postID, text) => {
+  };
+
+  const handleCommentTextChange = (postID, text) => {
     setCommentText((prevState) => ({
-        ...prevState,
-        [postID]: text,
+      ...prevState,
+      [postID]: text,
     }));
-};
+  };
 
 const handleCategoryButtonClick = (category) => {
   setActiveButton(category);
@@ -257,42 +264,50 @@ const handleCategoryButtonClick = (category) => {
 
 const addComment = async (postID, userEmail, userComment) => {
   try {
-      if (!commentText[postID]?.trim()) {
-          setCommentErrors((prevState) => ({
-              ...prevState,
-              [postID]: '  * Comment cannot be empty\n',
-          }));
-          return;
-      }
+    if (!commentText[postID]?.trim()) {
+      setCommentErrors((prevState) => ({
+        ...prevState,
+        [postID]: '  * Comment cannot be empty\n',
+      }));
+      return;
+    }
 
-      const response = await axios.post(`${url}/addComment`, {
-          postID,
-          userEmail,
-          userComment,
-          dateCreated: new Date(),
-      });
+    const response = await axios.post(`${url}/addComment`, {
+      postID,
+      userEmail,
+      userComment,
+      dateCreated: new Date(),
+    });
 
-      if (response.data.status === 'ok') {
-          setCommentText((prevState) => ({
-              ...prevState,
-              [postID]: '', // Clear comment after success
-          }));
+    if (response.data.status === 'ok') {
+      setCommentText((prevState) => ({
+        ...prevState,
+        [postID]: '', // Clear comment after success
+      }));
 
-          // Clear error for this post ID
-          setCommentErrors((prevState) => ({
-              ...prevState,
-              [postID]: null,
-          }));
+      // Clear error for this post ID
+      setCommentErrors((prevState) => ({
+        ...prevState,
+        [postID]: null,
+      }));
 
-          // Fetch updated comments for the post
-          await fetchComments(postID);
-      } else {
-          console.error('Failed to add comment:', response.data.error);
-          Alert.alert('Error', 'Failed to add comment');
-      }
-  } catch (error) {
-      console.error('Error adding comment:', error);
+      // Fetch updated comments for the post
+      await fetchComments(postID);
+      
+      // Update comment count for the post
+      setForumPosts(forumPosts.map(post => {
+        if (post.postID === postID) {
+          post.commentCount += 1;
+        }
+        return post;
+      }))
+    } else {
+      console.error('Failed to add comment:', response.data.error);
       Alert.alert('Error', 'Failed to add comment');
+    }
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    Alert.alert('Error', 'Failed to add comment');
   }
 };
 
@@ -424,44 +439,44 @@ return (
 
       {/* Comments */}
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-          <TouchableHighlight
-            underlayColor={Platform.OS === 'web' ? 'transparent' : '#cccccc'}
-            style={styles.commentsIcon}
-            onPress={() => toggleCommentsVisibility(post.postID)}
-          >
-            <Feather name="message-circle" size={24} color="black" style={styles.commentsIcon} />
-          </TouchableHighlight>
-          <TouchableHighlight
-            underlayColor={Platform.OS === 'web' ? 'transparent' : '#cccccc'}
-            style={styles.commentsIcon}
-            onPress={() => toggleCommentsVisibility(post.postID)}
-          >
-            {post.commentCount === 0 ? (
-              <Text style={styles.formText}>No replies yet</Text>
-            ) : post.commentCount === 1 ? (
-              <Text style={styles.formText}>view {post.commentCount} reply</Text>
-            ) : (
-              <Text style={styles.formText}>view {post.commentCount} replies</Text>
-            )}
-          </TouchableHighlight>
+        <TouchableHighlight
+          underlayColor={Platform.OS === 'web' ? 'transparent' : '#cccccc'}
+          style={styles.commentsIcon}
+          onPress={() => toggleCommentsVisibility(post.postID)}
+        >
+          <Feather name="message-circle" size={24} color="black" style={styles.commentsIcon} />
+        </TouchableHighlight>
+        <TouchableHighlight
+          underlayColor={Platform.OS === 'web' ? 'transparent' : '#cccccc'}
+          style={styles.commentsIcon}
+          onPress={() => toggleCommentsVisibility(post.postID)}
+        >
+          {post.commentCount === 0 ? (
+            <Text style={styles.formText}>No replies yet</Text>
+          ) : post.commentCount === 1 ? (
+            <Text style={styles.formText}>view {post.commentCount} reply</Text>
+          ) : (
+            <Text style={styles.formText}>view {post.commentCount} replies</Text>
+          )}
+        </TouchableHighlight>
       </View>
       <View>
-        {visibleComments[post.postID] && visibleComments[post.postID].map((comment, commentIndex) => (
-        <View key={commentIndex} style={[styles.container3, {marginLeft: 20, marginBottom: 20}]}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-            <Text style={[styles.text3, {flex: 1, marginBottom: 10}]}>{comment.userInfo.firstName} {comment.userInfo.lastName} </Text>
-            <Text style={[styles.formText, {marginLeft: 20}]}>{formatDate(comment.date)} </Text>
-            <TouchableHighlight
-              style={[styles.iconContainer, {marginLeft: 15}]}
-              underlayColor={Platform.OS === 'web' ? 'transparent' : '#e0e0e0'}
-              onPress={() => toggleCommentDropdown(comment)}>
-              <Entypo name="dots-three-vertical" size={16} />
-            </TouchableHighlight>
+      {visibleComments[post.postID] && visibleComments[post.postID].map((comment, commentIndex) => (
+          <View key={commentIndex} style={[styles.container4, { marginLeft: 20, marginRight: 10, marginBottom: 20 }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+              <Text style={[styles.text3, { flex: 1, marginBottom: 10 }]}>{comment.userInfo.firstName} {comment.userInfo.lastName} </Text>
+              <Text style={[styles.formText, { marginLeft: 20 }]}>{formatDate(comment.date)} </Text>
+              <TouchableHighlight
+                style={[styles.iconContainer, { marginLeft: 15 }]}
+                underlayColor={Platform.OS === 'web' ? 'transparent' : '#e0e0e0'}
+                onPress={() => toggleCommentDropdown(comment, post)}>
+                <Entypo name="dots-three-vertical" size={16} />
+              </TouchableHighlight>
+            </View>
+            <Text style={[styles.text]}>{comment.userComment}</Text>
           </View>
-          <Text style={[styles.text]}>{comment.userComment}</Text>
+          ))}
         </View>
-        ))}
-      </View>
       <View>{commentErrors[post.postID] && <Text style={styles.error}>{commentErrors[post.postID]}</Text>}</View>
       <View style={[styles.search, { paddingBottom: 10}]}>
         <TextInput
@@ -484,38 +499,38 @@ return (
 
   {/* Comment Modal */}
   {isCommentDropdownVisible && selectedComment && (
-  <Modal
-    transparent={true}
-    animationType="fade"
-    visible={isCommentDropdownVisible}
-    onRequestClose={() => setCommentDropdownVisible(false)}
-  >
-    <View style={[styles.modalOverlay, { justifyContent: 'flex-end' }]}>
-      <View style={{ width: '90%', backgroundColor: '#E3C2D7', borderRadius: 10, padding: 20 }}>
-        <Pressable style={{ marginLeft: 'auto' }} onPress={() => setCommentDropdownVisible(false)}>
-          <Feather name="x" size={24} color="black" />
-        </Pressable>
-        {/* Selections */}
-        {selectedComment && selectedComment.userEmail === userEmail ? (
-          <>
+    <Modal
+      transparent={true}
+      animationType="fade"
+      visible={isCommentDropdownVisible}
+      onRequestClose={() => setCommentDropdownVisible(false)}
+    >
+      <View style={[styles.modalOverlay, { justifyContent: 'flex-end' }]}>
+        <View style={{ width: '90%', backgroundColor: '#E3C2D7', borderRadius: 10, padding: 20 }}>
+          <Pressable style={{ marginLeft: 'auto' }} onPress={() => setCommentDropdownVisible(false)}>
+            <Feather name="x" size={24} color="black" />
+          </Pressable>
+          {/* Selections */}
+          {selectedComment && selectedComment.userEmail === userEmail ? (
+            <>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+                <MaterialIcons name="delete-outline" size={24} color="black" />
+                <Pressable style={{ marginLeft: 10 }} onPress={() => handleCommentSelection('delete')}>
+                  <Text style={styles.text}>Delete Comment</Text>
+                </Pressable>
+              </View>
+            </>
+          ) : (
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-              <MaterialIcons name="delete-outline" size={24} color="black" />
-              <Pressable style={{ marginLeft: 10 }} onPress={() => handleCommentSelection('delete')}>
-                <Text style={styles.text}>Delete Comment</Text>
+              <MaterialIcons name="report" size={24} color="black" />
+              <Pressable style={{ marginLeft: 10 }} onPress={() => handleCommentSelection('report')}>
+                <Text style={styles.text}>Report Comment</Text>
               </Pressable>
             </View>
-          </>
-        ) : (
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-            <MaterialIcons name="report" size={24} color="black" />
-            <Pressable style={{ marginLeft: 10 }} onPress={() => handleCommentSelection('report')}>
-              <Text style={styles.text}>Report Comment</Text>
-            </Pressable>
-          </View>
-        )}
+          )}
+        </View>
       </View>
-    </View>
-  </Modal>
+    </Modal>
   )}
 
   </ScrollView>

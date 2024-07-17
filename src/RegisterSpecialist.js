@@ -319,7 +319,7 @@ const RegisterSpecialist = ({ navigation }) => {
         </Pressable>
 
         <Pressable style={[styles.formText, { marginBottom: 20, alignSelf: 'center' }]} onPress={() => navigation.navigate("Login", { origin: 'RegisterSpecialist' })}>
-          <Text>Already have an account? <Text style={styles.buttonText}>Login</Text></Text>
+          <Text style= {styles.text}>Already have an account? <Text style={styles.buttonText}>Login</Text></Text>
         </Pressable>
       </ScrollView>
     </Keyboard>

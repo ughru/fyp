@@ -18,7 +18,7 @@ mongoose.connect(mongoUrl).then(()=> {
 require('./UserDetails');
 require('./ResourceDetail');
 require('./ForumDetail');
-//require('./AppointmentDetail');
+require('./AppointmentDetail');
 require('./Ads');
 require('./UserFunctions');
 
@@ -35,6 +35,8 @@ const WeightLog = mongoose.model('weightLog');
 const PeriodLog = mongoose.model('periodLog');
 const Personalisation = mongoose.model('personalisation');
 const Specialisation = mongoose.model('specialisation');
+const SpecialistAppointment = mongoose.model('specialistAppointment');
+const Appointment = mongoose.model('appointment');
 
 // Function to get a random sample from an array
 function getRandomSample(array, sampleSize) {
@@ -1374,6 +1376,61 @@ app.delete('/deleteSpecialistAd', async (req, res) => {
   } catch (err) {
     console.error('Error deleting ad:', err);
     res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/* **********************************************
+*************************************************
+   APPOINTMENTS
+*************************************************
+************************************************/
+//get appointment
+app.get('/getAppointments', async (req, res) => {
+  const { userEmail, date } = req.query;
+
+  if (!userEmail || !date) {
+    return res.status(400).json({ msg: 'Please provide userEmail and date' });
+  }
+
+  try {
+    const appointment = await SpecialistAppointment.find({ userEmail, date });
+
+    // Return an empty array if no records are found
+    res.json(appointment || []);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// add appointment (specialist)
+app.post('/appointments', async (req, res) => {
+  const { userEmail, date, appointment } = req.body;
+
+  try {
+    // Find if an appointment document with the same userEmail and date already exists
+    const existingAppointment = await SpecialistAppointment.findOne({ userEmail, date });
+
+    if (existingAppointment) {
+      // If an existing document is found, push the new appointment into the appointment array
+      existingAppointment.appointment.push(...appointment);
+      const updatedAppointment = await existingAppointment.save();
+      res.status(201).json(updatedAppointment);
+    } else {
+      // If no existing document is found, create a new appointment instance
+      const newAppointment = new SpecialistAppointment({
+        userEmail,
+        date,
+        appointment,
+      });
+
+      // Save the new appointment document to the database
+      const savedAppointment = await newAppointment.save();
+      res.status(201).json(savedAppointment);
+    }
+  } catch (error) {
+    console.error('Error saving appointment:', error);
+    res.status(500).json({ error: 'Error saving appointment' });
   }
 });
 

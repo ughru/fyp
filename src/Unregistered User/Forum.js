@@ -263,7 +263,7 @@ const Forum = ({ navigation }) => {
                       <Text style={[styles.text3, {flex: 1, marginBottom: 10}]}>
                         {comment.userInfo.firstName} {comment.userInfo.lastName}
                       </Text>
-                      <Text style={[styles.formText, {marginRight: 20}]}>{formatDate(comment.date)} </Text>
+                      <Text style={[styles.formText, {marginBottom:8, marginRight: 20}]}>{formatDate(comment.date)} </Text>
                     </View>
                     <Text style={[styles.text]}>{comment.userComment}</Text>
                   </View>
