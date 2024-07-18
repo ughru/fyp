@@ -165,23 +165,21 @@ const UserAppointments = ({ navigation }) => {
         ) : (
           <ScrollView>
           {appointments.map((appointment, index) => (
-          <View key={index} style={{ marginBottom: 20 }}>
+          <View key={index}>
             {appointment.details.map((detail, detailIndex) => (
-            <View key={detailIndex} style= {{justifyContent: 'center', alignItems: 'center'}}>
-              <View style={{ marginTop: 10, width: '85%', borderWidth: 2, borderColor: '#E3C2D7', borderRadius: 20, padding: 15, marginBottom: 20 }}>
+            <View key={detailIndex} style= {{justifyContent: 'center', alignItems: 'center', marginBottom: 20}}>
+              <View style={{ marginTop: 10, width: '90%', borderWidth: 2, borderColor: '#E3C2D7', borderRadius: 20, padding: 15}}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', paddingRight: 10 }}>
                 {specialistDetails[appointment.specialistEmail] && (
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: 10 }}>
-                    <View style={{flexDirection: 'row', alignItems: 'center' }}>
+                    <View style={{flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                       <Text style={[styles.text3, { marginBottom: 10 }]}>Dr. {specialistDetails[appointment.specialistEmail]?.firstName} {specialistDetails[appointment.specialistEmail]?.lastName}</Text>
                       <Text style={[styles.text3, { marginBottom: 10 }]}> • {specialistDetails[appointment.specialistEmail]?.specialisation}</Text>
                     </View>
-                    <View style={{ marginLeft: 50 }}>
-                      <TouchableHighlight style={[styles.iconContainer, { marginBottom: 10 }]}
-                        underlayColor={Platform.OS === 'web' ? 'transparent' : '#e0e0e0'}>
-                        <Entypo name="dots-three-vertical" size={16} />
-                      </TouchableHighlight>
-                    </View>
+                    <TouchableHighlight style={[styles.iconContainer, { marginBottom: 10 }]}
+                      underlayColor={Platform.OS === 'web' ? 'transparent' : '#e0e0e0'}>
+                      <Entypo name="dots-three-vertical" size={16} />
+                    </TouchableHighlight>
                   </View>
                   )}
                 </View>

@@ -95,12 +95,12 @@ const ViewSchedule = ({ navigation }) => {
         // Determine the selected color based on existing appointments
         const selectedColor = hasExistingAppointments ? '#C2D7E3' : '#d470af';
 
+        if (hasExistingAppointments) {
         // Check if the selected date is already selected
         if (selectedDay === selectedDate) {
             // If clicking on the already selected date, unselect it
             setSelectedDate('');
             setShowAppointmentSelection(false);
-            // Restore existing marked dates
             setMarkedDates({
                 ...existing,
             });
@@ -124,7 +124,7 @@ const ViewSchedule = ({ navigation }) => {
 
             setSelectedDate(selectedDay); // Set the selected date state
             setShowAppointmentSelection(true); // Show appointment selection section
-        }
+        }}
     };
 
     return (

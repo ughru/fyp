@@ -1451,6 +1451,20 @@ app.get('/bookedAppt', async (req, res) => {
   }
 });
 
+// get booked appointment for display (specialist)
+app.get('/bookedAppt2', async (req, res) => {
+  const { specialistEmail } = req.query;
+  try {
+      // Fetch appointments based on specialistEmail and date (month year format)
+      const appointments = await Appointment.find({ specialistEmail });
+
+      res.status(200).json(appointments);
+  } catch (error) {
+      console.error('Error fetching appointments:', error);
+      res.status(500).json({ error: 'Failed to fetch appointments' });
+  }
+});
+
 //get appointment
 app.get('/getAppointments', async (req, res) => {
   const { userEmail, date } = req.query;
