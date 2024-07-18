@@ -150,6 +150,15 @@ export const styles = StyleSheet.create({
         borderColor: '#E3C2D7',
         marginRight: 10,
     },
+    disabledButton: {
+        backgroundColor: '#ccc',
+        color: '#666',
+        opacity: 0.5,
+    },
+    bookedButton: {
+        backgroundColor: 'yellow',
+        color: 'black',
+    },
     defaultButton: {
         borderColor: '#E3C2D7',
         backgroundColor: 'transparent',

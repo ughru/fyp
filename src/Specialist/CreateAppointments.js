@@ -58,18 +58,28 @@ const CreateAppointments = ({ navigation }) => {
       const response = await axios.get(`${url}/getAppointments`, {
         params: { userEmail, date: monthString }
       });
-
+  
       if (response.status === 200) {
         const fetchedAppointments = response.data;
-
-        // Mark the fetched appointments on the calendar
+        const today = moment().startOf('day'); // Start of today's date
         const newMarkedDates = {};
-        fetchedAppointments.forEach(appointment => {
-          appointment.appointment.forEach(appt => {
-            newMarkedDates[appt.date] = { selected: true, selectedColor: '#C2D7E3' };
-          });
-        });
-
+  
+        for (const appointment of fetchedAppointments) {
+          for (const appt of appointment.appointment) {
+            const appointmentDate = moment(appt.date);
+  
+            if (appointmentDate.isBefore(today)) {
+              // If the appointment date is before today, delete it from the database
+              await axios.delete(`${url}/deleteAppointments`, {
+                data: { userEmail, date: appt.date }
+              });
+            } else {
+              // Otherwise, mark it on the calendar
+              newMarkedDates[appt.date] = { selected: true, selectedColor: '#C2D7E3' };
+            }
+          }
+        }
+  
         setMarkedDates(newMarkedDates); // Set marked dates initially
         setExisting(newMarkedDates); // Store existing appointments separately
         setExistingAppointments(fetchedAppointments);
@@ -79,7 +89,7 @@ const CreateAppointments = ({ navigation }) => {
       Alert.alert('Error', 'Failed to fetch existing appointments');
     }
   }, []);
-
+  
   useFocusEffect(
     useCallback(() => {
       if (userEmail) {

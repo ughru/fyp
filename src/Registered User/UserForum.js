@@ -334,10 +334,8 @@ return (
             style={{ width: 300, height: 200 }}>
             {/* Image */}
             <View style={{ ...StyleSheet.absoluteFillObject }}>
-              <Image
-                source={{ uri: url }}
-                style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'contain' }}
-              />
+              <Image source={{ uri: url }}
+                style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'contain' }}/>
             </View>
           </TouchableOpacity>
         ))}
@@ -465,9 +463,9 @@ return (
           <View key={commentIndex} style={[styles.container4, { marginLeft: 20, marginRight: 10, marginBottom: 20 }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
               <Text style={[styles.text3, { flex: 1, marginBottom: 10 }]}>{comment.userInfo.firstName} {comment.userInfo.lastName} </Text>
-              <Text style={[styles.formText, { marginLeft: 20 }]}>{formatDate(comment.date)} </Text>
+              <Text style={[styles.formText, { marginBottom: 8, marginLeft: 20 }]}>{formatDate(comment.date)} </Text>
               <TouchableHighlight
-                style={[styles.iconContainer, { marginLeft: 15 }]}
+                style={[styles.iconContainer, { marginBottom: 8, marginLeft: 15 }]}
                 underlayColor={Platform.OS === 'web' ? 'transparent' : '#e0e0e0'}
                 onPress={() => toggleCommentDropdown(comment, post)}>
                 <Entypo name="dots-three-vertical" size={16} />

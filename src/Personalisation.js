@@ -509,35 +509,24 @@ const Personalisation = ({navigation}) => {
   const handleStatusSelection = async (status) => {
     // Determine the status to store, defaulting to "Pre" if empty
     let statusToStore = status !== '' ? status : 'Pre';
-  
-    try {
-      // Check if selectedStatus already exists in AsyncStorage
-      const storedStatus = await AsyncStorage.getItem('selectedStatus');
-      if (storedStatus !== null) {
-        // If it exists, update statusToStore with the stored value
-        statusToStore = storedStatus;
-      }
-    } catch (error) {
-      console.error('Error retrieving selected status from AsyncStorage:', error);
-    }
-  
+
     // Update selectedStatus state
     setSelectedStatus(statusToStore);
-  
+
     // Store user selection locally
     try {
-      await AsyncStorage.setItem('selectedStatus', statusToStore);
+        await AsyncStorage.setItem('selectedStatus', statusToStore);
     } catch (error) {
-      console.error('Error storing selected status in AsyncStorage:', error);
+        console.error('Error storing selected status in AsyncStorage:', error);
     }
-  
+
     // Navigate to the next question or home page
     if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
+        setCurrentQuestion(currentQuestion + 1);
     } else {
-      navigation.navigate("HomePage");
+        navigation.navigate("HomePage");
     }
-  };  
+};
   
   const handleCategorySelection = (categoryName) => {
     const updatedCategories = selectedCategories.includes(categoryName)

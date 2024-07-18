@@ -147,17 +147,39 @@ const UserDuringHome = ({navigation}) => {
 
     <View style={[styles.container4, { marginBottom: 20}]}>
     <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 20}}>
-          {imageUrl && <Image source={{ uri: imageUrl }} style={{ width: 98, height: 120}} />}
-          <View style={{marginLeft: 30}}>
-            <Text style={[styles.formText, { marginBottom: 10 }]}>You are Pregnant for</Text>
-            <Text style={[styles.questionText, { marginBottom: 20 }]}>
-              {conceptionWeek !== '' ? `${conceptionWeek} weeks` : '- weeks'}
-            </Text>
-            <Pressable style={[styles.button3]} onPress={() => navigation.navigate('Details')}>
-              <Text style={styles.text}>Details</Text>
-            </Pressable>
-          </View>
-        </View>
+      {imageUrl && <Image source={{ uri: imageUrl }} style={{ width: 98, height: 120}} />}
+      <View style={{marginLeft: 30}}>
+        <Text style={[styles.formText, { marginBottom: 10 }]}>You are Pregnant for</Text>
+        <Text style={[styles.questionText, { marginBottom: 20 }]}>
+          {conceptionWeek !== '' ? `${conceptionWeek} weeks` : '- weeks'}
+        </Text>
+        
+        <Pressable style={[styles.button3]}
+          onPress={async () => {
+            if (conceptionWeek === '') {
+              navigation.navigate('Resources', { category: 'Pregnancy Summary' });
+            } else {
+              try {
+                const response = await axios.get(`${url}/resource`);
+                const resources = response.data.resources;
+                const resourceForWeek = resources.find(
+                  (resource) =>
+                    resource.category === 'Pregnancy Summary' &&
+                    resource.weekNumber == conceptionWeek // Adjusted comparison for numerical week number
+                );
+                if (resourceForWeek) {
+                  navigation.navigate('UserResourceInfo', { resourceID: resourceForWeek.resourceID });
+                } else {
+                  // Handle case where no resource is found for the given week
+                  console.error('No resource found for the given week');
+                }
+              } catch (error) {
+                console.error('Error fetching resources:', error);
+              }}}}>
+          <Text style={styles.text}>Details</Text>
+        </Pressable>
+      </View>
+    </View>
 
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
         <Ionicons name="scale-outline" size={24} color="black" />

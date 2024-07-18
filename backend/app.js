@@ -1384,6 +1384,73 @@ app.delete('/deleteSpecialistAd', async (req, res) => {
    APPOINTMENTS
 *************************************************
 ************************************************/
+// book an appointment (user)
+app.post('/saveAppointment', async (req, res) => {
+  try {
+      const { date, userEmail, specialistEmail, appointmentDetails } = req.body;
+
+      // Find the existing appointment record for the given user, specialist, and month
+      let appointmentRecord = await Appointment.findOne({ userEmail, specialistEmail, date });
+
+      if (!appointmentRecord) {
+          // If no record exists, create a new one
+          const apptID = await Appointment.countDocuments() + 1;
+
+          appointmentRecord = new Appointment({
+              apptID,
+              date,
+              userEmail,
+              specialistEmail,
+              details: []
+          });
+      }
+
+      // Add the new appointment details to the details array
+      appointmentRecord.details.push(appointmentDetails);
+
+      // Save the appointment record
+      await appointmentRecord.save();
+
+      res.status(200).json({ message: 'Appointment saved successfully', appointment: appointmentRecord });
+  } catch (error) {
+      console.error('Error saving appointment:', error);
+      res.status(500).json({ message: 'Failed to save appointment', error });
+  }
+});
+
+// get booked appointment (to prevent selection/booking)
+app.get('/getBookedAppointments', async (req, res) => {
+  const { specialistEmail, date } = req.query;
+  try {
+      // Fetch appointments based on specialistEmail and date (month year format)
+      const appointments = await Appointment.find({ specialistEmail, date });
+
+      // Filter appointments to get only 'Upcoming' ones
+      const bookedAppointments = appointments.filter(appointment =>
+          appointment.details.some(appt => appt.status === 'Upcoming')
+      );
+
+      res.status(200).json(bookedAppointments);
+  } catch (error) {
+      console.error('Error fetching appointments:', error);
+      res.status(500).json({ error: 'Failed to fetch appointments' });
+  }
+});
+
+// get booked appointment for display (user)
+app.get('/bookedAppt', async (req, res) => {
+  const { userEmail } = req.query;
+  try {
+      // Fetch appointments based on specialistEmail and date (month year format)
+      const appointments = await Appointment.find({ userEmail });
+
+      res.status(200).json(appointments);
+  } catch (error) {
+      console.error('Error fetching appointments:', error);
+      res.status(500).json({ error: 'Failed to fetch appointments' });
+  }
+});
+
 //get appointment
 app.get('/getAppointments', async (req, res) => {
   const { userEmail, date } = req.query;
@@ -1403,7 +1470,7 @@ app.get('/getAppointments', async (req, res) => {
   }
 });
 
-// add appointment (specialist)
+// add appointment slots (specialist)
 app.post('/appointments', async (req, res) => {
   const { userEmail, date, appointment } = req.body;
 
@@ -1431,6 +1498,23 @@ app.post('/appointments', async (req, res) => {
   } catch (error) {
     console.error('Error saving appointment:', error);
     res.status(500).json({ error: 'Error saving appointment' });
+  }
+});
+
+// delete existing appointment slots if past (specialist)
+app.delete('/deleteAppointments', async (req, res) => {
+  try {
+    const { userEmail, date } = req.body;
+    const result = await SpecialistAppointment.updateOne(
+      { userEmail, 'appointment.date': date },
+      { $pull: { appointment: { date } } }
+    );
+    if (result.nModified === 0) {
+      return res.status(404).send({ message: 'No appointments found for the given date' });
+    }
+    res.status(200).send({ message: 'Appointments deleted successfully' });
+  } catch (err) {
+    res.status(500).send(err);
   }
 });
 

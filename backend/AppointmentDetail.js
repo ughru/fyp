@@ -19,15 +19,21 @@ const SpecialistAppointmentSchema = new mongoose.Schema(
 const AppointmentSchema = new mongoose.Schema(
 {
     apptID: {type: Number},
+    date: {type: String}, // Month Year e.g. July 2024
     userEmail: {type: String},
-    specialistInfo: {type: String},
+    specialistEmail: {type: String},
     details: [{
-        date: {type: String},
+        date: {type: String}, 
         time: {type: String},
-        status: {type: String}
+        status: {type: String}, 
+        userComments: {type: String}, 
+        specialistNotes: {type: String} 
     }]
+},
+{
+    collection: "Appointment"
 }
-)
+);
 
 mongoose.model("specialistAppointment", SpecialistAppointmentSchema);
 mongoose.model("appointment", AppointmentSchema);

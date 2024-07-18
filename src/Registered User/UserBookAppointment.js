@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, Pressable, ScrollView, Platform, Alert } from 'react-native';
+import { View, Text, Pressable, ScrollView, Platform, Alert, TextInput } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AntDesign } from '@expo/vector-icons';
@@ -10,6 +10,7 @@ import moment from 'moment';
 // import own code
 import styles from '../components/styles';
 import url from '../components/config';
+import Keyboard from '../components/Keyboard';
 
 const UserCreateAppointment = ({ navigation }) => {
     const [userEmail, setUserEmail] = useState('');
@@ -19,6 +20,7 @@ const UserCreateAppointment = ({ navigation }) => {
     const [minDate, setMinDate] = useState(moment().format('YYYY-MM-DD'));
     const [showAppointmentSelection, setShowAppointmentSelection] = useState(false);
     const [existingAppointments, setExistingAppointments] = useState([]);
+    const [bookedAppointments, setBookedAppointments] = useState([]);
     const [existing, setExisting] = useState({});
 
     const [selectedCategory, setSelectedCategory] = useState(null);
@@ -27,6 +29,7 @@ const UserCreateAppointment = ({ navigation }) => {
     const [selectedDate, setSelectedDate] = useState('');
     const [currentMonth, setCurrentMonth] = useState('');
     const [selectedTime, setSelectedTime] = useState(null);
+    const [userComments, setUserComments] = useState('');
     const scrollRef = useRef(null);
 
     const fetchSpecialisations = useCallback(async () => {
@@ -69,8 +72,18 @@ const UserCreateAppointment = ({ navigation }) => {
                 setExistingAppointments(fetchedAppointments);
             }
         } catch (error) {
-            console.error('Error fetching existing appointments:', error);
             Alert.alert('Error', 'Failed to fetch existing appointments');
+        }
+    }, []);
+
+    const fetchBookedAppointments = useCallback(async (specialistEmail, monthString) => {
+        try {
+            const response = await axios.get(`${url}/getBookedAppointments`, {
+                params: { specialistEmail, date: monthString }
+            });
+            setBookedAppointments(response.data);
+        } catch (error) {
+            Alert.alert('Error', 'Failed to fetch booked appointments');
         }
     }, []);
 
@@ -79,18 +92,19 @@ const UserCreateAppointment = ({ navigation }) => {
             if (selectedSpecialist && selectedSpecialist.email) {
                 const currentMonth = moment().format('MMMM YYYY');
                 fetchExistingAppointments(selectedSpecialist.email, currentMonth);
+                fetchBookedAppointments(selectedSpecialist.email, currentMonth);
             }
-
             setSelectedDate('');
-        }, [selectedSpecialist, fetchExistingAppointments])
+        }, [selectedSpecialist, fetchExistingAppointments, fetchBookedAppointments])
     );
-
+    
     const handleMonthChange = useCallback((month) => {
         const monthString = moment(month.dateString).format('MMMM YYYY');
         if (selectedSpecialist && selectedSpecialist.email) {
             fetchExistingAppointments(selectedSpecialist.email, monthString);
+            fetchBookedAppointments(selectedSpecialist.email, monthString);
         }
-    }, [selectedSpecialist, fetchExistingAppointments]);
+    }, [selectedSpecialist, fetchExistingAppointments, fetchBookedAppointments]);
 
     // Function to handle date selection
     const handleDateSelect = (date) => {
@@ -144,7 +158,7 @@ const UserCreateAppointment = ({ navigation }) => {
                 console.error('Error fetching user email:', error);
             }
         };
-
+      
         fetchUserEmail();
         fetchSpecialisations();
         fetchSpecialists();
@@ -172,12 +186,37 @@ const UserCreateAppointment = ({ navigation }) => {
         setCurrentMonth(moment().format('MMMM YYYY'));
     };
 
+    const handleTimeButtonClick = (time) => {
+        const now = moment();
+        const selectedDateTime = moment(selectedDate + ' ' + time, 'YYYY-MM-DD HH:mm');
+    
+        // Check if selected time is within last 30 minutes before current time
+        if (now.subtract(30, 'minutes').isAfter(selectedDateTime)) {
+            return;
+        }
+    
+        const isTimeBooked = bookedAppointments.some(appt => 
+            appt.date === selectedDate && appt.details.some(detail => detail.time === time)
+        );
+    
+        if (isTimeBooked) {
+            return; 
+        }
+    
+        // Handle selection logic here
+        if (selectedTime === time) {
+            setSelectedTime(null);
+        } else {
+            setSelectedTime(time);
+        }
+    };    
+
     const filteredSpecialists = specialists.filter(specialist => specialist.specialisation === selectedCategory);
 
     // generate time buttons
     const generateTimeSlots = (startTime, endTime, interval, breakTimings) => {
         const timeSlots = [];
-        let currentTime = moment(startTime, 'HH:mm');
+        let currentTime = moment(startTime, 'HH:mm'); // Ensure startTime is in 'HH:mm' format
     
         while (currentTime.isSameOrBefore(moment(endTime, 'HH:mm'))) {
             const formattedTime = currentTime.format('HH:mm');
@@ -195,9 +234,44 @@ const UserCreateAppointment = ({ navigation }) => {
         }
     
         return timeSlots;
+    };    
+
+    const handleBooking = async () => {
+        try {
+            const appointmentDetails = {
+                date: selectedDate,
+                time: selectedTime,
+                status: 'Upcoming',
+                userComments: userComments,
+                specialistNotes: ''
+            };
+
+            const response = await axios.post(`${url}/saveAppointment`, {
+                date: currentMonth,
+                userEmail,
+                specialistEmail: selectedSpecialist.email,
+                appointmentDetails
+            });
+
+            if (response.status === 200) {
+                Alert.alert('Success', 'Appointment booked successfully');
+                setShowAppointmentSelection(false);
+                setSelectedDate('');
+                setSelectedTime(null);
+                setUserComments('');
+
+                // Refetch appointments to update calendar
+                fetchExistingAppointments(selectedSpecialist.email, currentMonth);
+            } else {
+                Alert.alert('Error', 'Failed to book appointment');
+            }
+        } catch (error) {
+            Alert.alert('Error', 'Failed to book appointment');
+        }
     };
 
     return(
+    <Keyboard>
     <ScrollView contentContainerStyle={styles.container}>
     <View style={[styles.container3, { marginBottom: 20 }]}>
         {/* Specialist schedule view to select and book */}
@@ -222,7 +296,8 @@ const UserCreateAppointment = ({ navigation }) => {
                 </Pressable>
             </View>
 
-            <Text style={[styles.questionText, { marginBottom: 20 }]}> Select Schedule </Text>
+            <Text style={[styles.questionText, { marginBottom: 10 }]}> Select Schedule </Text>
+            <Text style={[styles.formText, { marginBottom: 20 }]}> Select a date to book </Text>
 
              {/* Legend Display */}
              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
@@ -256,25 +331,46 @@ const UserCreateAppointment = ({ navigation }) => {
                 <Text style={[styles.text3, { marginBottom: 10 }]}>Selected Date: {selectedDate}</Text>
 
                 {existingAppointments.map(appointment => (
-                    appointment.appointment.map(appt => {
-                        if (appt.date === selectedDate) {
-                            const timeSlots = generateTimeSlots(appt.startTime, appt.endTime, appt.interval, appt.breakTimings);
+                appointment.appointment.map(appt => {
+                    if (appt.date === selectedDate) {
+                        const timeSlots = generateTimeSlots(appt.startTime, appt.endTime, appt.interval, appt.breakTimings);
 
-                            return (
-                            <View key={appt._id} style={{ marginTop: 10, width: '100%', borderWidth: 2, borderColor: '#E3C2D7', borderRadius: 20, padding: 10, marginBottom: 20 }}>
-                                <Text style={[styles.text, { marginBottom: 20 }]}>Select Time: </Text>
-                                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-                                    {timeSlots.map((time, index) => (
-                                        <Pressable  key={index} style={styles.categoryBtn}
-                                            onPress={() => setSelectedTime(time)}>
-                                            <Text style={styles.text}>{time}</Text>
-                                        </Pressable>
-                                    ))}
-                                </View>
+                        return (
+                        <View key={appt._id} style={{ marginTop: 10, width: '100%', borderWidth: 2, borderColor: '#E3C2D7', borderRadius: 20, padding: 10, marginBottom: 20 }}>
+                            <Text style={[styles.formText, { marginBottom: 20 }]}>Select Time: </Text>
+                            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 }}>
+                            {timeSlots.map((time, index) => {
+                                const selectedDateTime = moment(selectedDate + ' ' + time, 'YYYY-MM-DD HH:mm');
+                                const isDisabled = selectedDateTime.isBefore(moment(), 'minute');
+                                const isTimeBooked = bookedAppointments.some(appt => 
+                                    appt.details.some(detail => detail.date === selectedDate) && appt.details.some(detail => detail.time === time)
+                                );
+
+                                return (
+                                    <Pressable key={index}
+                                        style={[ styles.categoryBtn,
+                                            selectedTime === time ? styles.categoryBtnActive : null,
+                                            isDisabled || isTimeBooked ? styles.disabledButton : null]}
+                                        onPress={() => handleTimeButtonClick(time)}
+                                        disabled={isDisabled || isTimeBooked}>
+                                        <Text style={[styles.text]}>
+                                            {time}
+                                        </Text>
+                                    </Pressable>
+                                );
+                            })}
                             </View>
-                            );
-                        }
-                    })
+
+                            <Text style={[styles.formText, {marginBottom: 20}]}>Any Additional Information for specialist: </Text>
+                            <TextInput style={[styles.input, {marginBottom: 20}]} value={userComments} onChangeText={setUserComments}/>
+
+                            <Pressable style={[styles.button, { alignSelf: 'center' }]} onPress={handleBooking}>
+                                <Text style={styles.text}> Book Appointment </Text>
+                            </Pressable>
+                        </View>
+                        );
+                    }
+                })
                 ))}
             </View>
             )}
@@ -314,6 +410,7 @@ const UserCreateAppointment = ({ navigation }) => {
 
             {/* Display specialists of the category */}
             <Text style={[styles.questionText, { marginBottom: 10 }]}> Specialists </Text>
+            <Text style={[styles.formText, { marginBottom: 10 }]}> Select a specalist </Text>
             {filteredSpecialists.map((specialist, index) => (
                 <View key={index} style={{ marginBottom: 20, alignItems: 'center' }}>
                         <Pressable
@@ -328,6 +425,7 @@ const UserCreateAppointment = ({ navigation }) => {
         )}
         </View>
     </ScrollView>
+    </Keyboard>
     );
 };
 
