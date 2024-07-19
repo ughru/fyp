@@ -19,6 +19,24 @@ const ViewSchedule = ({ navigation }) => {
     const [showAppointmentSelection, setShowAppointmentSelection] = useState(false);
     const [existingAppointments, setExistingAppointments] = useState([]);
     const [existing, setExisting] = useState({});
+    const [specialistInfo, setSpecialistInfo] = useState([]);
+    const [appointments, setAppointments] = useState([]);
+    const [userDetails, setUserDetails] = useState([]);
+
+    const fetchSpecialistInfo = useCallback(async () => {
+        try {
+          const storedEmail = await AsyncStorage.getItem('user');
+          if (storedEmail) {
+            const response = await axios.get(`${url}/specialistinfo?email=${storedEmail}`);
+            if (response.data) {
+              setSpecialistInfo(response.data);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching user info:', error);
+        }
+      }, []);
+    
 
     useEffect(() => {
         // Fetch user email from AsyncStorage
@@ -33,14 +51,13 @@ const ViewSchedule = ({ navigation }) => {
             }
         };
 
-        fetchUserEmail();
-    }, []);
-
-    useEffect(() => {
         // Set minimum date as today
         const today = moment().format('YYYY-MM-DD');
         setMinDate(today);
-    }, []);
+
+        fetchUserEmail();
+        fetchSpecialistInfo().then(fetchAppointments);
+    }, [fetchSpecialistInfo, fetchAppointments]);
 
     const fetchExistingAppointments = useCallback(async (userEmail, monthString) => {
         try {
@@ -69,13 +86,42 @@ const ViewSchedule = ({ navigation }) => {
         }
     }, []);
 
+    const fetchAppointments = useCallback(async () => {
+        try {
+          if (specialistInfo.email) {
+            const response = await axios.get(`${url}/bookedAppt2`, { params: { specialistEmail: specialistInfo.email } });
+            const filteredAppointments = response.data.filter(appointment => appointment.details.some(detail => detail.status === 'Upcoming'));
+    
+            const userEmails = filteredAppointments.map(appointment => appointment.userEmail);
+            const responses = await Promise.all(
+              userEmails.map(email =>
+                axios.get(`${url}/userinfo`, { params: { email } })
+              )
+            );
+    
+            const detailsMap = {};
+            responses.forEach(response => {
+              const userInfo = response.data;
+              detailsMap[userInfo.email] = userInfo;
+            });
+    
+            setUserDetails(detailsMap);
+            setAppointments(filteredAppointments);
+          }
+        } catch (error) {
+          console.error('Error fetching appointments:', error);
+        }
+      }, [specialistInfo.email]);
+
     useFocusEffect(
         useCallback(() => {
             if (userEmail) {
                 const currentMonth = moment().format('MMMM YYYY');
                 fetchExistingAppointments(userEmail, currentMonth);
             }
-        }, [userEmail, fetchExistingAppointments])
+
+            fetchSpecialistInfo().then(fetchAppointments);
+        }, [userEmail, fetchSpecialistInfo, fetchExistingAppointments, fetchAppointments])
     );
 
     const handleMonthChange = useCallback((month) => {
@@ -198,6 +244,43 @@ const ViewSchedule = ({ navigation }) => {
                 }
             })
             ))}
+
+            {/* Check if selected date has booked appointments */}
+            {appointments.length > 0 && (
+            <View>
+                <Text style={[styles.text3, { marginBottom: 10 }]}>Booked Appointments:</Text>
+                {appointments.map((appointment, index) => (
+                    appointment.details.map((detail, detailIndex) => {
+                        if (detail.date === selectedDate) {
+                            return (
+                                <View key={detailIndex} style={{ marginTop: 10, width: '100%', borderWidth: 2, borderColor: '#E3C2D7', borderRadius: 20, padding: 10, marginBottom: 20 }}>
+                                    <Text style={[styles.text, { marginBottom: 10 }]}>
+                                        {userDetails[appointment.userEmail]?.firstName} {userDetails[appointment.userEmail]?.lastName}
+                                    </Text>
+                                    <Text style={[styles.text, { marginBottom: 10 }]}>
+                                        {moment(detail.date, 'YYYY-MM-DD').format('Do MMMM YYYY')}: {detail.time}
+                                    </Text>
+                                    <Text style={[styles.text, { marginBottom: 10 }]}>
+                                        Status: {detail.status}
+                                    </Text>
+                                    {detail.userComments && (
+                                        <Text style={[styles.text, { marginBottom: 10 }]}>
+                                            User Comments: {detail.userComments}
+                                        </Text>
+                                    )}
+                                    {detail.specialistNotes && (
+                                        <Text style={[styles.text, { marginBottom: 10 }]}>
+                                            Specialist Notes: {detail.specialistNotes}
+                                        </Text>
+                                    )}
+                                </View>
+                            );
+                        }
+                        return null;
+                    })
+                ))}
+            </View>
+            )}
         </View>
         )}
 

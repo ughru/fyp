@@ -1,7 +1,7 @@
 const cors = require('cors');
 const express = require("express");
 const app=express();
-const mongoose = require("mongoose");
+const mongoose = require("mongoose"); 
 const bcrypt = require("bcryptjs");
 app.use(express.json());
 
@@ -1529,6 +1529,37 @@ app.delete('/deleteAppointments', async (req, res) => {
     res.status(200).send({ message: 'Appointments deleted successfully' });
   } catch (err) {
     res.status(500).send(err);
+  }
+});
+
+// mark complete automatically (based on time)
+
+// cancel appointment (user/specialist)
+app.post('/cancelAppointment', async (req, res) => {
+  const { userEmail, specialistEmail, dateMonthYear, date, time, status } = req.body;
+  
+  try {
+    // Find and update the appointment
+    const appointment = await Appointment.findOneAndUpdate(
+      {
+        userEmail,
+        specialistEmail,
+        date: dateMonthYear, // Match with "Month Year" format
+        'details.date': date,
+        'details.time': time
+      },
+      { $set: { 'details.$.status': status } },
+      { new: true }
+    );
+
+    if (appointment) {
+      res.status(200).json({ message: 'Appointment cancelled successfully' });
+    } else {
+      res.status(404).json({ message: 'Appointment not found' });
+    }
+  } catch (error) {
+    console.error('Error cancelling appointment:', error);
+    res.status(500).json({ message: 'Error cancelling appointment', error });
   }
 });
 

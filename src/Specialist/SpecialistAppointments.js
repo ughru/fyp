@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, Pressable, ScrollView, TextInput, Image, Platform, TouchableOpacity, TouchableHighlight } from 'react-native';
+import { View, Text, Pressable, ScrollView, TextInput, Image, Platform, TouchableOpacity, TouchableHighlight, Modal, Alert } from 'react-native';
 import styles from '../components/styles';
 import { storage } from '../../firebaseConfig';
-import { AntDesign, MaterialCommunityIcons, FontAwesome5, Entypo } from '@expo/vector-icons';
+import { AntDesign, MaterialCommunityIcons, FontAwesome5, Entypo, Ionicons, Feather} from '@expo/vector-icons';
 import axios from 'axios';
 import url from '../components/config';
 import moment from 'moment';
@@ -16,6 +16,12 @@ const SpecialistAppointments = ({navigation}) => {
   const [activeButton, setActiveButton] = useState('Upcoming');
   const [appointments, setAppointments] = useState([]);
   const [userDetails, setUserDetails] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [updateModalVisible, setUpdateModalVisible] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [viewModalVisible, setViewModalVisible] = useState(false);
+  const [noteInput, setNoteInput] = useState('');
+  const [inputHeight, setInputHeight] = useState(30);
 
   const fetchAppointments = useCallback(async () => {
     try {
@@ -36,7 +42,7 @@ const SpecialistAppointments = ({navigation}) => {
       });
 
       setUserDetails(detailsMap);
-      setAppointments(filteredAppointments);
+      setAppointments(sortAppointments(filteredAppointments));
     } catch (error) {
       console.error('Error fetching appointments:', error);
     }
@@ -81,6 +87,92 @@ const SpecialistAppointments = ({navigation}) => {
   const formatDate = (date) => {
     return moment(date, 'YYYY-MM-DD').format('Do MMMM YYYY');
   };
+
+  const sortAppointments = (appointments) => {
+    // Sort appointments by their date (Month YYYY)
+    const sortedAppointmentsByMonth = appointments.sort((a, b) => 
+      moment(a.date, 'MMMM YYYY').diff(moment(b.date, 'MMMM YYYY'))
+    );
+  
+    // Sort details within each appointment by date (YYYY-MM-DD)
+    const sortedAppointments = sortedAppointmentsByMonth.map(appointment => ({
+      ...appointment,
+      details: appointment.details.sort((a, b) => 
+        moment(a.date, 'YYYY-MM-DD').diff(moment(b.date, 'YYYY-MM-DD'))
+      )
+    }));
+  
+    return sortedAppointments;
+  };
+
+  const handleMoreIconClick = (appointmentDetail) => {
+    setSelectedAppointment(appointmentDetail);
+    setModalVisible(true);
+  };
+
+  const openViewModal = () => {
+    setViewModalVisible(true);
+    setModalVisible(false);
+  };
+
+  const closeViewModal = () => {
+    setViewModalVisible(false);
+  };
+
+  const openUpdateModal = () => {
+    setUpdateModalVisible(true);
+    setModalVisible(false);  
+    setNoteInput('');
+  };
+
+  const closeUpdateModal = () => {
+    setUpdateModalVisible(false);
+  };
+
+  /*
+  const handleNoteSubmit = async () => {
+    if (selectedAppointment) {
+      try {
+        const updatedAppointment = {
+          ...selectedAppointment,
+          specialistNotes: noteInput,
+          status: 'Completed'
+        };
+
+        await axios.post(`${url}/updateAppointmentStatus`, {
+          userEmail: userEmail,
+          specialistEmail: selectedAppointment.specialistEmail,
+          date: selectedAppointment.date,
+          time: selectedAppointment.time,
+          status: 'Completed',
+          specialistNotes: noteInput
+        });
+
+        // Update the state with new notes and status
+        setAppointments(prevAppointments => {
+          return prevAppointments.map(appointment => {
+            if (appointment.userEmail === selectedAppointment.userEmail) {
+              return {
+                ...appointment,
+                details: appointment.details.map(detail => 
+                  detail.date === selectedAppointment.date && detail.time === selectedAppointment.time 
+                    ? updatedAppointment 
+                    : detail
+                )
+              };
+            }
+            return appointment;
+          });
+        });
+
+        setUpdateModalVisible(false);
+        setViewModalVisible(false);
+      } catch (error) {
+        console.error('Error updating appointment:', error);
+      }
+    }
+  };
+  */
 
   // Page Displays
   return (
@@ -152,10 +244,9 @@ const SpecialistAppointments = ({navigation}) => {
                     <Text style={[styles.text3, {flex: 1, marginBottom: 10 }]}>
                       {userDetails[appointment.userEmail]?.firstName} {userDetails[appointment.userEmail]?.lastName}
                     </Text>
-                    <TouchableHighlight
-                      style={[styles.iconContainer, { marginBottom: 10 }]}
+                    <TouchableHighlight style={[styles.iconContainer, { marginBottom: 10 }]}
                       underlayColor={Platform.OS === 'web' ? 'transparent' : '#e0e0e0'}
-                    >
+                      onPress={() => handleMoreIconClick(detail)}>
                       <Entypo name="dots-three-vertical" size={16} />
                     </TouchableHighlight>
                   </View>
@@ -172,6 +263,91 @@ const SpecialistAppointments = ({navigation}) => {
           ))}
           </ScrollView>
         )}
+
+        {/* Modal for view/cancel */}
+        <Modal animationType="fade" transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
+          <View style={[styles.modalOverlay, { justifyContent: 'flex-end' }]}>
+          <View style={{ width: '90%', backgroundColor: '#E3C2D7', borderRadius: 10, padding: 20 }}>
+            <Pressable style={{ marginLeft: 'auto' }}>
+              <Feather name="x" size={24} color="black" onPress={() => setModalVisible(false)} />
+            </Pressable>
+            {/* Selections */}
+            {selectedAppointment && (
+              <View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+                  <Ionicons name="eye-outline" size={24} color="black" />
+                  <Pressable style={{ marginLeft: 10 }} onPress={openViewModal}>
+                      <Text style={styles.text}> View Appointment </Text>
+                  </Pressable>
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+                    <Feather name="edit" size={22} color="black" />
+                    <Pressable style={{ marginLeft: 10 }} onPress={openUpdateModal}>
+                        <Text style={styles.text}>Update Appointment</Text>
+                    </Pressable>
+                </View>
+              </View>
+            )}
+          </View>
+          </View>
+        </Modal>
+
+      {/* Modal for viewing appointment details */}
+      <Modal animationType="fade" transparent={true} visible={viewModalVisible} onRequestClose={closeViewModal}>
+        <View style={[styles.modalOverlay]}>
+          <View style={{ width: '90%', backgroundColor: '#E3C2D7', borderRadius: 10, padding: 20 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly' }}>
+              <Text style={[styles.questionText, {marginBottom: 20}]}>Appointment Details</Text>
+              <Pressable style={{ marginLeft: 'auto', marginBottom: 20 }}>
+                <Feather name="x" size={24} color="black" onPress={closeViewModal} />
+              </Pressable>
+            </View>
+            {selectedAppointment && (
+              <View>
+                <Text style={[styles.text, {marginBottom: 10}]}>Date: {formatDate(selectedAppointment.date)}</Text>
+                <Text style={[styles.text, {marginBottom: 10}]}>Time: {selectedAppointment.time}</Text>
+                <Text style={[styles.text, {marginBottom: 10}]}>User Comments: {selectedAppointment.userComments || 'N.A.'}</Text>
+                {['Completed'].includes(selectedAppointment.status) && (
+                  <Text style={[styles.text, { marginBottom: 10 }]}>
+                    Specialist Notes: {selectedAppointment.specialistNotes || 'N.A.'}
+                  </Text>
+                )}
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+       {/* Modal for updating appointment */}
+      <Modal animationType="fade" transparent={true} visible={updateModalVisible} onRequestClose={closeUpdateModal}>
+        <View style={[styles.modalOverlay]}>
+          <View style={{ width: '90%', backgroundColor: '#E3C2D7', borderRadius: 10, padding: 20 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly'}}>
+              <Text style={[styles.questionText, { marginBottom: 20 }]}>Update Appointment</Text>
+              <Pressable style={{ marginLeft: 'auto', marginBottom: 20 }}>
+                <Feather name="x" size={24} color="black" onPress={closeUpdateModal} />
+              </Pressable>
+            </View>
+            {selectedAppointment && (
+              <ScrollView>
+                <Text style= {[styles.text, {marginBottom: 10}]}> Specialist Notes: </Text>
+                <TextInput
+                  style={[styles.input2, { width: 300, height: Math.max(30, inputHeight + 20), marginBottom: 20 }]}
+                  placeholder="Enter notes..."
+                  placeholderTextColor='black'
+                  value={noteInput}
+                  onChangeText={setNoteInput}
+                  multiline
+                  onContentSizeChange={(e) => setInputHeight(e.nativeEvent.contentSize.height)}/>
+                <TouchableOpacity style={[styles.button, {borderWidth: 1, borderColor: 'black'}]} >
+                  <Text style={styles.text}>Submit</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
+
     </ScrollView>
   );
 };

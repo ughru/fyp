@@ -120,9 +120,7 @@ const UserCreateAppointment = ({ navigation }) => {
                 setSelectedDate('');
                 setShowAppointmentSelection(false);
                 // Restore existing marked dates
-                setMarkedDates({
-                    ...existing,
-                });
+                setMarkedDates(existing);
             } else {
                 // Mark the selected date on the calendar
                 setMarkedDates({
@@ -187,30 +185,37 @@ const UserCreateAppointment = ({ navigation }) => {
     };
 
     const handleTimeButtonClick = (time) => {
+        // Current time for comparison
         const now = moment();
+        // Create a moment object for the selected date and time
         const selectedDateTime = moment(selectedDate + ' ' + time, 'YYYY-MM-DD HH:mm');
     
-        // Check if selected time is within last 30 minutes before current time
+        // Disable time slots that are in the past
         if (now.subtract(30, 'minutes').isAfter(selectedDateTime)) {
             return;
         }
     
-        const isTimeBooked = bookedAppointments.some(appt => 
-            appt.date === selectedDate && appt.details.some(detail => detail.time === time)
+        // Filter appointments to get those on the selected date
+        const appointmentsOnSelectedDate = bookedAppointments.flatMap(appointment =>
+            appointment.details.filter(detail => detail.date === selectedDate)
         );
     
+        // Check if the selected time is already booked
+        const isTimeBooked = appointmentsOnSelectedDate.some(detail => detail.time === time);
+    
+        // If the time is booked, return to prevent selection
         if (isTimeBooked) {
-            return; 
+            return;
         }
     
-        // Handle selection logic here
+        // Toggle the selected time
         if (selectedTime === time) {
             setSelectedTime(null);
         } else {
             setSelectedTime(time);
         }
-    };    
-
+    };
+    
     const filteredSpecialists = specialists.filter(specialist => specialist.specialisation === selectedCategory);
 
     // generate time buttons
@@ -259,9 +264,12 @@ const UserCreateAppointment = ({ navigation }) => {
                 setSelectedDate('');
                 setSelectedTime(null);
                 setUserComments('');
+                setShowAppointmentSelection(false);
+                setMarkedDates(existing);
 
                 // Refetch appointments to update calendar
                 fetchExistingAppointments(selectedSpecialist.email, currentMonth);
+                fetchBookedAppointments(selectedSpecialist.email, currentMonth);
             } else {
                 Alert.alert('Error', 'Failed to book appointment');
             }
@@ -342,9 +350,14 @@ const UserCreateAppointment = ({ navigation }) => {
                             {timeSlots.map((time, index) => {
                                 const selectedDateTime = moment(selectedDate + ' ' + time, 'YYYY-MM-DD HH:mm');
                                 const isDisabled = selectedDateTime.isBefore(moment(), 'minute');
-                                const isTimeBooked = bookedAppointments.some(appt => 
-                                    appt.details.some(detail => detail.date === selectedDate) && appt.details.some(detail => detail.time === time)
+
+                                // Filter appointments to get those on the selected date
+                                const appointmentsOnSelectedDate = bookedAppointments.flatMap(appointment =>
+                                    appointment.details.filter(detail => detail.date === selectedDate)
                                 );
+                            
+                                // Check if the selected time is already booked
+                                const isTimeBooked = appointmentsOnSelectedDate.some(detail => detail.time === time);
 
                                 return (
                                     <Pressable key={index}

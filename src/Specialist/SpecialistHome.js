@@ -55,7 +55,7 @@ const SpecialistHome = ({ navigation }) => {
         });
 
         setUserDetails(detailsMap);
-        setAppointments(filteredAppointments);
+        setAppointments(sortAppointments(filteredAppointments));
       }
     } catch (error) {
       console.error('Error fetching appointments:', error);
@@ -91,6 +91,23 @@ const SpecialistHome = ({ navigation }) => {
 
   const formatDate2 = (date) => {
     return moment(date, 'YYYY-MM-DD').format('Do MMMM YYYY');
+  };
+
+  const sortAppointments = (appointments) => {
+    // Sort appointments by their date (Month YYYY)
+    const sortedAppointmentsByMonth = appointments.sort((a, b) => 
+      moment(a.date, 'MMMM YYYY').diff(moment(b.date, 'MMMM YYYY'))
+    );
+  
+    // Sort details within each appointment by date (YYYY-MM-DD)
+    const sortedAppointments = sortedAppointmentsByMonth.map(appointment => ({
+      ...appointment,
+      details: appointment.details.sort((a, b) => 
+        moment(a.date, 'YYYY-MM-DD').diff(moment(b.date, 'YYYY-MM-DD'))
+      )
+    }));
+  
+    return sortedAppointments;
   };
  
   // Page Displays
