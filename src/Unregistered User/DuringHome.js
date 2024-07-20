@@ -107,7 +107,6 @@ const DuringHome = ({ navigation }) => {
         })}]}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <Text style={styles.date}>{currentDate}</Text>
-          <Ionicons name="notifications-outline" size={24} color="black" />
         </View>
         <Text style={[styles.textTitle, { marginTop: 20}]}>Welcome to Bloom!</Text>
       </View>

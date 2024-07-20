@@ -1165,7 +1165,6 @@ app.get('/allPeriodLog', async (req, res) => {
 });
 
 // update period log
-
 app.put('/updatePeriodLog', async (req, res) => {
   const { userEmail, date, record } = req.body;
 
@@ -1204,6 +1203,7 @@ app.put('/updatePeriodLog', async (req, res) => {
     res.status(500).json({ msg: 'Server error' });
   }
 });
+
 
 /* **********************************************
 *************************************************

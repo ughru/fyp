@@ -133,8 +133,6 @@ const SpecialistHome = ({ navigation }) => {
     <ScrollView contentContainerStyle={styles.container}>
       <View style={[styles.container4, { ...Platform.select({ web: {}, default: { marginTop: 50 } }) }]}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-          <Text style={styles.date}>{currentDate}</Text>
-          <Ionicons name="notifications-outline" size={24} color="black" />
         </View>
         <Text style={[styles.textTitle, {marginTop: 10}]}>Welcome, {specialistInfo.firstName}!</Text>
       </View>

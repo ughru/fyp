@@ -164,9 +164,6 @@ const UserSettings  = ({navigation, selectedStatus, setSelectedStatus}) => {
         <Pressable style={[styles.formText, {marginBottom: 20}]}>
           <Text style={styles.text}> Report a Problem </Text>
         </Pressable>
-        <Pressable style={[styles.formText, {marginBottom: 20}]} onPress={() => navigation.navigate("UserDownloads")}>
-          <Text style={styles.text}> Downloads </Text>
-        </Pressable>
 
         {/* Logout Button */}
         <Pressable style={[styles.formText]} onPress={handleLogout}>

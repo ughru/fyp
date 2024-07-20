@@ -189,7 +189,7 @@ export const styles = StyleSheet.create({
         borderColor: '#979595', 
     },
     input4: {
-        width: 340,
+        width: 300,
         height: 40,
         padding: 10,
         borderRadius: 20,

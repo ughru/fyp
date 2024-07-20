@@ -44,6 +44,7 @@ const SpecialistForum = ({ navigation }) => {
   const [userEmail, setEmail] = useState('');
   const [isCommentDropdownVisible, setCommentDropdownVisible] = useState(false);
   const [selectedComment, setSelectedComment] = useState(null);
+  const [inputHeight, setInputHeight] = useState({});
 
   const fetchData = useCallback(async () => {
       try {
@@ -219,6 +220,13 @@ const SpecialistForum = ({ navigation }) => {
     setCommentText((prevState) => ({
       ...prevState,
       [postID]: text,
+    }));
+  };
+
+  const handleInputHeightChange = (postID, height) => {
+    setInputHeight((prevState) => ({
+      ...prevState,
+      [postID]: height,
     }));
   };
 
@@ -405,16 +413,20 @@ const SpecialistForum = ({ navigation }) => {
             ))}
         </View>
         <View>{commentErrors[post.postID] && <Text style={styles.error}>{commentErrors[post.postID]}</Text>}</View>
-        <View style={[styles.search, { paddingBottom: 10}]}>
-          <TextInput
-            style={[styles.input4]}
-            value={commentText[post.postID] || ''}
-            onChangeText={(text) => handleCommentTextChange(post.postID, text)}
-            placeholder="Add a comment..."
-          />
-          <TouchableOpacity style={[styles.iconContainer, { right: 40 }]}
-          onPress={() => addComment(post.postID, userEmail, commentText[post.postID])}>
-            <Feather name="upload" size={18} color="black" />
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={[styles.search, { paddingBottom: 10 }]}>
+            <TextInput
+              style={[styles.input4, {height: Math.max(40, inputHeight[post.postID] || 40 + 20)}]}
+              placeholder="Add a comment..."
+              value={commentText[post.postID] || ''}
+              onChangeText={(text) => handleCommentTextChange(post.postID, text)}
+              multiline
+              onContentSizeChange={(e) => handleInputHeightChange(post.postID, e.nativeEvent.contentSize.height)}
+            />
+          </View>
+          <TouchableOpacity style={[styles.iconContainer, { marginLeft: 10, paddingBottom: 10 }]}
+            onPress={() => addComment(post.postID, userEmail, commentText[post.postID])}>
+            <Feather name="upload" size={22} color="black" />
           </TouchableOpacity>
         </View>
       </View>

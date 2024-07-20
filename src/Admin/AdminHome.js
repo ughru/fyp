@@ -394,7 +394,6 @@ const AdminHome = ({navigation}) => {
       <View style={[styles.container4, { ...Platform.select({ web: {}, default: { marginTop: 50 } }) }]}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <Text style={styles.date}>{currentDate}</Text>
-          <Ionicons name="notifications-outline" size={24} color="black" />
         </View>
         <Text style={[styles.textTitle, {marginTop: 10, marginBottom: 20}]}>Welcome, {adminInfo.firstName}!</Text>
       </View>

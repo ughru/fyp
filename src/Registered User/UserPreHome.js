@@ -66,7 +66,6 @@ const UserPreHome = ({ navigation }) => {
      <View style={[styles.container4, { ...Platform.select({ web: {}, default: { paddingTop: 50 } }) }]}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <Text style={styles.date}>{currentDate}</Text>
-          <Ionicons name="notifications-outline" size={24} color="black" />
         </View>
         <Text style={[styles.textTitle, {paddingTop: 10}]}>Welcome, {userInfo.firstName}!</Text>
       </View>

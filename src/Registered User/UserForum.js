@@ -37,42 +37,43 @@ const formatDate = (dateString) => {
 };
 
 const UserForum = ({ navigation }) => {
-    const [forumPosts, setForumPosts] = useState([]);
-    const [visibleComments, setVisibleComments] = useState({});
-    const [commentText, setCommentText] = useState({});
-    const [commentErrors, setCommentErrors] = useState({});
-    const [sortOrder, setSortOrder] = useState('newest');
-    const [isDropdownVisible, setDropdownVisible] = useState(false);
-    const [selectedPost, setSelectedPost] = useState(null);
-    const [activeButton, setActiveButton] = useState('General');
-    const [imageUrl, setImageUrls] = useState(null);
-    const [userEmail, setEmail] = useState('');
-    const [isCommentDropdownVisible, setCommentDropdownVisible] = useState(false);
-    const [selectedComment, setSelectedComment] = useState(null);
-    const scrollRef = useRef(null);
+  const [forumPosts, setForumPosts] = useState([]);
+  const [visibleComments, setVisibleComments] = useState({});
+  const [commentText, setCommentText] = useState({});
+  const [commentErrors, setCommentErrors] = useState({});
+  const [sortOrder, setSortOrder] = useState('newest');
+  const [isDropdownVisible, setDropdownVisible] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [activeButton, setActiveButton] = useState('General');
+  const [imageUrl, setImageUrls] = useState(null);
+  const [userEmail, setEmail] = useState('');
+  const [isCommentDropdownVisible, setCommentDropdownVisible] = useState(false);
+  const [selectedComment, setSelectedComment] = useState(null);
+  const [inputHeight, setInputHeight] = useState({});
+  const scrollRef = useRef(null);
 
-    const fetchData = useCallback(async () => {
-      try {
-        const forumPostsResponse = await axios.get(`${url}/getForumPosts`);
+  const fetchData = useCallback(async () => {
+    try {
+      const forumPostsResponse = await axios.get(`${url}/getForumPosts`);
 
-        if (forumPostsResponse.data.status === 'ok') {
-          const posts = forumPostsResponse.data.forumPosts;
-          setForumPosts(posts);
-        } else {
-          console.error('Error fetching forum posts:', forumPostsResponse.data.error);
-        }
-    
-        // Retrieve user's email from AsyncStorage
-        const storedEmail = await AsyncStorage.getItem('user');
-        if (storedEmail) {
-          setEmail(storedEmail);
-        } else {
-          console.error('Error: User email not found in AsyncStorage.');
-        }
-      } catch (error) {
-        console.error('Error fetching forum posts:', error);
+      if (forumPostsResponse.data.status === 'ok') {
+        const posts = forumPostsResponse.data.forumPosts;
+        setForumPosts(posts);
+      } else {
+        console.error('Error fetching forum posts:', forumPostsResponse.data.error);
       }
-    }, []);    
+  
+      // Retrieve user's email from AsyncStorage
+      const storedEmail = await AsyncStorage.getItem('user');
+      if (storedEmail) {
+        setEmail(storedEmail);
+      } else {
+        console.error('Error: User email not found in AsyncStorage.');
+      }
+    } catch (error) {
+      console.error('Error fetching forum posts:', error);
+    }
+  }, []);    
 
   useEffect(() => {
       fetchData();
@@ -258,278 +259,288 @@ const UserForum = ({ navigation }) => {
     }));
   };
 
-const handleCategoryButtonClick = (category) => {
-  setActiveButton(category);
-};
+  const handleInputHeightChange = (postID, height) => {
+    setInputHeight((prevState) => ({
+      ...prevState,
+      [postID]: height,
+    }));
+  };
 
-const addComment = async (postID, userEmail, userComment) => {
-  try {
-    if (!commentText[postID]?.trim()) {
-      setCommentErrors((prevState) => ({
-        ...prevState,
-        [postID]: '  * Comment cannot be empty\n',
-      }));
-      return;
-    }
+  const handleCategoryButtonClick = (category) => {
+    setActiveButton(category);
+  };
 
-    const response = await axios.post(`${url}/addComment`, {
-      postID,
-      userEmail,
-      userComment,
-      dateCreated: new Date(),
-    });
+  const addComment = async (postID, userEmail, userComment) => {
+    try {
+      if (!commentText[postID]?.trim()) {
+        setCommentErrors((prevState) => ({
+          ...prevState,
+          [postID]: '  * Comment cannot be empty\n',
+        }));
+        return;
+      }
 
-    if (response.data.status === 'ok') {
-      setCommentText((prevState) => ({
-        ...prevState,
-        [postID]: '', // Clear comment after success
-      }));
+      const response = await axios.post(`${url}/addComment`, {
+        postID,
+        userEmail,
+        userComment,
+        dateCreated: new Date(),
+      });
 
-      // Clear error for this post ID
-      setCommentErrors((prevState) => ({
-        ...prevState,
-        [postID]: null,
-      }));
+      if (response.data.status === 'ok') {
+        setCommentText((prevState) => ({
+          ...prevState,
+          [postID]: '', // Clear comment after success
+        }));
 
-      // Fetch updated comments for the post
-      await fetchComments(postID);
-      
-      // Update comment count for the post
-      setForumPosts(forumPosts.map(post => {
-        if (post.postID === postID) {
-          post.commentCount += 1;
-        }
-        return post;
-      }))
-    } else {
-      console.error('Failed to add comment:', response.data.error);
+        // Clear error for this post ID
+        setCommentErrors((prevState) => ({
+          ...prevState,
+          [postID]: null,
+        }));
+
+        // Fetch updated comments for the post
+        await fetchComments(postID);
+        
+        // Update comment count for the post
+        setForumPosts(forumPosts.map(post => {
+          if (post.postID === postID) {
+            post.commentCount += 1;
+          }
+          return post;
+        }))
+      } else {
+        console.error('Failed to add comment:', response.data.error);
+        Alert.alert('Error', 'Failed to add comment');
+      }
+    } catch (error) {
+      console.error('Error adding comment:', error);
       Alert.alert('Error', 'Failed to add comment');
     }
-  } catch (error) {
-    console.error('Error adding comment:', error);
-    Alert.alert('Error', 'Failed to add comment');
-  }
-};
+  };
 
-return (
-<Keyboard>
-<ScrollView style={styles.container5}>
-  <View style = {[styles.container4,  Platform.OS!=="web"&& {paddingTop:50}]}>
-    <View style={[styles.container2, { paddingTop: 20, paddingHorizontal: 20 }]}>
-      <Text style={styles.pageTitle}>Community Forum</Text>
-      <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate("UserCreatePost")}>
-          <Feather name="edit" size={24} color="black" />
-      </TouchableOpacity>
-    </View>
-
-    <View style={[styles.adImageContainer, {
-      ...Platform.select({
-      web:{width:screenWidth*0.9, paddingTop:20, left: 20, paddingRight:10},
-      default:{paddingTop:20, left: 20, paddingRight:10}
-    }) }]}>
-      <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20}}>
-        {imageUrl && imageUrl.map((url, index) => (
-          <TouchableOpacity
-            key={index}
-            style={{ width: 300, height: 200 }}>
-            {/* Image */}
-            <View style={{ ...StyleSheet.absoluteFillObject }}>
-              <Image source={{ uri: url }}
-                style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'contain' }}/>
-            </View>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-    </View>
-  </View>
-
-  <View style={[styles.container4, { marginBottom: 20, paddingHorizontal: 20 }]}>
-    {/* Category Filter Buttons */}
-    <View style={[styles.buttonContainer]}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 20 }}>
-        <TouchableOpacity
-            onPress={() => handleCategoryButtonClick('General')}
-            style={activeButton === 'General' ? styles.categoryBtnActive : styles.categoryBtn}
-        >
-            <Text style={styles.text}>General</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-            onPress={() => handleCategoryButtonClick('Ask Specialist')}
-            style={activeButton === 'Ask Specialist' ? styles.categoryBtnActive : styles.categoryBtn}
-        >
-            <Text style={styles.text}>Ask Specialist</Text>
+  return (
+  <Keyboard>
+  <ScrollView style={styles.container5}>
+    <View style = {[styles.container4,  Platform.OS!=="web"&& {paddingTop:50}]}>
+      <View style={[styles.container2, { paddingTop: 20, paddingHorizontal: 20 }]}>
+        <Text style={styles.pageTitle}>Community Forum</Text>
+        <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate("UserCreatePost")}>
+            <Feather name="edit" size={24} color="black" />
         </TouchableOpacity>
       </View>
-    </View>
 
-    {/* Sort section */}
-    <View style={{ flexDirection: 'row', alignItems: 'center'}}>
-      <Text style={[styles.text, { marginRight: 10 }]}>Sort by:</Text>
-      <RNPickerSelect
-        value={sortOrder}
-        onValueChange={(value) => setSortOrder(value)}
-        items={[
-            { label: 'Newest', value: 'newest' },
-            { label: 'Oldest', value: 'oldest' },
-        ]}
-      />
-      {Platform.OS !== 'web' && 
-        <View style={[styles.iconContainer, { marginLeft: 10 }]}>
-        <AntDesign name="down" size={16} color="black" />
-      </View>
-      }
-    </View>
-  </View>
-
-  {/* Posts + comments */}
-  <View style={[styles.container3, {paddingHorizontal: 20}]}>
-  {sortedPosts.map((post, index) => {
-  if (post.category === activeButton) {
-    return (
-    <View key={index} style={styles.forumPostContainer}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Text style={[styles.text3, { flex: 1, margin: 10 }]}>{post.userInfo.firstName} {post.userInfo.lastName}</Text>
-        <Text style={styles.titleNote}>{formatDate(post.dateCreated)}</Text>
-        <TouchableHighlight
-          style={[styles.iconContainer, {marginLeft: 15}]}
-          onPress={() => toggleDropdown(post)}
-          underlayColor={Platform.OS === 'web' ? 'transparent' : '#e0e0e0'}>
-          <Entypo name="dots-three-vertical" size={16} />
-        </TouchableHighlight>
-      </View>
-
-      {/* Modal for user actions - edit, delete, report */}
-      <Modal transparent={true} animationType="fade" visible={isDropdownVisible} onRequestClose={() => setDropdownVisible(false)}>
-      <View style={[styles.modalOverlay, { justifyContent: 'flex-end' }]}>
-        <View style={{ width: '90%', backgroundColor: '#E3C2D7', borderRadius: 10, padding: 20 }}>
-          <Pressable style={{ marginLeft: 'auto' }}>
-            <Feather name="x" size={24} color="black" onPress={() => setDropdownVisible(false)} />
-          </Pressable>
-          {/* Selections */}
-          {selectedPost && selectedPost.userEmail === userEmail ? (
-            <>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-                <Feather name="edit" size={22} color="black" />
-                <Pressable style={{ marginLeft: 10 }} onPress={() => handleSelection('edit')}>
-                    <Text style={styles.text}>Edit Post</Text>
-                </Pressable>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-                <MaterialIcons name="delete-outline" size={24} color="black" />
-                <Pressable style={{ marginLeft: 10 }} onPress={() => handleSelection('delete')}>
-                    <Text style={styles.text}>Delete Post</Text>
-                </Pressable>
-            </View>
-            </>
-          ) : (
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-                <MaterialIcons name="report" size={24} color="black" />
-                <Pressable style={{ marginLeft: 10 }} onPress={() => handleSelection('report')}>
-                    <Text style={styles.text}>Report Post</Text>
-                </Pressable>
-            </View>
-          )}
-        </View>
-      </View>
-      </Modal>
-
-      <HTMLView style={{ margin: 10 }} stylesheet={{ div: styles.text }} value={post.description} />
-
-      {/* Comments */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-        <TouchableHighlight
-          underlayColor={Platform.OS === 'web' ? 'transparent' : '#cccccc'}
-          style={styles.commentsIcon}
-          onPress={() => toggleCommentsVisibility(post.postID)}
-        >
-          <Feather name="message-circle" size={24} color="black" style={styles.commentsIcon} />
-        </TouchableHighlight>
-        <TouchableHighlight
-          underlayColor={Platform.OS === 'web' ? 'transparent' : '#cccccc'}
-          style={styles.commentsIcon}
-          onPress={() => toggleCommentsVisibility(post.postID)}
-        >
-          {post.commentCount === 0 ? (
-            <Text style={styles.formText}>No replies yet</Text>
-          ) : post.commentCount === 1 ? (
-            <Text style={styles.formText}>view {post.commentCount} reply</Text>
-          ) : (
-            <Text style={styles.formText}>view {post.commentCount} replies</Text>
-          )}
-        </TouchableHighlight>
-      </View>
-      <View>
-      {visibleComments[post.postID] && visibleComments[post.postID].map((comment, commentIndex) => (
-          <View key={commentIndex} style={[styles.container4, { marginLeft: 20, marginRight: 10, marginBottom: 20 }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-              <Text style={[styles.text3, { flex: 1, marginBottom: 10 }]}>{comment.userInfo.firstName} {comment.userInfo.lastName} </Text>
-              <Text style={[styles.formText, { marginBottom: 8, marginLeft: 20 }]}>{formatDate(comment.date)} </Text>
-              <TouchableHighlight
-                style={[styles.iconContainer, { marginBottom: 8, marginLeft: 15 }]}
-                underlayColor={Platform.OS === 'web' ? 'transparent' : '#e0e0e0'}
-                onPress={() => toggleCommentDropdown(comment, post)}>
-                <Entypo name="dots-three-vertical" size={16} />
-              </TouchableHighlight>
-            </View>
-            <Text style={[styles.text]}>{comment.userComment}</Text>
-          </View>
+      <View style={[styles.adImageContainer, {
+        ...Platform.select({
+        web:{width:screenWidth*0.9, paddingTop:20, left: 20, paddingRight:10},
+        default:{paddingTop:20, left: 20, paddingRight:10}
+      }) }]}>
+        <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20}}>
+          {imageUrl && imageUrl.map((url, index) => (
+            <TouchableOpacity
+              key={index}
+              style={{ width: 300, height: 200 }}>
+              {/* Image */}
+              <View style={{ ...StyleSheet.absoluteFillObject }}>
+                <Image source={{ uri: url }}
+                  style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'contain' }}/>
+              </View>
+            </TouchableOpacity>
           ))}
-        </View>
-      <View>{commentErrors[post.postID] && <Text style={styles.error}>{commentErrors[post.postID]}</Text>}</View>
-      <View style={[styles.search, { paddingBottom: 10}]}>
-        <TextInput
-          style={[styles.input4]}
-          value={commentText[post.postID] || ''}
-          onChangeText={(text) => handleCommentTextChange(post.postID, text)}
-          placeholder="Add a comment..."
-        />
-        <TouchableOpacity style={[styles.iconContainer, { right: 40 }]}
-        onPress={() => addComment(post.postID, userEmail, commentText[post.postID])}>
-          <Feather name="upload" size={18} color="black" />
-        </TouchableOpacity>
+        </ScrollView>
       </View>
     </View>
-    );
-  }
-    return null;
-  })}
-  </View>
 
-  {/* Comment Modal */}
-  {isCommentDropdownVisible && selectedComment && (
-    <Modal
-      transparent={true}
-      animationType="fade"
-      visible={isCommentDropdownVisible}
-      onRequestClose={() => setCommentDropdownVisible(false)}
-    >
-      <View style={[styles.modalOverlay, { justifyContent: 'flex-end' }]}>
-        <View style={{ width: '90%', backgroundColor: '#E3C2D7', borderRadius: 10, padding: 20 }}>
-          <Pressable style={{ marginLeft: 'auto' }} onPress={() => setCommentDropdownVisible(false)}>
-            <Feather name="x" size={24} color="black" />
-          </Pressable>
-          {/* Selections */}
-          {selectedComment && selectedComment.userEmail === userEmail ? (
-            <>
+    <View style={[styles.container4, { marginBottom: 20, paddingHorizontal: 20 }]}>
+      {/* Category Filter Buttons */}
+      <View style={[styles.buttonContainer]}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 20 }}>
+          <TouchableOpacity
+              onPress={() => handleCategoryButtonClick('General')}
+              style={activeButton === 'General' ? styles.categoryBtnActive : styles.categoryBtn}
+          >
+              <Text style={styles.text}>General</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+              onPress={() => handleCategoryButtonClick('Ask Specialist')}
+              style={activeButton === 'Ask Specialist' ? styles.categoryBtnActive : styles.categoryBtn}
+          >
+              <Text style={styles.text}>Ask Specialist</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Sort section */}
+      <View style={{ flexDirection: 'row', alignItems: 'center'}}>
+        <Text style={[styles.text, { marginRight: 10 }]}>Sort by:</Text>
+        <RNPickerSelect
+          value={sortOrder}
+          onValueChange={(value) => setSortOrder(value)}
+          items={[
+              { label: 'Newest', value: 'newest' },
+              { label: 'Oldest', value: 'oldest' },
+          ]}
+        />
+        {Platform.OS !== 'web' && 
+          <View style={[styles.iconContainer, { marginLeft: 10 }]}>
+          <AntDesign name="down" size={16} color="black" />
+        </View>
+        }
+      </View>
+    </View>
+
+    {/* Posts + comments */}
+    <View style={[styles.container3, {paddingHorizontal: 20}]}>
+    {sortedPosts.map((post, index) => {
+    if (post.category === activeButton) {
+      return (
+      <View key={index} style={styles.forumPostContainer}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Text style={[styles.text3, { flex: 1, margin: 10 }]}>{post.userInfo.firstName} {post.userInfo.lastName}</Text>
+          <Text style={styles.titleNote}>{formatDate(post.dateCreated)}</Text>
+          <TouchableHighlight
+            style={[styles.iconContainer, {marginLeft: 15}]}
+            onPress={() => toggleDropdown(post)}
+            underlayColor={Platform.OS === 'web' ? 'transparent' : '#e0e0e0'}>
+            <Entypo name="dots-three-vertical" size={16} />
+          </TouchableHighlight>
+        </View>
+
+        {/* Modal for user actions - edit, delete, report */}
+        <Modal transparent={true} animationType="fade" visible={isDropdownVisible} onRequestClose={() => setDropdownVisible(false)}>
+        <View style={[styles.modalOverlay, { justifyContent: 'flex-end' }]}>
+          <View style={{ width: '90%', backgroundColor: '#E3C2D7', borderRadius: 10, padding: 20 }}>
+            <Pressable style={{ marginLeft: 'auto' }}>
+              <Feather name="x" size={24} color="black" onPress={() => setDropdownVisible(false)} />
+            </Pressable>
+            {/* Selections */}
+            {selectedPost && selectedPost.userEmail === userEmail ? (
+              <>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-                <MaterialIcons name="delete-outline" size={24} color="black" />
-                <Pressable style={{ marginLeft: 10 }} onPress={() => handleCommentSelection('delete')}>
-                  <Text style={styles.text}>Delete Comment</Text>
+                  <Feather name="edit" size={22} color="black" />
+                  <Pressable style={{ marginLeft: 10 }} onPress={() => handleSelection('edit')}>
+                      <Text style={styles.text}>Edit Post</Text>
+                  </Pressable>
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+                  <MaterialIcons name="delete-outline" size={24} color="black" />
+                  <Pressable style={{ marginLeft: 10 }} onPress={() => handleSelection('delete')}>
+                      <Text style={styles.text}>Delete Post</Text>
+                  </Pressable>
+              </View>
+              </>
+            ) : (
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+                  <MaterialIcons name="report" size={24} color="black" />
+                  <Pressable style={{ marginLeft: 10 }} onPress={() => handleSelection('report')}>
+                      <Text style={styles.text}>Report Post</Text>
+                  </Pressable>
+              </View>
+            )}
+          </View>
+        </View>
+        </Modal>
+
+        <HTMLView style={{ margin: 10 }} stylesheet={{ div: styles.text }} value={post.description} />
+
+        {/* Comments */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+          <TouchableHighlight
+            underlayColor={Platform.OS === 'web' ? 'transparent' : '#cccccc'}
+            style={styles.commentsIcon}
+            onPress={() => toggleCommentsVisibility(post.postID)}
+          >
+            <Feather name="message-circle" size={24} color="black" style={styles.commentsIcon} />
+          </TouchableHighlight>
+          <TouchableHighlight
+            underlayColor={Platform.OS === 'web' ? 'transparent' : '#cccccc'}
+            style={styles.commentsIcon}
+            onPress={() => toggleCommentsVisibility(post.postID)}
+          >
+            {post.commentCount === 0 ? (
+              <Text style={styles.formText}>No replies yet</Text>
+            ) : post.commentCount === 1 ? (
+              <Text style={styles.formText}>view {post.commentCount} reply</Text>
+            ) : (
+              <Text style={styles.formText}>view {post.commentCount} replies</Text>
+            )}
+          </TouchableHighlight>
+        </View>
+        <View>
+        {visibleComments[post.postID] && visibleComments[post.postID].map((comment, commentIndex) => (
+            <View key={commentIndex} style={[styles.container4, { marginLeft: 20, marginRight: 10, marginBottom: 20 }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                <Text style={[styles.text3, { flex: 1, marginBottom: 10 }]}>{comment.userInfo.firstName} {comment.userInfo.lastName} </Text>
+                <Text style={[styles.formText, { marginBottom: 8, marginLeft: 20 }]}>{formatDate(comment.date)} </Text>
+                <TouchableHighlight
+                  style={[styles.iconContainer, { marginBottom: 8, marginLeft: 15 }]}
+                  underlayColor={Platform.OS === 'web' ? 'transparent' : '#e0e0e0'}
+                  onPress={() => toggleCommentDropdown(comment, post)}>
+                  <Entypo name="dots-three-vertical" size={16} />
+                </TouchableHighlight>
+              </View>
+              <Text style={[styles.text]}>{comment.userComment}</Text>
+            </View>
+            ))}
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={[styles.search, { paddingBottom: 10 }]}>
+              <TextInput
+                style={[styles.input4, {height: Math.max(40, inputHeight[post.postID] || 40 + 20)}]}
+                placeholder="Add a comment..."
+                value={commentText[post.postID] || ''}
+                onChangeText={(text) => handleCommentTextChange(post.postID, text)}
+                multiline
+                onContentSizeChange={(e) => handleInputHeightChange(post.postID, e.nativeEvent.contentSize.height)}
+              />
+            </View>
+            <TouchableOpacity style={[styles.iconContainer, { marginLeft: 10, paddingBottom: 10 }]}
+              onPress={() => addComment(post.postID, userEmail, commentText[post.postID])}>
+              <Feather name="upload" size={22} color="black" />
+            </TouchableOpacity>
+        </View>
+      </View>
+      );
+    }
+      return null;
+    })}
+    </View>
+
+    {/* Comment Modal */}
+    {isCommentDropdownVisible && selectedComment && (
+      <Modal
+        transparent={true}
+        animationType="fade"
+        visible={isCommentDropdownVisible}
+        onRequestClose={() => setCommentDropdownVisible(false)}
+      >
+        <View style={[styles.modalOverlay, { justifyContent: 'flex-end' }]}>
+          <View style={{ width: '90%', backgroundColor: '#E3C2D7', borderRadius: 10, padding: 20 }}>
+            <Pressable style={{ marginLeft: 'auto' }} onPress={() => setCommentDropdownVisible(false)}>
+              <Feather name="x" size={24} color="black" />
+            </Pressable>
+            {/* Selections */}
+            {selectedComment && selectedComment.userEmail === userEmail ? (
+              <>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+                  <MaterialIcons name="delete-outline" size={24} color="black" />
+                  <Pressable style={{ marginLeft: 10 }} onPress={() => handleCommentSelection('delete')}>
+                    <Text style={styles.text}>Delete Comment</Text>
+                  </Pressable>
+                </View>
+              </>
+            ) : (
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+                <MaterialIcons name="report" size={24} color="black" />
+                <Pressable style={{ marginLeft: 10 }} onPress={() => handleCommentSelection('report')}>
+                  <Text style={styles.text}>Report Comment</Text>
                 </Pressable>
               </View>
-            </>
-          ) : (
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-              <MaterialIcons name="report" size={24} color="black" />
-              <Pressable style={{ marginLeft: 10 }} onPress={() => handleCommentSelection('report')}>
-                <Text style={styles.text}>Report Comment</Text>
-              </Pressable>
-            </View>
-          )}
+            )}
+          </View>
         </View>
-      </View>
-    </Modal>
-  )}
+      </Modal>
+    )}
 
   </ScrollView>
   </Keyboard>

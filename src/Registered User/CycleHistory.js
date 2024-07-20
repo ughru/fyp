@@ -14,9 +14,13 @@ const CycleHistory = ({ navigation }) => {
   const [selectedMonth, setSelectedMonth] = useState(today);
   const [markedDates, setMarkedDates] = useState({});
   const [lastPeriod, setLastPeriod] = useState('');
+  const [predictedPeriod, setPredictedPeriod] = useState('');
   const [cycleLength, setCycleLength] = useState('');
   const [selectedLog, setSelectedLog] = useState([]);
   const [periodLogs, setPeriodLogs] = useState([]);
+  const [ovulationDates, setOvulationDates] = useState([]);
+  const [ovulationMarkedDates, setOvulationMarkedDates] = useState({});
+  const [selectedDate, setSelectedDate] = useState(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -55,6 +59,9 @@ const CycleHistory = ({ navigation }) => {
         // Calculate last period and cycle length
         findLastPeriod(periodLogsAll);
         calculateCycleLength(periodLogsAll);
+
+        // Calculate and mark ovulation dates
+        calculateOvulationDates(periodLogsAll);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -72,56 +79,174 @@ const CycleHistory = ({ navigation }) => {
   );
 
   // display last period date (the start)
-  const findLastPeriod = (periodLogs) => {
-    let lastPeriodDate = '';
+  const findLastPeriod = async (periodLogs) => {
+    try {
+        // Get the current month from today's date
+        const today = new Date();
+        const currentMonth = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}`;
+        
+        // Calculate the previous month
+        const previousMonth = new Date(today);
+        previousMonth.setMonth(previousMonth.getMonth() - 1);
+        const previousMonthString = `${previousMonth.getFullYear()}-${(previousMonth.getMonth() + 1).toString().padStart(2, '0')}`;
 
-    periodLogs.forEach(log => {
-      log.record.forEach(record => {
-        if (!lastPeriodDate || new Date(record.date) > new Date(lastPeriodDate)) {
-          lastPeriodDate = record.date;
+        let lastPeriodDate = '';
+
+        // Check current month logs
+        const currentMonthLogs = periodLogs.filter(log => {
+            return new Date(log.record[0].date).getMonth() === today.getMonth() &&
+                   new Date(log.record[0].date).getFullYear() === today.getFullYear();
+        });
+
+        if (currentMonthLogs.length > 0) {
+            lastPeriodDate = currentMonthLogs[0].record[0].date;
+        } else {
+            // Check previous month logs if no records for the current month
+            const responsePreviousMonth = await axios.get(`${url}/getPeriodLogMonth`, {
+                params: { userEmail: await AsyncStorage.getItem('user'), date: previousMonthString }
+            });
+
+            if (responsePreviousMonth.status === 200) {
+                const previousMonthLogs = responsePreviousMonth.data;
+                if (previousMonthLogs.length > 0) {
+                    lastPeriodDate = previousMonthLogs[0].record[0].date;
+                }
+            }
         }
-      });
-    });
 
-    if (lastPeriodDate) {
-      const date = new Date(lastPeriodDate);
-      const formattedDate = date.toLocaleDateString('en-US', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      });
-      setLastPeriod(formattedDate);
-    } else {
-      setLastPeriod('-');
+        if (lastPeriodDate) {
+            const date = new Date(lastPeriodDate);
+            const formattedDate = date.toLocaleDateString('en-US', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+            });
+            setLastPeriod(formattedDate);
+        } else {
+            setLastPeriod('-');
+        }
+    } catch (error) {
+        console.error('Error finding last period:', error);
+        setLastPeriod('-');
     }
   };
 
-  // display cycle length
+  // display cycle length + predict next period + ovulation
   const calculateCycleLength = (periodLogs) => {
-    let lastPeriodDate = '';
-    let secondLastPeriodDate = '';
+    try {
+        let currentMonthFirstDate = '';
+        let previousMonthFirstDate = '';
 
-    periodLogs.forEach(log => {
-      log.record.forEach(record => {
-        const recordDate = new Date(record.date);
-        if (!lastPeriodDate || recordDate > new Date(lastPeriodDate)) {
-          secondLastPeriodDate = lastPeriodDate;
-          lastPeriodDate = record.date;
-        } else if (!secondLastPeriodDate || recordDate > new Date(secondLastPeriodDate)) {
-          secondLastPeriodDate = record.date;
+        const today = new Date();
+        const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1); 
+        const previousMonth = new Date(currentMonth);
+        previousMonth.setMonth(previousMonth.getMonth() - 1); 
+
+        periodLogs.forEach(log => {
+            log.record.forEach(record => {
+                const recordDate = new Date(record.date);
+                if (recordDate.getFullYear() === currentMonth.getFullYear() && recordDate.getMonth() === currentMonth.getMonth()) {
+                    if (!currentMonthFirstDate || recordDate < new Date(currentMonthFirstDate)) {
+                        currentMonthFirstDate = record.date;
+                    }
+                } else if (recordDate.getFullYear() === previousMonth.getFullYear() && recordDate.getMonth() === previousMonth.getMonth()) {
+                    if (!previousMonthFirstDate || recordDate < new Date(previousMonthFirstDate)) {
+                        previousMonthFirstDate = record.date;
+                    }
+                }
+            });
+        });
+
+        if (currentMonthFirstDate && previousMonthFirstDate) {
+            const currentMonthDate = new Date(currentMonthFirstDate);
+            const previousMonthDate = new Date(previousMonthFirstDate);
+            const timeDiff = currentMonthDate - previousMonthDate;
+            const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+
+            setCycleLength(`${daysDiff} days`);
+
+            // Calculate predicted period date
+            const nextPeriodDate = new Date(currentMonthDate);
+            nextPeriodDate.setDate(nextPeriodDate.getDate() + daysDiff);
+            const formattedPredictedDate = nextPeriodDate.toLocaleDateString('en-US', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+            });
+            setPredictedPeriod(formattedPredictedDate);
+        } else {
+            setCycleLength('-');
+            setPredictedPeriod('-');
         }
-      });
-    });
 
-    if (lastPeriodDate && secondLastPeriodDate) {
-      const lastDate = new Date(lastPeriodDate);
-      const secondLastDate = new Date(secondLastPeriodDate);
-      const timeDiff = lastDate - secondLastDate;
-      const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+        // Calculate ovulation dates
+        calculateOvulationDates(periodLogs);
 
-      setCycleLength(`${daysDiff} days`);
-    } else {
-      setCycleLength('-');
+    } catch (error) {
+        setCycleLength('-');
+        setPredictedPeriod('-');
+        setOvulationDates({});
+    }
+  };
+
+  const calculateOvulationDates = (periodLogs) => {
+    try {
+        const today = new Date();
+        const currentMonthFirstDate = new Date(today.getFullYear(), today.getMonth(), 1); // First date of the current month
+
+        let firstRecordDate = '';
+
+        // Find the first record of the current month
+        periodLogs.forEach(log => {
+            log.record.forEach(record => {
+                const recordDate = new Date(record.date);
+                if (recordDate >= currentMonthFirstDate && (!firstRecordDate || recordDate < new Date(firstRecordDate))) {
+                    firstRecordDate = record.date;
+                }
+            });
+        });
+
+        if (firstRecordDate && cycleLength !== '-') {
+            const firstRecordStartDate = new Date(firstRecordDate);
+            const cycleLengthDays = parseInt(cycleLength, 10);
+
+            let ovulationDayOffset = 0;
+
+            // Calculate ovulation day based on cycle length
+            if (cycleLengthDays < 31) {
+                ovulationDayOffset = Math.floor(cycleLengthDays / 2);
+            } else if (cycleLengthDays === 31) {
+                ovulationDayOffset = 16;
+            } else if (cycleLengthDays === 32) {
+                ovulationDayOffset = 17;
+            } else if (cycleLengthDays === 33) {
+                ovulationDayOffset = 18;
+            } else if (cycleLengthDays === 34) {
+                ovulationDayOffset = 19;
+            } else if (cycleLengthDays >= 35) {
+                ovulationDayOffset = 20;
+            }
+
+            // Determine the ovulation date
+            const ovulationDate = new Date(firstRecordStartDate);
+            ovulationDate.setDate(firstRecordStartDate.getDate() + ovulationDayOffset);
+
+            // Create ovulation dates range
+            const ovulationDatesRange = {};
+            for (let i = -4; i <= 1; i++) {
+                const date = new Date(ovulationDate);
+                date.setDate(ovulationDate.getDate() + i);
+                ovulationDatesRange[date.toISOString().split('T')[0]] = { selected: true, selectedColor: '#C2C7E3' };
+            }
+
+            setOvulationDates(ovulationDatesRange);
+        } else {
+            setOvulationDates({});
+        }
+
+    } catch (error) {
+        console.error('Error calculating ovulation dates:', error);
+        setOvulationDates({});
     }
   };
 
@@ -146,6 +271,7 @@ const CycleHistory = ({ navigation }) => {
           </View>
           <View style={{ flexDirection: 'row', marginBottom: 10 }}>
             <Text style={[styles.text3]}> Period Prediction: </Text>
+            <Text style={{fontSize: 18}}> {predictedPeriod} </Text> 
           </View>
           <View style={{ flexDirection: 'row', marginBottom: 30 }}>
             <Text style={[styles.text3]}> Last Cycle Length: </Text>
@@ -161,13 +287,26 @@ const CycleHistory = ({ navigation }) => {
           </View>
 
           <Calendar
-            markedDates={markedDates}
+            markedDates={{ ...markedDates, ...ovulationDates }}
             hideExtraDays={true}
             markingType={'custom'}
             onDayPress={(day) => {
               const selectedDateString = day.dateString;
-              const selectedLog = periodLogs.find(log => log.record.some(record => record.date === selectedDateString));
+
+              // Find the log for the selected date
+              const selectedLog = periodLogs.find(log =>
+                log.record.some(record => record.date === selectedDateString)
+              );
+
+              // Extract the individual record matching the selected date
+              let selectedRecord = null;
+              if (selectedLog) {
+                selectedRecord = selectedLog.record.find(record => record.date === selectedDateString);
+              }
+
+              // Set the selectedLog state
               setSelectedLog(selectedLog);
+              setSelectedDate(selectedDateString);
             }}
             onMonthChange={(month) => {
               setSelectedMonth(new Date(month.year, month.month - 1));
@@ -180,36 +319,42 @@ const CycleHistory = ({ navigation }) => {
               arrowColor: '#d470af',
               indicatorColor: '#E3C2D7',
             }}
-            style= {{marginBottom: 30}}
+            style={{ marginBottom: 30 }}
           />
 
           {/* Render selected log details */}
           {periodLogs.map((log, index) => (
             <View key={index} style={{ marginBottom: 20 }}>
               {selectedLog === log && (
-                <Pressable style={{ marginTop: 10, borderWidth: 2, borderColor: '#E3C2D7', borderRadius: 20, padding: 10  }}
-                onPress={() => navigation.navigate('UpdatePeriodLog', { log: selectedLog })}>
-                  {log.record.map((record, recordIndex) => (
-                    <View key={recordIndex} style={{ marginBottom: 10 }}>
-                      <Text style= {[styles.questionText, {marginBottom: 10, textDecorationLine: 'underline'}]}> Period Information </Text>
-                      <View style={{ flexDirection: 'row', marginBottom: 10 }}>
-                        <Text style={[styles.text, {fontWeight: 'bold'}]}>Date:</Text>
-                        <Text style={styles.text}> {record.date} </Text> 
+                <Pressable
+                  style={{ marginTop: 10, borderWidth: 2, borderColor: '#E3C2D7', borderRadius: 20, padding: 10 }}
+                  onPress={() => {
+                    const selectedRecord = log.record.find(record => record.date === selectedDate);
+                    navigation.navigate('UpdatePeriodLog', { record: selectedRecord });
+                  }}>
+                  {log.record
+                    .filter(record => record.date === selectedDate) // Filter records by the selected date
+                    .map((record, recordIndex) => (
+                      <View key={recordIndex} style={{ marginBottom: 10 }}>
+                        <Text style={[styles.questionText, { marginBottom: 10, textDecorationLine: 'underline' }]}> Period Information </Text>
+                        <View style={{ flexDirection: 'row', marginBottom: 10 }}>
+                          <Text style={[styles.text, { fontWeight: 'bold' }]}>Date:</Text>
+                          <Text style={styles.text}> {record.date} </Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', marginBottom: 10 }}>
+                          <Text style={[styles.text, { fontWeight: 'bold' }]}> Flow Type:</Text>
+                          <Text style={styles.text}> {record.flowType} </Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', marginBottom: 10 }}>
+                          <Text style={[styles.text, { fontWeight: 'bold' }]}> Symptoms:</Text>
+                          <Text style={[styles.text, { flex: 1 }]}> {record.symptoms.join(', ')} </Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', marginBottom: 10 }}>
+                          <Text style={[styles.text, { fontWeight: 'bold' }]}> Mood:</Text>
+                          <Text style={styles.text}> {record.mood} </Text>
+                        </View>
                       </View>
-                      <View style={{ flexDirection: 'row', marginBottom: 10 }}>
-                        <Text style={[styles.text, {fontWeight: 'bold'}]}> Flow Type:</Text>
-                        <Text style={styles.text}>  {record.flowType} </Text> 
-                      </View>
-                      <View style={{ flexDirection: 'row', marginBottom: 10 }}>
-                        <Text style={[styles.text, {fontWeight: 'bold'}]}> Symptoms:</Text>
-                        <Text style={[styles.text, {flex: 1}]}>  {record.symptoms.join(', ')} </Text> 
-                      </View>
-                      <View style={{ flexDirection: 'row', marginBottom: 10 }}>
-                        <Text style={[styles.text, {fontWeight: 'bold'}]}> Mood:</Text>
-                        <Text style={styles.text}> {record.mood} </Text> 
-                      </View>
-                    </View>
-                  ))}
+                    ))}
                 </Pressable>
               )}
             </View>

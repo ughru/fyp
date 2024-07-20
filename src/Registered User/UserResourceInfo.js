@@ -49,11 +49,6 @@ const UserResourceInfo = ({ navigation, route }) => {
                     <Pressable onPress={() => navigation.goBack()}>
                         <Text style={[styles.text, { top: 3 }]}> back</Text>
                     </Pressable>
-                    <View style= {{flex: 1, alignItems: 'flex-end'}}>
-                        <View style={[styles.iconContainer]}>
-                            <Feather name="download" size={24} color="black" />
-                        </View>
-                    </View>
                 </View>
             </View>
             <View style={{...styles.container4 , padding:20}}>

@@ -44,12 +44,13 @@ const symptomsList = [
 ];
 
 const UpdatePeriodLog = ({ navigation, route }) => {
-  const { log } = route.params;
-  const { weekDays, weekDates, currentDay } = getWeek(formatDate(log.record[0].date));
+  const { record } = route.params;
+  const { weekDays, weekDates, currentDay } = getWeek(formatDate(record.date));
+
   const [activeButton, setActiveButton] = useState('');
-  const [selectedType, setSelectedType] = useState(log.record[0].flowType); 
-  const [selectedSymptoms, setSelectedSymptoms] = useState(log.record[0].symptoms);
-  const [mood, setMood] = useState(log.record[0].mood);
+  const [selectedType, setSelectedType] = useState(record.flowType); 
+  const [selectedSymptoms, setSelectedSymptoms] = useState(record.symptoms);
+  const [mood, setMood] = useState(record.mood);
 
   const [typeError, setError1] = useState('');
   const [symptomsError, setError2] = useState('');
@@ -112,21 +113,21 @@ const UpdatePeriodLog = ({ navigation, route }) => {
           Alert.alert('Error', 'User email not found');
           return;
         }
-        
+
         const periodLogData = {
           userEmail: storedEmail,
           date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' }),
           record: {
-            date: formatDate(log.record[0].date),
+            date: formatDate(record.date),
             flowType: selectedType,
             symptoms: selectedSymptoms,
             mood: mood
           }
         };
-  
+
         // Update period log
         const response = await axios.put(`${url}/updatePeriodLog`, periodLogData);
-  
+
         if (response.status === 200) {
           Alert.alert('Success', 'Period Log successfully updated!', [{
             text: 'OK', onPress: () => {
@@ -142,108 +143,98 @@ const UpdatePeriodLog = ({ navigation, route }) => {
     };
   }
 
-  // Page Displays
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={[{
-        flexDirection: 'row', width: '100%', alignItems: 'center', marginBottom: 20
-      }, Platform.OS !== "web" && { paddingTop: 50 }]}>
-
+      <View style={[{ flexDirection: 'row', width: '100%', alignItems: 'center', marginBottom: 20 }, Platform.OS !== "web" && { paddingTop: 50 }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', paddingRight: 30 }}>
           <AntDesign name="left" size={24} color="black" />
           <Pressable style={[styles.formText]} onPress={() => navigation.goBack()}>
             <Text style={styles.text}> back </Text>
           </Pressable>
         </View>
-
         <Text style={[styles.pageTitle]}> Update Period </Text>
       </View>
 
-      {/* Cycle History Button */}
-      <View style={[styles.container4]}>
-        {/* Calendar View */}
-        <View style={styles.calendarContainer}>
-            <View style={styles.header}>
-                {weekDays.map((day, index) => (
-                <Text key={index} style={styles.dayLabel}>{day}</Text>
-                ))}
-            </View>
-            <View style={styles.days}>
-                {weekDates.map((date, index) => (
-                <Text key={index} style={[styles.date2, date === currentDay && styles.currentDate]}>{date}</Text>
-                ))}
-            </View>
+      {/* Calendar View */}
+      <View style={styles.calendarContainer}>
+        <View style={styles.header}>
+          {weekDays.map((day, index) => (
+            <Text key={index} style={styles.dayLabel}>{day}</Text>
+          ))}
         </View>
-
-         {/* Flow Selection*/}
-         <Text style={[styles.questionText, { marginTop: 20, marginBottom: 20 }]}> Menstrual Flow </Text>
-        {typeError ? <Text style={[styles.error, { marginBottom: 20 }]}>{typeError}</Text> : null}
-        <View style={[styles.buttonPosition, { marginBottom: 20 }]}>
-          <TouchableOpacity
-            style={[
-              styles.button6, { marginHorizontal: 10 },
-              selectedType === 'Light' ? styles.button6 : styles.defaultButton,
-            ]}
-            onPress={() => handleFlow('Light')}>
-
-            <Text> Light </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={[styles.button6, { marginHorizontal: 10 },
-          selectedType === 'Medium' ? styles.button6 : styles.defaultButton,]}
-            onPress={() => handleFlow('Medium')}>
-            <Text> Medium </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={[styles.button6, { marginHorizontal: 10 },
-          selectedType === 'Heavy' ? styles.button6 : styles.defaultButton,]}
-            onPress={() => handleFlow('Heavy')}>
-            <Text> Heavy </Text>
-          </TouchableOpacity>
+        <View style={styles.days}>
+          {weekDates.map((date, index) => (
+            <Text key={index} style={[styles.date2, date === currentDay && styles.currentDate]}>{date}</Text>
+          ))}
         </View>
-
-        {/* Symptoms */}
-        <Text style={[styles.questionText, { marginBottom: 20 }]}> Symptoms </Text>
-        <Text style={[styles.formText, { marginBottom: 20 }]}> Select all that applies </Text>
-        {symptomsError ? <Text style={[styles.error, { marginBottom: 20 }]}>{symptomsError}</Text> : null}
-
-        {symptomsList.map((symptom, index) => (
-          <View key={index} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-            <Text style={[styles.text, { flex: 1 }]}>{symptom}</Text>
-            <Pressable
-              style={[selectedSymptoms.includes(symptom) ? styles.button8 : styles.button10, { marginRight: 20 }]}
-              onPress={() => toggleSymptom(symptom)}
-            >
-              <Text style={{ color: 'white' }}>{selectedSymptoms.includes(symptom) ? '✓' : ''}</Text>
-            </Pressable>
-          </View>
-        ))}
-
-        {/* Mood */}
-        <Text style={[styles.questionText, { marginBottom: 20 }]}> Mood </Text>
-        {moodError ? <Text style={[styles.error, { marginBottom: 20 }]}>{moodError}</Text> : null}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', marginBottom: 20 }}>
-          <TouchableOpacity style={{ alignItems: 'center' }} onPress={() => handleMood('Happy')}>
-            <FontAwesome6 name="face-smile" size={35} color={mood === 'Happy' ? '#E3C2D7' : 'black'} />
-            <Text style={[styles.text, { marginTop: 10, textAlign: 'center' }]}> Happy </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={{ alignItems: 'center' }} onPress={() => handleMood('Sad')}>
-            <FontAwesome6 name="face-frown" size={35} color={mood === 'Sad' ? '#E3C2D7' : 'black'} />
-            <Text style={[styles.text, { marginTop: 10, textAlign: 'center' }]}> Sad </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={{ alignItems: 'center' }} onPress={() => handleMood('Anxious')}>
-            <FontAwesome6 name="face-tired" size={35} color={mood === 'Anxious' ? '#E3C2D7' : 'black'} />
-            <Text style={[styles.text, { marginTop: 10, textAlign: 'center' }]}> Anxious </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={{ alignItems: 'center' }} onPress={() => handleMood('Irritated')}>
-            <FontAwesome6 name="face-angry" size={35} color={mood === 'Irritated' ? '#E3C2D7' : 'black'} />
-            <Text style={[styles.text, { marginTop: 10, textAlign: 'center' }]}> Irritated </Text>
-          </TouchableOpacity>
-        </View>
-
       </View>
 
-      {/* Button */}
+      {/* Flow Selection */}
+      <Text style={[styles.questionText, { marginTop: 20, marginBottom: 20 }]}> Menstrual Flow </Text>
+      {typeError ? <Text style={[styles.error, { marginBottom: 20 }]}>{typeError}</Text> : null}
+      <View style={[styles.buttonPosition, { marginBottom: 20 }]}>
+        <TouchableOpacity
+          style={[
+            styles.button6, { marginHorizontal: 10 },
+            selectedType === 'Light' ? styles.button6 : styles.defaultButton,
+          ]}
+          onPress={() => handleFlow('Light')}>
+          <Text> Light </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button6, { marginHorizontal: 10 },
+            selectedType === 'Medium' ? styles.button6 : styles.defaultButton,]}
+          onPress={() => handleFlow('Medium')}>
+          <Text> Medium </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button6, { marginHorizontal: 10 },
+            selectedType === 'Heavy' ? styles.button6 : styles.defaultButton,]}
+          onPress={() => handleFlow('Heavy')}>
+          <Text> Heavy </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Symptoms */}
+      <Text style={[styles.questionText, { marginBottom: 20 }]}> Symptoms </Text>
+      <Text style={[styles.formText, { marginBottom: 20 }]}> Select all that applies </Text>
+      {symptomsError ? <Text style={[styles.error, { marginBottom: 20 }]}>{symptomsError}</Text> : null}
+
+      {symptomsList.map((symptom, index) => (
+        <View key={index} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+          <Text style={[styles.text, { flex: 1 }]}>{symptom}</Text>
+          <Pressable
+            style={[selectedSymptoms.includes(symptom) ? styles.button8 : styles.button10, { marginRight: 20 }]}
+            onPress={() => toggleSymptom(symptom)}
+          >
+            <Text style={{ color: 'white' }}>{selectedSymptoms.includes(symptom) ? '✓' : ''}</Text>
+          </Pressable>
+        </View>
+      ))}
+
+      {/* Mood */}
+      <Text style={[styles.questionText, { marginBottom: 20 }]}> Mood </Text>
+      {moodError ? <Text style={[styles.error, { marginBottom: 20 }]}>{moodError}</Text> : null}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', marginBottom: 20 }}>
+        <TouchableOpacity style={{ alignItems: 'center' }} onPress={() => handleMood('Happy')}>
+          <FontAwesome6 name="face-smile" size={35} color={mood === 'Happy' ? '#E3C2D7' : 'black'} />
+          <Text style={[styles.text, { marginTop: 10, textAlign: 'center' }]}> Happy </Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={{ alignItems: 'center' }} onPress={() => handleMood('Sad')}>
+          <FontAwesome6 name="face-frown" size={35} color={mood === 'Sad' ? '#E3C2D7' : 'black'} />
+          <Text style={[styles.text, { marginTop: 10, textAlign: 'center' }]}> Sad </Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={{ alignItems: 'center' }} onPress={() => handleMood('Anxious')}>
+          <FontAwesome6 name="face-tired" size={35} color={mood === 'Anxious' ? '#E3C2D7' : 'black'} />
+          <Text style={[styles.text, { marginTop: 10, textAlign: 'center' }]}> Anxious </Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={{ alignItems: 'center' }} onPress={() => handleMood('Irritated')}>
+          <FontAwesome6 name="face-angry" size={35} color={mood === 'Irritated' ? '#E3C2D7' : 'black'} />
+          <Text style={[styles.text, { marginTop: 10, textAlign: 'center' }]}> Irritated </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Save Button */}
       <Pressable style={[styles.button, { alignSelf: 'center' }]} onPress={handleSave}>
         <Text style={styles.text}> Update </Text>
       </Pressable>

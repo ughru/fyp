@@ -45,6 +45,7 @@ const Forum = ({ navigation }) => {
   const [activeButton, setActiveButton] = useState('General');
   const [imageUrl, setImageUrls] = useState(null);
   const [isModalVisible, setModalVisible] = useState(false);
+  const [inputHeight, setInputHeight] = useState({});
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -142,6 +143,13 @@ const Forum = ({ navigation }) => {
     setCommentText((prevState) => ({
       ...prevState,
       [postID]: text,
+    }));
+  };
+
+  const handleInputHeightChange = (postID, height) => {
+    setInputHeight((prevState) => ({
+      ...prevState,
+      [postID]: height,
     }));
   };
 
@@ -269,15 +277,19 @@ const Forum = ({ navigation }) => {
                   </View>
                 ))}
 
-                <View style={[styles.search, { paddingBottom: 10 }]}>
-                  <TextInput
-                    style={[styles.input4]}
-                    value={commentText[post.postID] || ''}
-                    onChangeText={(text) => handleCommentTextChange(post.postID, text)}
-                    placeholder="Add a comment..."
-                  />
-                  <TouchableOpacity style={[styles.iconContainer, { right: 40 }]}>
-                    <Feather name="upload" size={18} color="black" onPress={toggleModal} />
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <View style={[styles.search, { paddingBottom: 10 }]}>
+                    <TextInput
+                      style={[styles.input4, {height: Math.max(40, inputHeight[post.postID] || 40 + 20)}]}
+                      placeholder="Add a comment..."
+                      value={commentText[post.postID] || ''}
+                      onChangeText={(text) => handleCommentTextChange(post.postID, text)}
+                      multiline
+                      onContentSizeChange={(e) => handleInputHeightChange(post.postID, e.nativeEvent.contentSize.height)}
+                    />
+                  </View>
+                  <TouchableOpacity style={[styles.iconContainer, { marginLeft: 10, paddingBottom: 10 }]}>
+                    <Feather name="upload" size={22} color="black" onPress={toggleModal} />
                   </TouchableOpacity>
                 </View>
               </View>

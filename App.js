@@ -28,7 +28,6 @@ import UserDuringHome from './src/Registered User/UserDuringHome/';
 import UserPostHome from './src/Registered User/UserPostHome/';
 import UserResource from './src/Registered User/UserResource/';
 import UserResourceInfo from './src/Registered User/UserResourceInfo';
-import UserDownloads from './src/Registered User/UserDownloads';
 import UserForum from './src/Registered User/UserForum/';
 import UserCreatePost from './src/Registered User/UserCreatePost/';
 import UserUpdatePost from './src/Registered User/UserUpdatePost/';
@@ -106,7 +105,6 @@ export default function App() {
                 <Stack.Screen name="UserPostHome" component= {UserPostHome} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserResource" component= {UserResource} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserResourceInfo" component= {UserResourceInfo} options={{ headerShown: false }}/>
-                <Stack.Screen name="UserDownloads" component= {UserDownloads} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserForum" component= {UserForum} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserCreatePost" component= {UserCreatePost} options={{ headerShown: false }}/>
                 <Stack.Screen name="UserUpdatePost" component= {UserUpdatePost} options={{ headerShown: false }}/>
