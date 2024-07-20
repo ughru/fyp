@@ -32,6 +32,11 @@ const CreateAppointments = ({ navigation }) => {
   const [existing, setExisting] = useState({});
   const [refreshDisplay, setRefreshDisplay] = useState(false); // State for triggering display refresh
 
+  // errrors
+  const [startTimeError, setError1] = useState('');
+  const [endTimeError, setError2] = useState('');
+  const [breakError, setError3] = useState('');
+
   useEffect(() => {
     const fetchUserEmail = async () => {
       try {
@@ -197,7 +202,8 @@ const CreateAppointments = ({ navigation }) => {
   };
 
   const handleSubmit = async () => {
-    // Prepare data for submission
+    let valid = true;
+
     const appointmentData = {
       userEmail: userEmail,
       date: moment(selectedDate).format('MMMM YYYY'), // Format as Month Year
@@ -211,21 +217,44 @@ const CreateAppointments = ({ navigation }) => {
     };
 
     try {
-      const response = await axios.post(`${url}/appointments`, appointmentData);
-
-      if (response.status === 201) {
-        // Appointment saved successfully
-        Alert.alert('Success', 'Appointment saved successfully');
-        setShowAppointmentSelection(false); // Close appointment selection section
-        setSelectedDate(''); // Clear selected date
-        setMarkedDates({}); // Clear marked dates
-        setStartTime(null); // Clear start time
-        setEndTime(null); // Clear end time
-        setBreakTimings([]); // Clear break timings
-        setRefreshDisplay(true); // Trigger display refresh
+      // error handling
+      if (!startTime) {
+        setError1('* Required field');
+        valid = false;
       } else {
-        throw new Error('Error saving appointment');
+        setError1('');
       }
+
+      if (!endTime) {
+        setError2('* Required field');
+        valid = false;
+      } else {
+        setError2('');
+      }
+
+      if (!breakStartTime || !breakEndTime) {
+        setError3('* Required field');
+        valid = false;
+      } else {
+        setError3('');
+      }
+
+      if (valid) {
+        const response = await axios.post(`${url}/appointments`, appointmentData);
+
+        if (response.status === 201) {
+          // Appointment saved successfully
+          Alert.alert('Success', 'Appointment saved successfully');
+          setShowAppointmentSelection(false); // Close appointment selection section
+          setSelectedDate(''); // Clear selected date
+          setMarkedDates({}); // Clear marked dates
+          setStartTime(null); // Clear start time
+          setEndTime(null); // Clear end time
+          setBreakTimings([]); // Clear break timings
+          setRefreshDisplay(true); // Trigger display refresh
+        } else {
+          throw new Error('Error saving appointment');
+        }}
     } catch (error) {
       console.error('Error saving appointment:', error.message);
       Alert.alert('Error', 'Failed to save appointment');
@@ -244,7 +273,7 @@ const CreateAppointments = ({ navigation }) => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={[{ flexDirection: 'row', width: '100%', alignItems: 'center', marginBottom: 40 }, Platform.OS !== 'web' && { paddingTop: 50 }]}>
+      <View style={[{ flexDirection: 'row', width: '100%', alignItems: 'center', marginBottom: 30 }, Platform.OS !== 'web' && { paddingTop: 50 }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', paddingRight: 10 }}>
           <AntDesign name="left" size={24} color="black" />
           <Pressable style={[styles.formText]} onPress={() => navigation.goBack()}>
@@ -253,6 +282,8 @@ const CreateAppointments = ({ navigation }) => {
         </View>
         <Text style={[styles.pageTitle]}> Create Appointment </Text>
       </View>
+
+      <Text style={[styles.formText, { marginBottom: 20 }]}> Select a date with no slots to create </Text>
 
       {/* Legend Display */}
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
@@ -285,11 +316,11 @@ const CreateAppointments = ({ navigation }) => {
       {showAppointmentSelection && (
         <View style={styles.container3}>
           <Text style={[styles.text3, { marginBottom: 10 }]}>Selected Date: {selectedDate}</Text>
-          <Text style={styles.formText}>Start Time: </Text>
+          <Text style={styles.formText}>Start Time: {startTimeError ? <Text style={styles.error}>{startTimeError}</Text> : null} </Text>
           <Pressable onPress={() => setStartTimePickerVisible(true)} style={[styles.button, { marginBottom: 20 }]}>
             <Text style={styles.text}> {startTime ? moment(startTime).format('HH:mm') : 'Select Start Time'}</Text>
           </Pressable>
-          <Text style={styles.formText}>End Time: </Text>
+          <Text style={styles.formText}>End Time: {endTimeError ? <Text style={styles.error}>{endTimeError}</Text> : null} </Text>
           <Pressable onPress={() => setEndTimePickerVisible(true)} style={[styles.button, { marginBottom: 20 }]}>
             <Text style={styles.text}> {endTime ? moment(endTime).format('HH:mm') : 'Select End Time'}</Text>
           </Pressable>
@@ -301,7 +332,7 @@ const CreateAppointments = ({ navigation }) => {
             </Pressable>
           </View>
 
-          <Text style={styles.formText}>Break Timings: </Text>
+          <Text style={styles.formText}>Break Timings: {breakError ? <Text style={styles.error}>{breakError}</Text> : null} </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
             <Pressable onPress={() => setBreakStartTimePickerVisible(true)} style={[styles.button, { marginBottom: 20 }]}>
               <Text style={styles.text}> {breakStartTime ? moment(breakStartTime).format('HH:mm') : 'Select Break Start Time'}</Text>

@@ -1533,6 +1533,32 @@ app.delete('/deleteAppointments', async (req, res) => {
 });
 
 // mark complete automatically (based on time)
+app.post('/updateAppointment', async (req, res) => {
+  const { userEmail, specialistEmail, dateMonthYear, date, time, status, note } = req.body;
+  
+  try {
+    // Find and update the appointment
+    const appointment = await Appointment.findOneAndUpdate(
+      {
+        userEmail,
+        specialistEmail,
+        date: dateMonthYear, // Match with "Month Year" format
+        'details.date': date,
+        'details.time': time
+      },
+      { $set: { 'details.$.status': status, 'details.$.specialistNotes': note } },
+      { new: true }
+    );
+
+    if (appointment) {
+      res.status(200).json({ message: 'Appointment updated successfully' });
+    } else {
+      res.status(404).json({ message: 'Appointment not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating appointment', error });
+  }
+});
 
 // cancel appointment (user/specialist)
 app.post('/cancelAppointment', async (req, res) => {
@@ -1558,7 +1584,6 @@ app.post('/cancelAppointment', async (req, res) => {
       res.status(404).json({ message: 'Appointment not found' });
     }
   } catch (error) {
-    console.error('Error cancelling appointment:', error);
     res.status(500).json({ message: 'Error cancelling appointment', error });
   }
 });

@@ -38,29 +38,47 @@ const SpecialistHome = ({ navigation }) => {
   const fetchAppointments = useCallback(async () => {
     try {
       if (specialistInfo.email) {
+        // Fetch appointments from the API
         const response = await axios.get(`${url}/bookedAppt2`, { params: { specialistEmail: specialistInfo.email } });
-        const filteredAppointments = response.data.filter(appointment => appointment.details.some(detail => detail.status === 'Upcoming'));
-
-        const userEmails = filteredAppointments.map(appointment => appointment.userEmail);
+        
+        // Initialize categorized appointments
+        const categorizedAppointments = { Upcoming: [], Completed: [], Cancelled: [] };
+  
+        // Categorize appointments based on their status
+        response.data.forEach(appointment => {
+          appointment.details.forEach(detail => {
+            if (categorizedAppointments[detail.status]) {
+              categorizedAppointments[detail.status].push({
+                ...appointment,
+                details: [detail] // Include only the matching detail
+              });
+            }
+          });
+        });
+  
+        // Set state to only 'Upcoming' appointments
+        setAppointments(sortAppointments(categorizedAppointments['Upcoming']));
+        
+        // Fetch user details for all unique user emails
+        const userEmails = [...new Set(response.data.map(app => app.userEmail))];
         const responses = await Promise.all(
           userEmails.map(email =>
             axios.get(`${url}/userinfo`, { params: { email } })
           )
         );
-
+  
         const detailsMap = {};
         responses.forEach(response => {
           const userInfo = response.data;
           detailsMap[userInfo.email] = userInfo;
         });
-
+  
         setUserDetails(detailsMap);
-        setAppointments(sortAppointments(filteredAppointments));
       }
     } catch (error) {
       console.error('Error fetching appointments:', error);
     }
-  }, [specialistInfo.email]);
+  }, [specialistInfo.email]);  
 
   useEffect(() => {
     const setCurrentDateFormatted = () => {

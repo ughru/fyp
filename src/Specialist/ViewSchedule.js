@@ -175,7 +175,7 @@ const ViewSchedule = ({ navigation }) => {
 
     return (
     <ScrollView contentContainerStyle={styles.container}>
-        <View style={[{ flexDirection: 'row', width: '100%', alignItems: 'center', marginBottom: 40 }, Platform.OS !== "web" && { paddingTop: 50 }]}>
+        <View style={[{ flexDirection: 'row', width: '100%', alignItems: 'center', marginBottom: 30 }, Platform.OS !== "web" && { paddingTop: 50 }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', paddingRight: 20 }}>
                 <AntDesign name="left" size={24} color="black" />
                 <Pressable style={[styles.formText]} onPress={() => navigation.goBack()}>
@@ -184,6 +184,8 @@ const ViewSchedule = ({ navigation }) => {
             </View>
             <Text style={[styles.pageTitle]}> View Schedule </Text>
         </View>
+
+        <Text style={[styles.formText, { marginBottom: 20 }]}> Select a date with existing slots to view </Text>
 
         {/* Legend Display */}
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>

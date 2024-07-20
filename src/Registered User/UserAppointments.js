@@ -25,28 +25,47 @@ const UserAppointments = ({ navigation }) => {
 
   const fetchAppointments = useCallback(async () => {
     try {
+      // Fetch appointments based on userEmail
       const response = await axios.get(`${url}/bookedAppt`, { params: { userEmail } });
-      const filteredAppointments = response.data.filter(appointment => appointment.details.some(detail => detail.status === activeButton));
-      
-      const specialistEmails = filteredAppointments.map(appointment => appointment.specialistEmail);
+  
+      // Initialize categorized appointments
+      const categorizedAppointments = {Upcoming: [], Completed: [], Cancelled: []};
+  
+      // Process appointments
+      response.data.forEach(appointment => {
+        appointment.details.forEach(detail => {
+          if (categorizedAppointments[detail.status]) {
+            categorizedAppointments[detail.status].push({
+              ...appointment,
+              details: [detail] // Include only the matching detail
+            });
+          }
+        });
+      });
+  
+      // Set state based on selected category
+      setAppointments(sortAppointments(categorizedAppointments[activeButton]));
+  
+      // Fetch specialist information
+      const specialistEmails = [...new Set(response.data.map(app => app.specialistEmail))];
       const responses = await Promise.all(
         specialistEmails.map(email =>
           axios.get(`${url}/specialistinfo`, { params: { email } })
         )
       );
-
+  
+      // Map specialist details
       const detailsMap = {};
       responses.forEach(response => {
         const specialistInfo = response.data;
         detailsMap[specialistInfo.email] = specialistInfo;
       });
-
+  
       setSpecialistDetails(detailsMap);
-      setAppointments(sortAppointments(filteredAppointments));
     } catch (error) {
       console.error('Error fetching appointments:', error);
     }
-  }, [userEmail, activeButton]);
+  }, [userEmail, activeButton]);  
 
   useEffect(() => {
     const fetchUserEmail = async () => {
@@ -294,12 +313,14 @@ const UserAppointments = ({ navigation }) => {
                     <Text style={styles.text}> View Appointment </Text>
                 </Pressable>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+            {selectedAppointment.status === 'Upcoming' && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
                 <MaterialIcons name="delete-outline" size={24} color="black" />
                 <Pressable style={{ marginLeft: 10 }} onPress={handleCancelAppointment}>
-                    <Text style={styles.text}>Cancel Appointment</Text>
+                  <Text style={styles.text}>Cancel Appointment</Text>
                 </Pressable>
-            </View>
+              </View>
+            )}
             </View>
           )}
         </View>

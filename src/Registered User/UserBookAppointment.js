@@ -30,6 +30,9 @@ const UserCreateAppointment = ({ navigation }) => {
     const [currentMonth, setCurrentMonth] = useState('');
     const [selectedTime, setSelectedTime] = useState(null);
     const [userComments, setUserComments] = useState('');
+    const [commentError, setError1] = useState('');
+    const [timeError, setError2] = useState('');
+    const [inputHeight, setInputHeight] = useState(40);
     const scrollRef = useRef(null);
 
     const fetchSpecialisations = useCallback(async () => {
@@ -121,6 +124,10 @@ const UserCreateAppointment = ({ navigation }) => {
                 setShowAppointmentSelection(false);
                 // Restore existing marked dates
                 setMarkedDates(existing);
+                setUserComments(''); 
+                setSelectedTime('');
+                setError1('');
+                setError2('');
             } else {
                 // Mark the selected date on the calendar
                 setMarkedDates({
@@ -141,6 +148,10 @@ const UserCreateAppointment = ({ navigation }) => {
 
                 setSelectedDate(selectedDay); // Set the selected date state
                 setShowAppointmentSelection(true); // Show appointment selection section
+                setUserComments(''); // Reset user comments
+                setError1('');
+                setSelectedTime('');
+                setError2('');
             }
         }
     };
@@ -242,7 +253,24 @@ const UserCreateAppointment = ({ navigation }) => {
     };    
 
     const handleBooking = async () => {
+        let valid = true;
+
         try {
+            if(!userComments.trim()){
+                setError1('* Required field');
+                valid = false;
+            } else {
+                setError1('');
+            }
+
+            if (!selectedTime) {
+                setError2('* Required field');
+                valid = false;
+            } else {
+                setError2('');
+            }
+
+            if(valid){
             const appointmentDetails = {
                 date: selectedDate,
                 time: selectedTime,
@@ -272,7 +300,7 @@ const UserCreateAppointment = ({ navigation }) => {
                 fetchBookedAppointments(selectedSpecialist.email, currentMonth);
             } else {
                 Alert.alert('Error', 'Failed to book appointment');
-            }
+            }}
         } catch (error) {
             Alert.alert('Error', 'Failed to book appointment');
         }
@@ -345,7 +373,7 @@ const UserCreateAppointment = ({ navigation }) => {
 
                         return (
                         <View key={appt._id} style={{ marginTop: 10, width: '100%', borderWidth: 2, borderColor: '#E3C2D7', borderRadius: 20, padding: 10, marginBottom: 20 }}>
-                            <Text style={[styles.formText, { marginBottom: 20 }]}>Select Time: </Text>
+                            <Text style={[styles.formText, { marginBottom: 20 }]}>Select Time:  {timeError ? <Text style={styles.error}>{timeError}</Text> : null} </Text>
                             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 }}>
                             {timeSlots.map((time, index) => {
                                 const selectedDateTime = moment(selectedDate + ' ' + time, 'YYYY-MM-DD HH:mm');
@@ -375,7 +403,13 @@ const UserCreateAppointment = ({ navigation }) => {
                             </View>
 
                             <Text style={[styles.formText, {marginBottom: 20}]}>Any Additional Information for specialist: </Text>
-                            <TextInput style={[styles.input, {marginBottom: 20}]} value={userComments} onChangeText={setUserComments}/>
+                            {commentError ? <Text style={[styles.error, {fontSize: 16, marginBottom: 10}]}>{commentError}</Text> : null}
+                            <TextInput
+                                style={[styles.input, {height: Math.max(40, inputHeight + 20), marginBottom: 20 }]}
+                                value={userComments}
+                                onChangeText={setUserComments}
+                                multiline
+                                onContentSizeChange={(e) => setInputHeight(e.nativeEvent.contentSize.height)}/>
 
                             <Pressable style={[styles.button, { alignSelf: 'center' }]} onPress={handleBooking}>
                                 <Text style={styles.text}> Book Appointment </Text>

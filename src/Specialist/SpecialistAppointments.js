@@ -26,23 +26,40 @@ const SpecialistAppointments = ({navigation}) => {
   const fetchAppointments = useCallback(async () => {
     try {
       const response = await axios.get(`${url}/bookedAppt2`, { params: { specialistEmail: userEmail } });
-      const filteredAppointments = response.data.filter(appointment => appointment.details.some(detail => detail.status === activeButton));
-
-      const userEmails = filteredAppointments.map(appointment => appointment.userEmail);
+      
+      // Initialize categorized appointments
+      const categorizedAppointments = { Upcoming: [], Completed: [], Cancelled: [] };
+  
+      // Process appointments
+      response.data.forEach(appointment => {
+        appointment.details.forEach(detail => {
+          if (categorizedAppointments[detail.status]) {
+            categorizedAppointments[detail.status].push({
+              ...appointment,
+              details: [detail] // Include only the matching detail
+            });
+          }
+        });
+      });
+  
+      // Set state based on selected category
+      setAppointments(sortAppointments(categorizedAppointments[activeButton]));
+      
+      // Fetch user details
+      const userEmails = [...new Set(response.data.map(app => app.userEmail))];
       const responses = await Promise.all(
         userEmails.map(email =>
           axios.get(`${url}/userinfo`, { params: { email } })
         )
       );
-
+  
       const detailsMap = {};
       responses.forEach(response => {
         const userInfo = response.data;
         detailsMap[userInfo.email] = userInfo;
       });
-
+  
       setUserDetails(detailsMap);
-      setAppointments(sortAppointments(filteredAppointments));
     } catch (error) {
       console.error('Error fetching appointments:', error);
     }
@@ -62,7 +79,7 @@ const SpecialistAppointments = ({navigation}) => {
 
     const fetchImage = async () => {
       try {
-       const url = await storage.ref('miscellaneous/error.png').getDownloadURL();
+        const url = await storage.ref('miscellaneous/error.png').getDownloadURL();
         setImageUrl(url);
       } catch (error) {
         console.error('Error fetching image:', error);
@@ -129,50 +146,54 @@ const SpecialistAppointments = ({navigation}) => {
     setUpdateModalVisible(false);
   };
 
-  /*
   const handleNoteSubmit = async () => {
-    if (selectedAppointment) {
-      try {
-        const updatedAppointment = {
-          ...selectedAppointment,
-          specialistNotes: noteInput,
-          status: 'Completed'
-        };
-
-        await axios.post(`${url}/updateAppointmentStatus`, {
-          userEmail: userEmail,
-          specialistEmail: selectedAppointment.specialistEmail,
+    try {
+      if (selectedAppointment) {
+        // Find the specialist email based on selected appointment
+        const appointmentWithUser = appointments.find(appointment =>
+          appointment.details.some(detail => 
+            detail.date === selectedAppointment.date && detail.time === selectedAppointment.time
+          )
+        );
+  
+        const user = appointmentWithUser.userEmail;
+        const appointmentMonthYear = moment(selectedAppointment.date).format('MMMM YYYY');
+  
+        const response = await axios.post(`${url}/updateAppointment`, {
+          userEmail: user,
+          specialistEmail: userEmail,
+          dateMonthYear: appointmentMonthYear,
           date: selectedAppointment.date,
           time: selectedAppointment.time,
           status: 'Completed',
-          specialistNotes: noteInput
+          note: selectedAppointment.specialistNotes
         });
+  
+        if (response.status === 200) {
+          Alert.alert('Appointment updated successfully.');
+          setUpdateModalVisible(false);
+  
+          // Update state to reflect cancellation
+          setAppointments(prevAppointments =>
+            prevAppointments.map(appointment => ({
+              ...appointment,
+              details: appointment.details.map(detail =>
+                detail.date === selectedAppointment.date && detail.time === selectedAppointment.time
+                  ? { ...detail, status: 'Completed', specialistNotes: selectedAppointment.specialistNotes }
+                  : detail
+              )
+            }))
+          );
 
-        // Update the state with new notes and status
-        setAppointments(prevAppointments => {
-          return prevAppointments.map(appointment => {
-            if (appointment.userEmail === selectedAppointment.userEmail) {
-              return {
-                ...appointment,
-                details: appointment.details.map(detail => 
-                  detail.date === selectedAppointment.date && detail.time === selectedAppointment.time 
-                    ? updatedAppointment 
-                    : detail
-                )
-              };
-            }
-            return appointment;
-          });
-        });
-
-        setUpdateModalVisible(false);
-        setViewModalVisible(false);
-      } catch (error) {
-        console.error('Error updating appointment:', error);
+          fetchAppointments();
+        } else {
+          Alert.alert('Failed to update appointment.');
+        }
       }
+    } catch (error) {
+      Alert.alert('An error occurred while updating the appointment.');
     }
-  };
-  */
+  };  
 
   // Page Displays
   return (
@@ -339,7 +360,7 @@ const SpecialistAppointments = ({navigation}) => {
                   onChangeText={setNoteInput}
                   multiline
                   onContentSizeChange={(e) => setInputHeight(e.nativeEvent.contentSize.height)}/>
-                <TouchableOpacity style={[styles.button, {borderWidth: 1, borderColor: 'black'}]} >
+                <TouchableOpacity style={[styles.button, {borderWidth: 1, borderColor: 'black'}]} onPress={handleNoteSubmit}>
                   <Text style={styles.text}>Submit</Text>
                 </TouchableOpacity>
               </ScrollView>
