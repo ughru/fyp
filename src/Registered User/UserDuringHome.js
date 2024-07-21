@@ -155,7 +155,7 @@ const UserDuringHome = ({navigation}) => {
         
         <Pressable style={[styles.button3]}
           onPress={async () => {
-            if (conceptionWeek === '') {
+            if (conceptionWeek === '' || conceptionWeek > '40') {
               navigation.navigate('Resources', { category: 'Pregnancy Summary' });
             } else {
               try {
@@ -164,7 +164,7 @@ const UserDuringHome = ({navigation}) => {
                 const resourceForWeek = resources.find(
                   (resource) =>
                     resource.category === 'Pregnancy Summary' &&
-                    resource.weekNumber == conceptionWeek // Adjusted comparison for numerical week number
+                    resource.weekNumber == conceptionWeek
                 );
                 if (resourceForWeek) {
                   navigation.navigate('UserResourceInfo', { resourceID: resourceForWeek.resourceID });

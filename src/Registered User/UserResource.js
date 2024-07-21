@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useRoute } from '@react-navigation/native';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Dimensions, Platform, StyleSheet, Image } from 'react-native';
 import axios from 'axios';
 import styles from '../components/styles';
@@ -12,6 +12,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const { width: screenWidth } = Dimensions.get('window');
 
 const UserResource = ({ navigation }) => {
+  const route = useRoute();
+  const { category } = route.params || {};
   const [search, setSearch] = useState('');
   const [categories, setCategories] = useState([]);
   const [resources, setResources] = useState([]);
@@ -70,6 +72,15 @@ const UserResource = ({ navigation }) => {
         fetchUserInfo();
     }, [fetchData, fetchUserInfo])
   );
+
+  useEffect(() => {
+    if (category) {
+      const categoryIndex = categories.findIndex(cat => cat.categoryName === category);
+      if (categoryIndex !== -1) {
+        setActiveIndex(categoryIndex);
+      }
+    }
+  }, [category, categories]);
 
   const handleSelectCategory = (index) => {
     const selected = itemRef.current[index];

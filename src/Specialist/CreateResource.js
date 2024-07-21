@@ -22,6 +22,7 @@ const CreateResource = ({ navigation }) => {
     const [specialistInfo, setSpecialistInfo] = useState({ firstName: '', lastName: '' });
     const [imageUri, setImageUri] = useState(null);
     const [weekNumber, setWeekNumber] = useState('');
+    const [bmi, setBmi] = useState([]);
 
     // errors
     const [titleError, setError1] = useState('');
@@ -30,10 +31,12 @@ const CreateResource = ({ navigation }) => {
     const [descriptionError, setError4] = useState('');
     const [imageError, setError5] = useState('');
     const [weekError, setError6] = useState('');
+    const [bmiError, setError7] = useState('');
 
     // set selected values
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [selectedStatuses, setSelectedStatuses] = useState([]);
+    const [selectedBmi, setSelectedBmi] = useState([]);
 
     const editor = useRef(null);
 
@@ -66,15 +69,34 @@ const CreateResource = ({ navigation }) => {
             }
         };
 
+        if (selectedCategory === 'Pregnancy Summary') {
+            setSelectedStatuses(['During']);
+        } else {
+            // Ensure the status is cleared if the category is not 'Pregnancy Summary'
+            setSelectedStatuses([]);
+        }
+
         fetchSpecialistInfo();
         fetchCategories();
-    }, []);
+    }, [selectedCategory]);
 
     const handleStatusSelection = (status) => {
-        setSelectedStatuses((prevStatuses) =>
-            prevStatuses.includes(status)
-                ? prevStatuses.filter((item) => item !== status)
-                : [...prevStatuses, status]
+        if (selectedCategory === 'Pregnancy Summary') {
+            setSelectedStatuses(['During']);
+        } else {
+            setSelectedStatuses((prevStatuses) =>
+                prevStatuses.includes(status)
+                    ? prevStatuses.filter((item) => item !== status)
+                    : [...prevStatuses, status]
+            );
+        }
+    };    
+
+    const handleBMI = (bmiType) => {
+        setSelectedBmi((prevBmi) =>
+            prevBmi.includes(bmiType)
+                ? prevBmi.filter((item) => item !== bmiType)
+                : [...prevBmi, bmiType]
         );
     };
 
@@ -96,11 +118,19 @@ const CreateResource = ({ navigation }) => {
             setError2('');
         }
 
-        if (selectedStatuses.length === 0) {
+        if (selectedCategory === 'Pregnancy Summary' && !selectedStatuses.includes('During')) {
+            setError3('* Required field');
+            valid = false;
+        } else if (selectedStatuses.length === 0 && selectedCategory !== 'Pregnancy Summary') {
             setError3('* Please select at least one status');
             valid = false;
         } else {
             setError3('');
+        }
+
+        if (selectedCategory === 'Diet Recommendations' && selectedBmi.length === 0) {
+            setError7('* Please select at least one');
+            valid = false;
         }
 
         if (!description.trim()) {
@@ -142,7 +172,8 @@ const CreateResource = ({ navigation }) => {
                     weekNumber: selectedCategory === 'Pregnancy Summary' ? weekNumber : '-',
                     description,
                     specialistName: `${specialistInfo.firstName} ${specialistInfo.lastName}`,
-                    imageUrl
+                    imageUrl,
+                    ...(selectedCategory === 'Diet Recommendations' && { bmi: selectedBmi.join(', ') })
                 };
 
                 const response = await axios.post(`${url}/addresource`, resourceData);
@@ -260,36 +291,18 @@ const CreateResource = ({ navigation }) => {
                 <View style={[styles.buttonPosition]}>
                     {selectedCategory !== 'Pregnancy Summary' ? (
                         <>
-                            <Pressable
-                                style={[
-                                    styles.button6,
-                                    { marginHorizontal: 10 },
-                                    selectedStatuses.includes('Pre') ? styles.button6 : styles.defaultButton,
-                                ]}
-                                onPress={() => handleStatusSelection('Pre')}
-                            >
+                            <Pressable style={[styles.button6,{ marginHorizontal: 10 },selectedStatuses.includes('Pre') ? styles.button6 : styles.defaultButton,]}
+                                onPress={() => handleStatusSelection('Pre')}>
                                 <Text>Pre</Text>
                             </Pressable>
 
-                            <Pressable
-                                style={[
-                                    styles.button6,
-                                    { marginHorizontal: 10 },
-                                    selectedStatuses.includes('During') ? styles.button6 : styles.defaultButton,
-                                ]}
-                                onPress={() => handleStatusSelection('During')}
-                            >
+                            <Pressable style={[styles.button6,{ marginHorizontal: 10 },selectedStatuses.includes('During') ? styles.button6 : styles.defaultButton,]}
+                                onPress={() => handleStatusSelection('During')}>
                                 <Text>During</Text>
                             </Pressable>
 
-                            <Pressable
-                                style={[
-                                    styles.button6,
-                                    { marginHorizontal: 10 },
-                                    selectedStatuses.includes('Post') ? styles.button6 : styles.defaultButton,
-                                ]}
-                                onPress={() => handleStatusSelection('Post')}
-                            >
+                            <Pressable style={[styles.button6,{ marginHorizontal: 10 },selectedStatuses.includes('Post') ? styles.button6 : styles.defaultButton,]}
+                                onPress={() => handleStatusSelection('Post')}>
                                 <Text>Post</Text>
                             </Pressable>
                         </>
@@ -311,6 +324,21 @@ const CreateResource = ({ navigation }) => {
                         onChangeText={setWeekNumber}
                         keyboardType="numeric"
                     />
+                </View>
+            )}
+
+            {/* BMI Category */}
+            {selectedCategory === 'Diet Recommendations' && (
+                <View style={{ marginBottom: 20 }}>
+                    <Text style={[styles.text, { marginBottom: 10 }]}> BMI {bmiError ? <Text style={styles.error}>{bmiError}</Text> : null} </Text>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                        {['Underweight', 'Normal', 'Overweight', 'Obese'].map((bmi) => (
+                            <Pressable key={bmi} onPress={() => handleBMI(bmi)} 
+                            style={[styles.button3, selectedBmi.includes(bmi) ? styles.button3 : styles.defaultButton, {marginBottom: 10, marginRight: 10}]}>
+                                <Text style={styles.text}>{bmi}</Text>
+                            </Pressable>
+                        ))}
+                    </View>
                 </View>
             )}
 

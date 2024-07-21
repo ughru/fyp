@@ -18,6 +18,7 @@ const ResourceInfoSchema = new mongoose.Schema(
     description: {type: String},
     specialistName: {type: String},
     imageUrl: {type: String},
+    bmi: [String],
 },
 {
     collection: "Resource"

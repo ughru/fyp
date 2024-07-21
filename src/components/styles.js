@@ -47,6 +47,8 @@ export const styles = StyleSheet.create({
     questionText: {
         fontSize: 20,
         fontWeight: 'bold',
+        margin: 0,
+        padding: 0,
     },
     titleNote: {
         fontSize: 16,
@@ -216,6 +218,8 @@ export const styles = StyleSheet.create({
     },
     text: {
         fontSize: 16,
+        margin: 0,
+        padding: 0,
     },
     text2: {
         fontSize: 16,
@@ -224,6 +228,8 @@ export const styles = StyleSheet.create({
     text3: {
         fontSize: 18,
         fontWeight: 'bold',
+        margin: 0,
+        padding: 0,
     },
     formText: {
         fontSize: 16,

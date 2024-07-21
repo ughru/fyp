@@ -559,12 +559,12 @@ app.get('/resourceReco', async (req, res) => {
 
 // specialist creates a resource
 app.post('/addresource', async (req, res) => {
-  const { title, category, status, weekNumber, description, specialistName, imageUrl } = req.body;
+  const { title, category, status, weekNumber, description, specialistName, imageUrl, bmi } = req.body;
 
   try {
     const existingResource = await Resource.findOne({ title });
 
-    // check if title exist
+    // Check if title exists
     if (existingResource) {
       return res.send({ error: "Resource with the same title already exists!" });
     }
@@ -573,9 +573,9 @@ app.post('/addresource', async (req, res) => {
     if (category === 'Pregnancy Summary') {
       const existingWeekResource = await Resource.findOne({ category, weekNumber });
       if (existingWeekResource) {
-          return res.send({ error: "Resource for this week already exists!" });
+        return res.send({ error: "Resource for this week already exists!" });
       }
-  }
+    }
 
     // Find the highest resourceID currently in the database
     const latestResource = await Resource.findOne().sort({ resourceID: -1 });
@@ -585,16 +585,14 @@ app.post('/addresource', async (req, res) => {
       resourceID = latestResource.resourceID + 1;
     }
 
-    await Resource.create({
-      resourceID,
-      title,
-      category,
-      status,
-      weekNumber,
-      description,
-      specialistName,
-      imageUrl,
-    });
+    const newResource = {resourceID, title, category, status, weekNumber, description, specialistName, imageUrl,};
+
+    // Add bmi field only if category is 'Diet Recommendations'
+    if (category === 'Diet Recommendations') {
+      newResource.bmi = bmi || [];
+    }
+
+    await Resource.create(newResource);
 
     res.send({ status: "ok", data: "Resource created successfully." });
   } catch (error) {

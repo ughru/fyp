@@ -83,7 +83,10 @@ const UserResourceInfo = ({ navigation, route }) => {
 
                         {/* Description */}
                         <View style={[styles.container4]}>
-                            <HTMLView value={resource.description} />
+                        <HTMLView 
+                            stylesheet={{ div: styles.text, p: styles.text, li: styles.text, 
+                            h1: {fontSize: 26, fontWeight: 'bold'}, h2:{fontSize: 24, fontWeight: 'bold'}, h3:{fontSize: 22, fontWeight: 'bold'} }} 
+                            value={resource.description} />
                         </View>
                     </View>
                 )}
