@@ -24,6 +24,7 @@ const UpdateResource = ({ navigation, route }) => {
     const [resource, setResource] = useState(null);
     const [imageUri, setImageUri] = useState(null);
     const [weekNumber, setWeekNumber] = useState('');
+    const [bmi, setBmi] = useState('');
 
     // Errors
     const [titleError, setTitleError] = useState('');
@@ -31,10 +32,12 @@ const UpdateResource = ({ navigation, route }) => {
     const [statusError, setStatusError] = useState('');
     const [descriptionError, setDescriptionError] = useState('');
     const [weekError, setWeekError] = useState('');
+    const [bmiError, setBmiError] = useState('');
 
     // Selected values
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [selectedStatuses, setSelectedStatuses] = useState([]);
+    const [selectedBmi, setSelectedBmi] = useState([]);
     const [oldTitle, setOldTitle] = useState('');
 
     const editor = useRef(null);
@@ -80,6 +83,7 @@ const UpdateResource = ({ navigation, route }) => {
                     setTitle(matchedResource.title); // Set title state
                     setSelectedCategory(matchedResource.category); // Set selected category state
                     setSelectedStatuses(matchedResource.status); // Set selected statuses state
+                    setSelectedBmi(matchedResource.bmi || ''); // set selected bmi state
                     setDescription(matchedResource.description); // Set description state
                     setWeekNumber(matchedResource.weekNumber); // Set week number state
                     setImageUri(matchedResource.imageUrl);
@@ -100,6 +104,14 @@ const UpdateResource = ({ navigation, route }) => {
             prevStatuses.includes(status)
                 ? prevStatuses.filter((item) => item !== status)
                 : [...prevStatuses, status]
+        );
+    };
+
+    const handleBMI = (bmiType) => {
+        setSelectedBmi((prevBmi) =>
+            prevBmi.includes(bmiType)
+                ? prevBmi.filter((item) => item !== bmiType)
+                : [...prevBmi, bmiType]
         );
     };
 
@@ -126,6 +138,11 @@ const UpdateResource = ({ navigation, route }) => {
             valid = false;
         } else {
             setStatusError('');
+        }
+
+        if (selectedCategory === 'Diet Recommendations' && selectedBmi.length === 0) {
+            setBmiError('* Please select at least one');
+            valid = false;
         }
 
         if (!description.trim()) {
@@ -177,7 +194,8 @@ const UpdateResource = ({ navigation, route }) => {
                     weekNumber,
                     description,
                     specialistName: `${specialistInfo.firstName} ${specialistInfo.lastName}`,
-                    imageUrl
+                    imageUrl,
+                    ...(selectedCategory === 'Diet Recommendations' && { bmi: selectedBmi })
                 };
     
                 await axios.put(`${url}/updateresource`, resourceData);
@@ -336,6 +354,21 @@ const UpdateResource = ({ navigation, route }) => {
                         onChangeText={setWeekNumber}
                         keyboardType="numeric"
                     />
+                </View>
+            )}
+
+            {/* BMI Category */}
+            {selectedCategory === 'Diet Recommendations' && (
+                <View style={{ marginBottom: 20 }}>
+                    <Text style={[styles.text, { marginBottom: 10 }]}> BMI {bmiError ? <Text style={styles.error}>{bmiError}</Text> : null} </Text>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                        {['Underweight', 'Normal', 'Overweight', 'Obese'].map((bmi) => (
+                            <Pressable key={bmi} onPress={() => handleBMI(bmi)} 
+                            style={[styles.button3, selectedBmi.includes(bmi) ? styles.button3 : styles.defaultButton, {marginBottom: 10, marginRight: 10}]}>
+                                <Text style={styles.text}>{bmi}</Text>
+                            </Pressable>
+                        ))}
+                    </View>
                 </View>
             )}
 

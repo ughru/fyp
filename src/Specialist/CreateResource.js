@@ -173,7 +173,7 @@ const CreateResource = ({ navigation }) => {
                     description,
                     specialistName: `${specialistInfo.firstName} ${specialistInfo.lastName}`,
                     imageUrl,
-                    ...(selectedCategory === 'Diet Recommendations' && { bmi: selectedBmi.join(', ') })
+                    ...(selectedCategory === 'Diet Recommendations' && { bmi: selectedBmi })
                 };
 
                 const response = await axios.post(`${url}/addresource`, resourceData);

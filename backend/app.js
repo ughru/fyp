@@ -585,7 +585,7 @@ app.post('/addresource', async (req, res) => {
       resourceID = latestResource.resourceID + 1;
     }
 
-    const newResource = {resourceID, title, category, status, weekNumber, description, specialistName, imageUrl,};
+    const newResource = {resourceID, title, category, status, weekNumber, description, specialistName, imageUrl};
 
     // Add bmi field only if category is 'Diet Recommendations'
     if (category === 'Diet Recommendations') {
@@ -603,12 +603,19 @@ app.post('/addresource', async (req, res) => {
 
 // Update resource by ID
 app.put('/updateresource', async (req, res) => {
-  const { resourceID, title, category, status, weekNumber, description, specialistName, imageUrl } = req.body;
+  const { resourceID, title, category, status, weekNumber, description, specialistName, imageUrl, bmi } = req.body;
 
   try {
+    const updateData = { title, category, status, weekNumber, description, specialistName, imageUrl };
+    
+    // Include BMI if the category is 'Diet Recommendations'
+    if (category === 'Diet Recommendations') {
+      updateData.bmi = bmi;
+    }
+
     const updatedResource = await Resource.findOneAndUpdate(
       { resourceID },
-      { title, category, status, weekNumber, description, specialistName, imageUrl },
+      updateData,
       { new: true } // Return the updated document
     );
 

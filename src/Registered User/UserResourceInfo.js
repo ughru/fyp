@@ -38,6 +38,11 @@ const UserResourceInfo = ({ navigation, route }) => {
         return statusArray.sort((a, b) => order.indexOf(a) - order.indexOf(b));
     };
 
+    const sortBmi = (bmiArray) => {
+        const order = ['Underweight', 'Normal', 'Overweight', 'Obese'];
+        return bmiArray.sort((a, b) => order.indexOf(a) - order.indexOf(b));
+    };
+
     return (
         <ScrollView style={styles.container3} contentContainerStyle={{ ...Platform.select({web:{} , default:{paddingTop:50}}) }}>
         {/** Top section */}
@@ -78,6 +83,20 @@ const UserResourceInfo = ({ navigation, route }) => {
                         {resource.category === 'Pregnancy Summary' && (
                         <View style={{ marginBottom: 20 }}>
                             <Text style= {styles.text3}> Week: {resource.weekNumber} </Text>
+                        </View>
+                        )}
+
+                        {/* BMI */}
+                        {resource.category === 'Diet Recommendations' && (
+                        <View>
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                            <Text style= {[styles.text, {marginTop: 5}]}> BMI: </Text>
+                            {resource.bmi && sortBmi(resource.bmi).map((bmi, index) => (
+                                <Pressable key={index} style={[styles.button9, { marginHorizontal: 5, marginBottom: 20 }]}>
+                                    <Text>{bmi}</Text>
+                                </Pressable>
+                            ))}
+                            </View>
                         </View>
                         )}
 
