@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, Pressable, ScrollView, Platform, Image, TouchableOpacity, Alert, Modal, TextInput } from 'react-native';
+import { View, Text, Pressable, ScrollView, Platform, Image, TouchableOpacity, Alert, Modal, TextInput, StyleSheet } from 'react-native';
 import styles from '../components/styles';
 import Keyboard from '../components/Keyboard';
 import { AntDesign, Feather, MaterialIcons } from '@expo/vector-icons';
@@ -19,17 +19,32 @@ const WeightTracker = ({ navigation }) => {
   const [newWeight, setNewWeight] = useState('');
   const [heightError, setError1] = useState('');
   const [weightError, setError2] = useState('');
+  const [resources, setResources] = useState([]);
   const [selectedLog, setSelectedLog] = useState(null);
-  const [userInfo, setUserInfo] = useState({
-    email: '',
-    status: '',
-  });
-  const [healthDetails, setHealthDetails] = useState({
-    height: '-',
-    weight: '-',
-    bmi: '-',
-    category: '-'
-  });
+  const [userInfo, setUserInfo] = useState([]);
+  const [healthDetails, setHealthDetails] = useState([]);
+  const scrollRef = useRef(null);
+
+  const fetchData = useCallback(async () => {
+    try {
+      const [resourcesResponse] = await Promise.all([
+        axios.get(`${url}/resource`)
+      ]);
+
+      // Filter resources based on category and BMI
+      const filteredResources = resourcesResponse.data.resources
+        .filter(resource => resource.category === 'Diet Recommendations' && resource.bmi.includes(healthDetails.category));
+
+      // Select random 10 resources if available, otherwise show all filtered resources
+      const selectedResources = filteredResources.length >= 10
+        ? filteredResources.sort(() => 0.5 - Math.random()).slice(0, 10)
+        : filteredResources;
+
+      setResources(selectedResources);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  }, [healthDetails.bmi]);
 
   const fetchUserInfo = useCallback(async () => {
     try {
@@ -85,8 +100,9 @@ const WeightTracker = ({ navigation }) => {
   useFocusEffect(
     useCallback(() => {
       fetchImage();
+      fetchData();
       fetchUserInfo();
-    }, [fetchImage, fetchUserInfo])
+    }, [fetchImage, fetchUserInfo,  fetchData])
   );
 
   const getCategoryColor = (category) => {
@@ -310,15 +326,33 @@ const WeightTracker = ({ navigation }) => {
           <Pressable style={[styles.button, { marginBottom: 20 }]} onPress={() => navigation.navigate('CreateWeightLog')}>
             <Text style={styles.text}> Log Weight </Text>
           </Pressable>
+
+          <Text style={[styles.questionText]}> Diet Recommendations </Text>
         </View>
 
         {/* Diet Reco Section */}
-        <View style={[styles.container4, { marginBottom: 20 }]}>
-          <Text style={[styles.questionText, { marginBottom: 20 }]}> Diet Recommendations </Text>
-
-          <Pressable style={[styles.button, { alignSelf: 'center', marginBottom: 20 }]} >
-            <Text style={styles.text}> See More </Text>
-          </Pressable>
+        <View style={[styles.container4]}>
+          <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
+            {resources.map((resource, index) => (
+              <View key={index} style={{ marginBottom: 20 }}>
+                <TouchableOpacity
+                  style={styles.resourceBtn}
+                  onPress={() => navigation.navigate('UserResourceInfo', { resourceID: resource.resourceID })}
+                >
+                  <View style={{ ...StyleSheet.absoluteFillObject }}>
+                    <Image
+                      source={{ uri: resource.imageUrl }}
+                      style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'cover' }}
+                    />
+                  </View>
+                </TouchableOpacity>
+                <Text style={[styles.text, { marginTop: 5, width: 100, textAlign: 'flex-start' }]}>
+                  {resource.title}
+                </Text>
+              </View>
+            ))}
+          </ScrollView>
         </View>
 
         {/* All Weight Logs View Section */}
@@ -369,11 +403,11 @@ const WeightTracker = ({ navigation }) => {
         </View>
 
         <Modal
-        animationType="fade"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={closeModal}
-      >
+          animationType="fade"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={closeModal}
+        >
         <View style= {styles.modalOverlay}>
           <View style={{width: '80%', backgroundColor: 'white', borderRadius: 10, padding: 20}}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 20}}>
