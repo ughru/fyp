@@ -4,6 +4,8 @@ import styles from '../components/styles';
 import { storage } from '../../firebaseConfig';
 import { AntDesign } from '@expo/vector-icons';
 import ModalStyle from '../components/ModalStyle';
+import axios from 'axios';
+import url from '../components/config';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -12,34 +14,24 @@ const Appointments = ({navigation}) => {
   const [activeButton, setActiveButton] = useState('Upcoming');
   const [isModalVisible, setModalVisible] = useState(false);
   const [image, setImageUrl] = useState(null); // 404 not found display
+  const [specialistAds, setSpecialistAds] = useState([]);
   const scrollRef = useRef(null);
 
   useEffect(() => {
     const fetchImage = async () => {
       try {
-          const storageRef = storage.ref('specialistAd');
-          const images = await storageRef.listAll();
-
-          // Get all image URLs or up to 5 if fewer
-          const randomImages = [];
-          const totalImages = Math.min(images.items.length, 5); // Limit to 5 or fewer images
-
-          // Generate random indices without repetition
-          const randomIndices = new Set();
-          while (randomIndices.size < totalImages) {
-              randomIndices.add(Math.floor(Math.random() * images.items.length));
-          }
-
-          for (let index of randomIndices) {
-              const imageUrl = await images.items[index].getDownloadURL();
-              randomImages.push(imageUrl);
-          }
-
-          setImageUrls(randomImages);
+        const response = await axios.get(`${url}/allSpecialistAds`);
+        if (response.data.status === 'ok') {
+          const images = response.data.specialistAds.map(ad => ad.imageUrl);
+          setImageUrls(images);
+          setSpecialistAds(response.data.specialistAds);
+        } else {
+          console.error('Error fetching images:', response.data.error);
+        }
       } catch (error) {
-          console.error('Error fetching images:', error);
+        console.error('Error fetching images:', error);
       }
-    };     
+    };
 
     const fetchImage2 = async () => {
       try {
@@ -69,26 +61,27 @@ const Appointments = ({navigation}) => {
         <Text style={[styles.pageTitle]}> Appointments</Text>
 
         <View style={[styles.adImageContainer, {
-        ...Platform.select({
-          web:{width:screenWidth*0.9, paddingTop:20, paddingRight:10},
-          default:{paddingTop:20, paddingRight:10}
+          ...Platform.select({
+          web:{width:screenWidth*0.9, paddingTop:20, left: 20, paddingRight:10},
+          default:{paddingTop:20, left: 20, paddingRight:10}
         }) }]}>
-            <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20}}>
-              {imageUrl && imageUrl.map((url, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={{ width: 250, height: 200 }}>
-                  {/* Image */}
-                  <View style={{ ...StyleSheet.absoluteFillObject }}>
-                    <Image
-                      source={{ uri: url }}
-                      style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'contain' }}
-                    />
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
+        {specialistAds.length > 0 && (
+          <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20}}>
+            {specialistAds.map((ad, index) => (
+              <View key={index} style= {{marginBottom: 20}}>
+              <TouchableOpacity style={{ width: 300, height: 200, marginBottom: 10 }}>
+                {/* Image */}
+                <View style={{ ...StyleSheet.absoluteFillObject }}>
+                  <Image source={{ uri: ad.imageUrl  }}
+                    style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'contain' }}/>
+                </View>
+              </TouchableOpacity>
+              <Text style= {[styles.text, {alignSelf: 'center'}]}> {ad.title} by {ad.company}</Text>
+              </View>
+            ))}
+          </ScrollView>
+        )}
+        </View>
       </View>
 
       <View style={[styles.container4, { marginBottom: 20}]}>

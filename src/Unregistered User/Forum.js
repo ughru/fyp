@@ -46,6 +46,7 @@ const Forum = ({ navigation }) => {
   const [imageUrl, setImageUrls] = useState(null);
   const [isModalVisible, setModalVisible] = useState(false);
   const [inputHeight, setInputHeight] = useState({});
+  const [adminAds, setAdminAds] = useState([]);
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -65,29 +66,18 @@ const Forum = ({ navigation }) => {
 
     const fetchImage = async () => {
       try {
-          const storageRef = storage.ref('adminAd');
-          const images = await storageRef.listAll();
-
-          // Get all image URLs or up to 5 if fewer
-          const randomImages = [];
-          const totalImages = Math.min(images.items.length, 5); // Limit to 5 or fewer images
-
-          // Generate random indices without repetition
-          const randomIndices = new Set();
-          while (randomIndices.size < totalImages) {
-              randomIndices.add(Math.floor(Math.random() * images.items.length));
-          }
-
-          for (let index of randomIndices) {
-              const imageUrl = await images.items[index].getDownloadURL();
-              randomImages.push(imageUrl);
-          }
-
-          setImageUrls(randomImages);
+        const response = await axios.get(`${url}/getAdminEventAds`);
+        if (response.data.status === 'ok') {
+          const images = response.data.adminAds.map(ad => ad.imageUrl);
+          setImageUrls(images);
+          setAdminAds(response.data.adminAds);
+        } else {
+          console.error('Error fetching images:', response.data.error);
+        }
       } catch (error) {
-          console.error('Error fetching images:', error);
+        console.error('Error fetching images:', error);
       }
-    };     
+    };
 
     fetchForumPosts();
     fetchImage();
@@ -165,26 +155,27 @@ const Forum = ({ navigation }) => {
           </View> 
 
           <View style={[styles.adImageContainer, {
-          ...Platform.select({
+            ...Platform.select({
             web:{width:screenWidth*0.9, paddingTop:20, left: 20, paddingRight:10},
             default:{paddingTop:20, left: 20, paddingRight:10}
           }) }]}>
+          {adminAds.length > 0 && (
             <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20}}>
-              {imageUrl && imageUrl.map((url, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={{ width: 300, height: 200 }}>
+              {adminAds.map((ad, index) => (
+                <View key={index} style= {{marginBottom: 20}}>
+                <TouchableOpacity style={{ width: 300, height: 200 }}>
                   {/* Image */}
                   <View style={{ ...StyleSheet.absoluteFillObject }}>
-                    <Image
-                      source={{ uri: url }}
-                      style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'contain' }}
-                    />
+                    <Image source={{ uri: ad.imageUrl  }}
+                      style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'contain' }}/>
                   </View>
                 </TouchableOpacity>
+                <Text style= {[styles.text, {alignSelf: 'center'}]}> {ad.title}</Text>
+                </View>
               ))}
             </ScrollView>
-          </View>
+          )}
+        </View>
       </View>
 
       {/* Sort section */}

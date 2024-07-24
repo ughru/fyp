@@ -1215,6 +1215,28 @@ app.put('/updatePeriodLog', async (req, res) => {
    ADVERTISEMENTS
 *************************************************
 ************************************************/
+//get all admin event ads (to display)
+app.get('/getAdminEventAds', async (req, res) => {
+  try {
+    const ads = await AdminAd.find({ type: 'Events' }).limit(5).exec();
+    res.json({ status: 'ok', adminAds: ads });
+  } catch (error) {
+    res.status(500).json({ status: 'error', error: error.message });
+  }
+});
+
+//get all specialist ads (to display)
+app.get('/allSpecialistAds', async (req, res) => {
+  try {
+    const ads = await SpecialistAd.aggregate([
+      { $sample: { size: 5 } }
+    ]).exec();
+    res.json({ status: 'ok', specialistAds: ads });
+  } catch (error) {
+    res.status(500).json({ status: 'error', error: error.message });
+  }
+});
+
 // Get all admin ads
 app.get('/getAdminAds', async (req, res) => {
   const { userEmail } = req.query;

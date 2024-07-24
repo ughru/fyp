@@ -6,6 +6,8 @@ import { fetchResources } from '../components/manageResource';
 import ModalStyle from '../components/ModalStyle';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {storage} from '../../firebaseConfig';
+import axios from 'axios';
+import url from '../components/config';
 
 const formatDate = (date) => {
   const options = { weekday: 'long', day: 'numeric', month: 'long' };
@@ -21,6 +23,7 @@ const DuringHome = ({ navigation }) => {
   const [selections, setSelections] = useState({});
   const [q5Option, setQ5Option] = useState('');
   const [conceptionWeek, setConceptionWeek] = useState('');
+  const [dietReco, setDietReco] = useState([]);
 
   useEffect(() => {
     const date = new Date();
@@ -57,10 +60,73 @@ const DuringHome = ({ navigation }) => {
       }
     };
 
+    const dietRecos = async () => {
+      try {
+        // Fetch resources from the backend
+        const response = await axios.get(`${url}/resource`);
+        const allResources = response.data.resources;
+    
+        // Retrieve user selections from AsyncStorage
+        const userSelections = await AsyncStorage.getItem('userSelections');
+        const selections = userSelections ? JSON.parse(userSelections) : {};
+        const userBmiCategory = selections.q2 || '';
+    
+        // If q2 is not available, set an empty dietReco and exit
+        if (!userBmiCategory) {
+          setDietReco([]);
+          return;
+        }
+    
+        // Map user BMI category to resource BMI category
+        let bmi = '';
+        switch (userBmiCategory) {
+          case 'Underweight (BMI < 18.5)':
+            bmi = 'Underweight';
+            break;
+          case 'Normal weight (BMI 18.5-24.9)':
+            bmi = 'Normal';
+            break;
+          case 'Overweight (BMI 25-29.9)':
+            bmi = 'Overweight';
+            break;
+          case 'Obese (BMI 30 or higher)':
+            bmi = 'Obese';
+            break;
+          default:
+            bmi = '';
+            break;
+        }
+    
+        // Filter resources based on the mapped BMI category
+        const filteredResources = bmi
+          ? allResources.filter(resource =>
+              resource.category === 'Diet Recommendations' && resource.bmi.includes(bmi)
+            )
+          : allResources.filter(resource =>
+              resource.category === 'Diet Recommendations'
+            );
+    
+        // Function to get random resources
+        const getRandomResources = (resources, num) => {
+          const shuffled = resources.sort(() => 0.5 - Math.random());
+          return shuffled.slice(0, num);
+        };
+    
+        const randomResources = getRandomResources(filteredResources, 10);
+    
+        // Update state with the random resources
+        setDietReco(randomResources);
+      } catch (error) {
+        console.error('Error fetching diet recommendations:', error);
+        setDietReco([]);
+      }
+    };    
+
     fetchSelections();
     fetchAndSetResources();
     setCurrentDate(formattedDate);
     fetchImage();
+    dietRecos();
   }, []);
 
   useEffect(() => {
@@ -131,11 +197,33 @@ const DuringHome = ({ navigation }) => {
             <Text style={styles.questionText}>Weight Tracker</Text>
           </Pressable>
         </View>
+        </View>
 
-        <Text style={[styles.titleNote]}>Suggested for you</Text>
+      {dietReco.length > 0 && (
+      <View style = {[styles.container4]}>
+      <Text style={[styles.titleNote, { marginBottom: 20 }]}>Diet Recommendations For You</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
+          {dietReco.map((reco, index) => (
+            <View key={index} style={{ marginBottom: 20 }}>
+              <TouchableOpacity style={styles.resourceBtn} onPress={toggleModal}>
+                <View style={{ ...StyleSheet.absoluteFillObject }}>
+                  <Image
+                    source={{ uri: reco.imageUrl }}
+                    style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'cover' }}
+                  />
+                </View>
+              </TouchableOpacity>
+              <Text style={[styles.text, { marginTop: 5, width: 100, textAlign: 'flex-start' }]}>
+                {reco.title}
+              </Text>
+            </View>
+          ))}
+        </ScrollView>
       </View>
+      )}
 
-      <View>
+      <View style = {[styles.container4]}>
+        <Text style={[styles.titleNote, { marginBottom: 20 }]}>Suggested for you</Text>
         <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
            contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
           {resources.map(

@@ -15,6 +15,7 @@ const Personalisation = ({navigation}) => {
   const [categories, setCategories] = useState([]);
   const itemRef = useRef([]);
   const [dateError, setError] = useState('');
+  const [showAdditionalView, setShowAdditionalView] = useState(false);
 
   // selection
   const [selectedStatus, setSelectedStatus] = useState('Pre');
@@ -84,10 +85,7 @@ const Personalisation = ({navigation}) => {
             <Text style={styles.text}> 25 - 34 </Text>
           </Pressable>
           <Pressable style={[styles.button2, selectedOption === '35 - 44' && { backgroundColor: '#E3C2D7' }]} onPress={() => handleOptionSelection('q1', '35 - 44')}>
-            <Text style={styles.text}> 35 - 44 </Text>
-          </Pressable>
-          <Pressable style={[styles.button2, selectedOption === '45 and above' && { backgroundColor: '#E3C2D7' }]} onPress={() => handleOptionSelection('q1', '45 and above')}>
-            <Text style={styles.text}> 45 and above </Text>
+            <Text style={styles.text}> 35 and above </Text>
           </Pressable>
           <Pressable style={[styles.button2, selectedOption === 'Prefer not to say' && { backgroundColor: '#E3C2D7' }]} onPress={() => handleOptionSelection('q1', 'Prefer not to say')}>
             <Text style={styles.text}> Prefer not to say </Text>
@@ -522,11 +520,12 @@ const Personalisation = ({navigation}) => {
 
     // Navigate to the next question or home page
     if (currentQuestion < questions.length - 1) {
-        setCurrentQuestion(currentQuestion + 1);
+      setCurrentQuestion(currentQuestion + 1);
     } else {
-        navigation.navigate("HomePage");
+      {/*setShowAdditionalView(true); */}
+      navigation.navigate("HomePage");
     }
-};
+  };
   
   const handleCategorySelection = (categoryName) => {
     const updatedCategories = selectedCategories.includes(categoryName)
@@ -555,6 +554,7 @@ const Personalisation = ({navigation}) => {
     } else {
       saveSelections();
       handleStatusSelection(selectedStatus);
+      {/*setShowAdditionalView(true);*/}
       navigation.navigate("HomePage");
     }
   };  
@@ -627,6 +627,17 @@ const Personalisation = ({navigation}) => {
     );
   };
 
+  const AdditionalView = () => {
+    return (
+      <View style={{ justifyContent: 'center', alignItems: 'center', marginBottom: 50 }}>
+        <Text style= {styles.text}>Personalization Complete! (To update)</Text>
+        <Pressable onPress={() => navigation.navigate("HomePage")}>
+          <Text>Next</Text>
+        </Pressable>
+      </View>
+    );
+  };
+
   const saveSelections = async () => {
     try {
       await AsyncStorage.setItem('userSelections', JSON.stringify(selections));
@@ -648,18 +659,23 @@ const Personalisation = ({navigation}) => {
         </View>
 
         {/* Progress Bar */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 20 }}>
-          <ProgressBar question={currentQuestion + 1} questions={questions.length} />
-          <Pressable style={{ marginLeft: 20 }} onPress={handleSkip}>
-            <Text style={[styles.formText, { fontSize: 18 }]}>{skipButtonText} </Text>
-          </Pressable> 
-        </View>
+        {/*!showAdditionalView && (*/}
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 20 }}>
+            <ProgressBar question={currentQuestion + 1} questions={questions.length} />
+            <Pressable style={{ marginLeft: 20 }} onPress={handleSkip}>
+              <Text style={[styles.formText, { fontSize: 18 }]}>{skipButtonText}</Text>
+            </Pressable>
+          </View>
+        {/*)}*/}
 
-        {/* Personalisation Questions */}
-        <View style={[styles.container3, { paddingTop: 50, justifyContent: 'center', alignItems: 'center', marginBottom: 50 }]}>
-          {questions[currentQuestion].content}
-        </View>
-
+        {/* Personalisation Questions */} 
+        {/*{showAdditionalView ? (
+          <AdditionalView />
+        ) : (*/}
+          <View style={[styles.container3, { paddingTop: 50, justifyContent: 'center', alignItems: 'center', marginBottom: 50 }]}>
+            {questions[currentQuestion].content}
+          </View>
+       {/* )}*/}
       </View>
     </ScrollView>
   );

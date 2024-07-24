@@ -4,7 +4,6 @@ import { View, Text, ScrollView, TextInput, TouchableOpacity, TouchableHighlight
 import { Feather, Entypo, AntDesign, MaterialIcons } from '@expo/vector-icons';
 import axios from 'axios';
 import RNPickerSelect from 'react-native-picker-select';
-import { storage } from '../../firebaseConfig';
 import styles from '../components/styles';
 import Keyboard from '../components/Keyboard';
 import url from '../components/config.js';
@@ -50,6 +49,7 @@ const UserForum = ({ navigation }) => {
   const [isCommentDropdownVisible, setCommentDropdownVisible] = useState(false);
   const [selectedComment, setSelectedComment] = useState(null);
   const [inputHeight, setInputHeight] = useState({});
+  const [adminAds, setAdminAds] = useState([]);
   const scrollRef = useRef(null);
 
   const fetchData = useCallback(async () => {
@@ -88,30 +88,19 @@ const UserForum = ({ navigation }) => {
   useEffect(() => {
     const fetchImage = async () => {
       try {
-          const storageRef = storage.ref('adminAd');
-          const images = await storageRef.listAll();
-
-          // Get all image URLs or up to 5 if fewer
-          const randomImages = [];
-          const totalImages = Math.min(images.items.length, 5); // Limit to 5 or fewer images
-
-          // Generate random indices without repetition
-          const randomIndices = new Set();
-          while (randomIndices.size < totalImages) {
-              randomIndices.add(Math.floor(Math.random() * images.items.length));
-          }
-
-          for (let index of randomIndices) {
-              const imageUrl = await images.items[index].getDownloadURL();
-              randomImages.push(imageUrl);
-          }
-
-          setImageUrls(randomImages);
+        const response = await axios.get(`${url}/getAdminEventAds`);
+        if (response.data.status === 'ok') {
+          const images = response.data.adminAds.map(ad => ad.imageUrl);
+          setImageUrls(images);
+          setAdminAds(response.data.adminAds);
+        } else {
+          console.error('Error fetching images:', response.data.error);
+        }
       } catch (error) {
-          console.error('Error fetching images:', error);
+        console.error('Error fetching images:', error);
       }
-  };
-
+    };
+  
     fetchImage();
   }, []);
 
@@ -335,19 +324,22 @@ const UserForum = ({ navigation }) => {
         web:{width:screenWidth*0.9, paddingTop:20, left: 20, paddingRight:10},
         default:{paddingTop:20, left: 20, paddingRight:10}
       }) }]}>
+      {adminAds.length > 0 && (
         <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20}}>
-          {imageUrl && imageUrl.map((url, index) => (
-            <TouchableOpacity
-              key={index}
-              style={{ width: 300, height: 200 }}>
+          {adminAds.map((ad, index) => (
+            <View key={index} style= {{marginBottom: 20}}>
+            <TouchableOpacity style={{ width: 300, height: 200 }}>
               {/* Image */}
               <View style={{ ...StyleSheet.absoluteFillObject }}>
-                <Image source={{ uri: url }}
+                <Image source={{ uri: ad.imageUrl  }}
                   style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'contain' }}/>
               </View>
             </TouchableOpacity>
+            <Text style= {[styles.text, {alignSelf: 'center'}]}> {ad.title}</Text>
+            </View>
           ))}
         </ScrollView>
+      )}
       </View>
     </View>
 

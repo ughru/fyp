@@ -19,15 +19,24 @@ const symptomsList = [
   'Sleep Disturbance'
 ];
 
-const LogPeriod = ({ navigation }) => {
+const LogPeriod = ({ navigation, route }) => {
   const [activeButton, setActiveButton] = useState('');
   const [selectedType, setSelectedType] = useState('');
   const [selectedSymptoms, setSelectedSymptoms] = useState([]);
   const [mood, setMood] = useState(false);
+  const [selectedDate, setSelectedDate] = useState('');
 
   const [typeError, setError1] = useState('');
   const [symptomsError, setError2] = useState('');
   const [moodError, setError3] = useState('');
+
+  useEffect(() => {
+    if (route.params && route.params.selectedDate) {
+      setSelectedDate(route.params.selectedDate);
+    } else {
+      setSelectedDate(new Date().toISOString().split('T')[0]); // Today's date in YYYY-MM-DD format
+    }
+  }, [route.params]);
 
   const handleFlow = (type) => {
     if (selectedType === type) {
@@ -99,7 +108,7 @@ const LogPeriod = ({ navigation }) => {
           userEmail: storedEmail,
           date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' }),
           record: {
-            date: formatDate(new Date()),
+            date: formatDate(selectedDate),
             flowType: selectedType,
             symptoms: selectedSymptoms,
             mood: mood
@@ -152,7 +161,7 @@ const LogPeriod = ({ navigation }) => {
         </View>
 
         {/* Calendar View */}
-        <Calendar />
+        <Calendar selectedDate={selectedDate} />
 
         {/* Flow Selection*/}
         <Text style={[styles.questionText, { marginTop: 20, marginBottom: 20 }]}> Menstrual Flow </Text>

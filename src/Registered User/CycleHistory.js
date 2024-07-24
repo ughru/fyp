@@ -9,7 +9,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import url from '../components/config';
 
-const CycleHistory = ({ navigation }) => {
+const CycleHistory = ({ navigation, route }) => {
   const today = new Date();
   const [selectedMonth, setSelectedMonth] = useState(today);
   const [markedDates, setMarkedDates] = useState({});
@@ -19,8 +19,7 @@ const CycleHistory = ({ navigation }) => {
   const [selectedLog, setSelectedLog] = useState([]);
   const [periodLogs, setPeriodLogs] = useState([]);
   const [ovulationDates, setOvulationDates] = useState([]);
-  const [ovulationMarkedDates, setOvulationMarkedDates] = useState({});
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(route.params?.date || new Date().toISOString().split('T')[0]);
 
   const fetchData = useCallback(async () => {
     try {
@@ -71,6 +70,12 @@ const CycleHistory = ({ navigation }) => {
   useEffect(() => {
     fetchData(); // Initial fetch when component mounts
   }, [fetchData]);
+
+  useEffect(() => {
+    if (route.params?.date) {
+      setSelectedDate(route.params.date);
+    }
+  }, [route.params?.date]);
 
   useFocusEffect(
     useCallback(() => {
@@ -234,19 +239,44 @@ const CycleHistory = ({ navigation }) => {
             // Create ovulation dates range
             const ovulationDatesRange = {};
             for (let i = -4; i <= 1; i++) {
-                const date = new Date(ovulationDate);
-                date.setDate(ovulationDate.getDate() + i);
-                ovulationDatesRange[date.toISOString().split('T')[0]] = { selected: true, selectedColor: '#C2C7E3' };
+                const rangeDate = new Date(ovulationDate);
+                rangeDate.setDate(ovulationDate.getDate() + i);
+                ovulationDatesRange[rangeDate.toISOString().split('T')[0]] = {selected: true, selectedColor: '#C2C7E3'};
             }
 
             setOvulationDates(ovulationDatesRange);
-        } else {
-            setOvulationDates({});
+            setMarkedDates(prevMarkedDates => ({
+                ...prevMarkedDates,
+                ...ovulationDatesRange,
+            }));
         }
-
     } catch (error) {
         console.error('Error calculating ovulation dates:', error);
         setOvulationDates({});
+    }
+  };
+
+  const onDayPress = (day) => {
+    const selectedDateString = day.dateString;
+
+    // Find the log for the selected date
+    const selectedLog = periodLogs.find(log =>
+        log.record.some(record => record.date === selectedDateString)
+    );
+
+    if (!selectedLog) {
+        // Navigate to LogPeriod screen if no existing period log for the selected date
+        navigation.navigate('LogPeriod', { selectedDate: day.dateString });
+    } else {
+        // Extract the individual record matching the selected date
+        let selectedRecord = null;
+        if (selectedLog) {
+            selectedRecord = selectedLog.record.find(record => record.date === selectedDateString);
+        }
+
+        // Set the selectedLog state
+        setSelectedLog(selectedLog);
+        setSelectedDate(selectedDateString);
     }
   };
 
@@ -290,24 +320,7 @@ const CycleHistory = ({ navigation }) => {
             markedDates={{ ...markedDates, ...ovulationDates }}
             hideExtraDays={true}
             markingType={'custom'}
-            onDayPress={(day) => {
-              const selectedDateString = day.dateString;
-
-              // Find the log for the selected date
-              const selectedLog = periodLogs.find(log =>
-                log.record.some(record => record.date === selectedDateString)
-              );
-
-              // Extract the individual record matching the selected date
-              let selectedRecord = null;
-              if (selectedLog) {
-                selectedRecord = selectedLog.record.find(record => record.date === selectedDateString);
-              }
-
-              // Set the selectedLog state
-              setSelectedLog(selectedLog);
-              setSelectedDate(selectedDateString);
-            }}
+             onDayPress={onDayPress}
             onMonthChange={(month) => {
               setSelectedMonth(new Date(month.year, month.month - 1));
             }}

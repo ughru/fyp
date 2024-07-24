@@ -21,6 +21,7 @@ const UserAppointments = ({ navigation }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [viewModalVisible, setViewModalVisible] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [specialistAds, setSpecialistAds] = useState([]);
   const scrollRef = useRef(null);
 
   const fetchAppointments = useCallback(async () => {
@@ -81,23 +82,14 @@ const UserAppointments = ({ navigation }) => {
 
     const fetchImage = async () => {
       try {
-        const storageRef = storage.ref('specialistAd');
-        const images = await storageRef.listAll();
-
-        const randomImages = [];
-        const totalImages = Math.min(images.items.length, 5);
-
-        const randomIndices = new Set();
-        while (randomIndices.size < totalImages) {
-          randomIndices.add(Math.floor(Math.random() * images.items.length));
+        const response = await axios.get(`${url}/allSpecialistAds`);
+        if (response.data.status === 'ok') {
+          const images = response.data.specialistAds.map(ad => ad.imageUrl);
+          setImageUrls(images);
+          setSpecialistAds(response.data.specialistAds);
+        } else {
+          console.error('Error fetching images:', response.data.error);
         }
-
-        for (let index of randomIndices) {
-          const imageUrl = await images.items[index].getDownloadURL();
-          randomImages.push(imageUrl);
-        }
-
-        setImageUrls(randomImages);
       } catch (error) {
         console.error('Error fetching images:', error);
       }
@@ -217,19 +209,25 @@ const UserAppointments = ({ navigation }) => {
 
         <View style={[styles.adImageContainer, {
           ...Platform.select({
-            web: { width: screenWidth * 0.9, paddingTop: 20, left: 20, paddingRight: 10 },
-            default: { paddingTop: 20, paddingRight: 10 }
-          })
-        }]}>
-          <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20 }}>
-            {imageUrl && imageUrl.map((url, index) => (
-              <TouchableOpacity key={index} style={{ width: 250, height: 200 }}>
+          web:{width:screenWidth*0.9, paddingTop:20, left: 20, paddingRight:10},
+          default:{paddingTop:20, left: 20, paddingRight:10}
+        }) }]}>
+        {specialistAds.length > 0 && (
+          <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20}}>
+            {specialistAds.map((ad, index) => (
+              <View key={index} style= {{marginBottom: 20}}>
+              <TouchableOpacity style={{ width: 300, height: 200, marginBottom: 10 }}>
+                {/* Image */}
                 <View style={{ ...StyleSheet.absoluteFillObject }}>
-                  <Image source={{ uri: url }} style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'contain' }} />
+                  <Image source={{ uri: ad.imageUrl  }}
+                    style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'contain' }}/>
                 </View>
               </TouchableOpacity>
+              <Text style= {[styles.text, {alignSelf: 'center'}]}> {ad.title} by {ad.company}</Text>
+              </View>
             ))}
           </ScrollView>
+        )}
         </View>
       </View>
 
