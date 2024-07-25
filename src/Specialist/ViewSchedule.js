@@ -39,33 +39,6 @@ const ViewSchedule = ({ navigation }) => {
         }
     }, []);
 
-    useEffect(() => {
-        // Fetch user email from AsyncStorage
-        const fetchUserEmail = async () => {
-            try {
-                const storedEmail = await AsyncStorage.getItem('user');
-                if (storedEmail) {
-                    setUserEmail(storedEmail);
-                }
-            } catch (error) {
-                console.error('Error fetching user email:', error);
-            }
-        };
-
-        const fetchImage = async () => {
-            try {
-              const url = await storage.ref('miscellaneous/error.png').getDownloadURL();
-              setImageUrl(url);
-            } catch (error) {
-              console.error('Error fetching image:', error);
-            }
-          };      
-
-        fetchUserEmail();
-        fetchImage();
-        fetchSpecialistInfo().then(fetchAppointments);
-    }, [fetchSpecialistInfo, fetchAppointments]);
-
     const fetchExistingAppointments = useCallback(async (userEmail, monthString) => {
         try {
             const response = await axios.get(`${url}/getAppointments`, {
@@ -134,6 +107,38 @@ const ViewSchedule = ({ navigation }) => {
             console.error('Error fetching booked appointments:', error);
         }
     }, [specialistInfo.email]);
+
+    useEffect(() => {
+        // Fetch user email from AsyncStorage
+        const fetchUserEmail = async () => {
+            try {
+                const storedEmail = await AsyncStorage.getItem('user');
+                if (storedEmail) {
+                    setUserEmail(storedEmail);
+                }
+            } catch (error) {
+                console.error('Error fetching user email:', error);
+            }
+        };
+
+        const fetchImage = async () => {
+            try {
+              const url = await storage.ref('miscellaneous/error.png').getDownloadURL();
+              setImageUrl(url);
+            } catch (error) {
+              console.error('Error fetching image:', error);
+            }
+        };      
+
+        if (userEmail) {
+            const currentMonth = moment().format('MMMM YYYY');
+            fetchExistingAppointments(userEmail, currentMonth);
+        }
+
+        fetchUserEmail();
+        fetchImage();
+        fetchSpecialistInfo().then(fetchAppointments);
+    }, [userEmail, fetchSpecialistInfo, fetchExistingAppointments, fetchAppointments]);
 
     useFocusEffect(
         useCallback(() => {

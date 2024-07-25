@@ -261,37 +261,39 @@ const UserAppointments = ({ navigation }) => {
             <Text style={[styles.formText, { fontStyle: 'italic' }]}> Oops! Nothing here yet </Text>
           </View>
         ) : (
-          <ScrollView>
+        <ScrollView contentContainerStyle={{ alignItems: 'center' }}>
           {appointments.map((appointment, index) => (
-          <View key={index}>
-            {appointment.details.map((detail, detailIndex) => (
-            <View key={detailIndex} style= {{justifyContent: 'center', alignItems: 'center', marginBottom: 20}}>
-              <View style={{ marginTop: 10, width: '90%', borderWidth: 2, borderColor: '#E3C2D7', borderRadius: 20, padding: 15}}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', paddingRight: 10 }}>
-                {specialistDetails[appointment.specialistEmail] && (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: 10 }}>
-                    <View style={{flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                      <Text style={[styles.text3, { marginBottom: 10 }]}>Dr. {specialistDetails[appointment.specialistEmail]?.firstName} {specialistDetails[appointment.specialistEmail]?.lastName}</Text>
-                      <Text style={[styles.text3, { marginBottom: 10 }]}> • {specialistDetails[appointment.specialistEmail]?.specialisation}</Text>
-                    </View>
-                    <TouchableHighlight style={[styles.iconContainer, { marginBottom: 10 }]}
-                      underlayColor={Platform.OS === 'web' ? 'transparent' : '#e0e0e0'}
-                      onPress={() => handleMoreIconClick(detail)}>
-                      <Entypo name="dots-three-vertical" size={16} />
-                    </TouchableHighlight>
+            <View key={index} style={{ width: '100%', alignItems: 'center', marginBottom: 20 }}>
+              {appointment.details.map((detail, detailIndex) => (
+                <View key={detailIndex} style={{ width: '90%', marginTop: 10, borderWidth: 2, borderColor: '#E3C2D7', borderRadius: 20, padding: 15 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', paddingBottom: 10 }}>
+                    {specialistDetails[appointment.specialistEmail] && (
+                      <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
+                        <Text style={[styles.text3, { marginBottom: 10 }]}>
+                          Dr. {specialistDetails[appointment.specialistEmail]?.firstName} {specialistDetails[appointment.specialistEmail]?.lastName}
+                        </Text>
+                        <Text style={[styles.text3, { marginBottom: 10, marginLeft: 5 }]}>
+                          • {specialistDetails[appointment.specialistEmail]?.specialisation}
+                        </Text>
+                        <TouchableHighlight
+                          style={[styles.iconContainer, { marginBottom: 10, marginLeft: 'auto' }]}
+                          underlayColor={Platform.OS === 'web' ? 'transparent' : '#e0e0e0'}
+                          onPress={() => handleMoreIconClick(detail)}
+                        >
+                          <Entypo name="dots-three-vertical" size={16} />
+                        </TouchableHighlight>
+                      </View>
+                    )}
                   </View>
-                  )}
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={[styles.text, { marginBottom: 10 }]}>{formatDate(detail.date)}, </Text>
+                    <Text style={[styles.text, { marginBottom: 10 }]}>{detail.time}</Text>
+                  </View>
                 </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', paddingRight: 10 }}>
-                  <Text style= {[styles.text, {marginBottom: 10}]}>{formatDate(detail.date)}, </Text>
-                  <Text style= {[styles.text, {marginBottom: 10}]}>{detail.time}</Text>
-                </View>
-              </View>
+              ))}
             </View>
-            ))}
-          </View>
           ))}
-          </ScrollView>
+        </ScrollView>
         )}
       </View>
 

@@ -261,22 +261,17 @@ const RegisterSpecialist = ({ navigation }) => {
           </View>
 
           <View style={{ marginBottom: 30 }}>
-            <Text style={[styles.formText, { marginBottom: 10, marginLeft: 20 }]}> Specialisation {specialisationError ? <Text style={styles.error}>{specialisationError}</Text> : null} </Text>
+            <Text style={[styles.formText, { marginBottom: 20, marginLeft: 20 }]}> Specialisation {specialisationError ? <Text style={styles.error}>{specialisationError}</Text> : null} </Text>
             {specialisations.length > 0 ? (
               <View>
               <View style={[styles.buttonContainer, {
-              ...Platform.select({
-                web: { width: screenWidth * 0.9, left: 20 },
-                default: {left: 20}
-              })
-            }]}>
-              <ScrollView
-                ref={scrollRef}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={Platform.OS === 'web' ? { width: '100%' } : { width: screenWidth * 0.9 }}
-                contentContainerStyle={[{ gap: 10, paddingVertical: 10 }, Platform.OS !== 'web' ]}
-              >
+                ...Platform.select({
+                  web:{width:screenWidth*0.9, left: 20 , paddingRight:10},
+                  default:{left: 20 , paddingRight:10}
+                }) }]}>
+              <ScrollView  ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
+                style={Platform.OS === 'web'? {width:'100%'}:{width:screenWidth * 0.9}}
+                contentContainerStyle={[{ gap: 10, marginBottom: 10 }, Platform.OS!=='web' && {paddingRight:10}]}>
                 {specialisations.map((item, index) => (
                   <TouchableOpacity key={index}
                     style={[specialisation === item.specialisationName ? styles.categoryBtnActive : styles.categoryBtn]}
@@ -294,24 +289,22 @@ const RegisterSpecialist = ({ navigation }) => {
                   placeholder="Custom Specialisation"
                   onFocus={() => setSpecialisation('')}
                 />
-              </View>
+            </View>
             ) : (
               <TextInput style={[styles.input]} value={specialisation} onChangeText={setSpecialisation} />
             )}
             </View>
           </View>
 
-          <View style={[styles.container3, { alignItems: 'center' }]}>
-          <View style={{ marginBottom: 30 }}>
-            <Text style={[styles.formText, { marginBottom: 10 }]}> Password {pwError ? <Text style={styles.error}>{pwError}</Text> : null} </Text>
+          <View style={{ marginBottom: 30, alignItems: 'center'}}>
+            <Text style={[styles.formText, {alignSelf: 'flex-start', marginLeft: 12, marginBottom: 10}]}> Password {pwError ? <Text style={styles.error}>{pwError}</Text> : null} </Text>
             <TextInput style={[styles.input]} value={password} onChangeText={setPassword} secureTextEntry={true} textContentType={'oneTimeCode'} />
           </View>
 
-          <View style={{ marginBottom: 30 }}>
-            <Text style={[styles.formText, { marginBottom: 10 }]}> Confirm Password {confirmPwError ? <Text style={styles.error}>{confirmPwError}</Text> : null} </Text>
+          <View style={{ marginBottom: 30, alignItems: 'center' }}>
+            <Text style={[styles.formText, {alignSelf: 'flex-start', marginLeft: 12, marginBottom: 10}]}> Confirm Password {confirmPwError ? <Text style={styles.error}>{confirmPwError}</Text> : null} </Text>
             <TextInput style={[styles.input]} value={confirmPw} onChangeText={setConfirmPw} secureTextEntry={true} textContentType={'oneTimeCode'} />
           </View>
-        </View>
 
         {/* Button */}
         <Pressable style={[styles.button4, { marginBottom: 20, alignSelf: 'center' }]} onPress={handleRegistration}>
