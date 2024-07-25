@@ -118,10 +118,11 @@ const Resource = ({ navigation }) => {
     const matchesSearch = resource.title.toLowerCase().includes(search.toLowerCase());
     
     // Check user status and filter Pregnancy Summary resources accordingly
+    const matchesUserStatus = selectedStatus && resource.status.includes(selectedStatus);
     if (selectedStatus === "During") {
-      return matchesCategory && matchesSearch;
+      return matchesCategory && matchesSearch && matchesUserStatus;
     } else {
-      return matchesCategory && matchesSearch && resource.category !== "Pregnancy Summary";
+      return matchesCategory && matchesSearch && matchesUserStatus && resource.category !== "Pregnancy Summary";
     }
   });
 

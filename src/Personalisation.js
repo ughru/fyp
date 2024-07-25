@@ -1,13 +1,118 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useFocusEffect} from '@react-navigation/native';
-import { View, Text, Pressable, ScrollView, Platform, TouchableOpacity, Dimensions , TextInput} from 'react-native';
+import { View, Text, Pressable, ScrollView, Platform, TouchableOpacity, Dimensions , TextInput, Image} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from './components/styles';
 import { AntDesign } from '@expo/vector-icons';
 import axios from 'axios';
 import url from './components/config';
+import { storage } from '../firebaseConfig'; 
 
 const { width: screenWidth } = Dimensions.get('window');
+
+const AdditionalView = ({ navigation, selections }) => {
+  const [message, setMessage] = useState('');
+  const [imageUrl, setImageUrl] = useState(null);
+
+  useEffect(() => {
+    const { q1, q3 = 'Pre', q5, q6, q7, q8, q9, q10 } = selections;
+    const messages = [];
+    // Check q1 for age range and q3 for status
+    if (q1 === '35 and above') {
+      messages.push('Consider seeing a doctor for personalized advice.\n\n');
+
+      if (q3 === 'Pre' && (q5 === '6 months to a year' || q5 === 'More than a year')) {
+        messages.push('See a doctor to discuss your options.\n\n');
+      }
+    }
+
+    // Check if q3 is 'Pre'
+    if (q3 === 'Pre') {
+      if (q6) {
+        messages.push('Track your cycle with our LogPeriod & CycleHistory feature.\n');
+      }
+
+      if (q7 === "I’ve heard about it, but I don’t do it" || q7 === "I don't know what the fertile window is") {
+        messages.push('Understand the importance of the fertile window to increase chances of pregnancy using our LogPeriod & CycleHistory feature.\n\n');
+      }
+
+      if (q8) {
+        messages.push('Book an appointment to improve chances of a healthy pregnancy.\n\n');
+      }
+
+      if (q9) {
+        messages.push('Refer to our Resource Hub for more information.\n\n');
+      }
+
+      if (q10 && q10 !== "None of the above") {
+        messages.push('Consult a doctor and understand pregnancy complications.\n');
+      }
+    }
+
+    // Check if q3 is 'During'
+    if (q3 === 'During') {
+      if ((q5 && q5 !== "None of the above") || q7 === "Unsure") {
+        messages.push('Refer to our Resource Hub for more information.\n\n');
+      }
+
+      if (q8 === "None") {
+        messages.push('Consider necessary care for a healthy pregnancy. Get insights from others mums using our Community Forum.\n\n');
+      }
+
+      if (q9 === "Unsure") {
+        messages.push('Consult specialist through our Community Forum\n\n');
+      }
+
+      if (q10 && q10!== "None of the above") {
+        messages.push('Consult a doctor and understand pregnancy complications.\n');
+      }
+    }
+
+    // Check if q3 is 'Post'
+    if (q3 === 'Post') {
+      if (q5 || q7) {
+        messages.push('Refer to our Resource Hub Baby Needs category for more information.\n\n');
+      }
+
+      if (q8 && q8 !== "None of the above") {
+        messages.push('Consult specialist/gain insights from other mums through our Community Forum. Refer to Resource Hub for more information\n\n');
+      }
+    }
+
+    const fetchImage = async () => {
+      try {
+        const url = await storage.ref('miscellaneous/error.png').getDownloadURL();
+        setImageUrl(url);
+      } catch (error) {
+        console.error('Error fetching image:', error);
+      }
+    };
+
+    fetchImage();
+    setMessage(messages.join(' '));
+  }, [selections]);
+
+  return (
+    <View style={{ justifyContent: 'center', alignItems: 'center', marginBottom: 50 }}>
+    {message ? (
+      <Text style={[styles.text, { marginBottom: 20 }]}>{message}</Text>
+    ) : (
+      <>
+        {imageUrl && (
+          <Image
+            source={{ uri: imageUrl }}
+            style={{ width: 200, height: 200, marginBottom: 10 }}
+          />
+        )}
+        <Text style= {[styles.text, {marginBottom: 20}]}>No Personalized Recommendations</Text>
+      </>
+    )}
+    <Pressable style={styles.button} onPress={() => navigation.navigate('HomePage')}>
+      <Text>Next</Text>
+    </Pressable>
+  </View>
+  );
+};
 
 const Personalisation = ({navigation}) => {
   // others
@@ -396,29 +501,6 @@ const Personalisation = ({navigation}) => {
         </View>
       ),
     },
-    {
-      key: 'q10', title: 'Q10',
-      content: (
-        <View style={[styles.container3, { alignItems: 'center' }]}>
-          <Text style={[styles.questionText, { alignSelf: 'center', marginBottom: 20 }]}>Do you have any dietary restrictions or preferences?</Text>
-          <Pressable style={[styles.button2, selectedOption === 'Vegetarian' && { backgroundColor: '#E3C2D7' }]} onPress={() => handleOptionSelection('q10', 'Vegetarian')}>
-            <Text style={styles.text}> Vegetarian </Text>
-          </Pressable>
-          <Pressable style={[styles.button2, selectedOption === 'Vegan' && { backgroundColor: '#E3C2D7' }]} onPress={() => handleOptionSelection('q10', 'Vegan')}>
-            <Text style={styles.text}> Vegan </Text>
-          </Pressable>
-          <Pressable style={[styles.button2, selectedOption === 'Dairy-free' && { backgroundColor: '#E3C2D7' }]} onPress={() => handleOptionSelection('q10', 'Dairy-free')}>
-            <Text style={styles.text}> Dairy-free </Text>
-          </Pressable>
-          <Pressable style={[styles.button2, selectedOption === 'Halal' && { backgroundColor: '#E3C2D7' }]} onPress={() => handleOptionSelection('q10', 'Halal')}>
-            <Text style={styles.text}> Halal </Text>
-          </Pressable>
-          <Pressable style={[styles.button2, selectedOption === 'No specific restrictions' && { backgroundColor: '#E3C2D7' }]} onPress={() => handleOptionSelection('q10', 'No specific restrictions')}>
-            <Text style={styles.text}> No specific restrictions </Text>
-          </Pressable>
-        </View>
-      ),
-    },
   ];  
 
   const postQn = [
@@ -518,12 +600,17 @@ const Personalisation = ({navigation}) => {
         console.error('Error storing selected status in AsyncStorage:', error);
     }
 
+    setSelections(prevSelections => ({
+      ...prevSelections,
+      q3: statusToStore
+    }));
+
     // Navigate to the next question or home page
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
-      {/*setShowAdditionalView(true); */}
-      navigation.navigate("HomePage");
+      setShowAdditionalView(true);
+      {/*navigation.navigate("HomePage");*/}
     }
   };
   
@@ -554,8 +641,8 @@ const Personalisation = ({navigation}) => {
     } else {
       saveSelections();
       handleStatusSelection(selectedStatus);
-      {/*setShowAdditionalView(true);*/}
-      navigation.navigate("HomePage");
+      setShowAdditionalView(true);
+      {/*navigation.navigate("HomePage");*/}
     }
   };  
 
@@ -605,7 +692,9 @@ const Personalisation = ({navigation}) => {
       default:
         additionalQuestions = [];
     }
-    return [...initialQuestion, ...additionalQuestions];
+    return [...initialQuestion, ...additionalQuestions, 
+      { content: <AdditionalView navigation={navigation} selections={selections} /> },
+    ];
   };
 
   const questions = getQuestions();
@@ -627,21 +716,9 @@ const Personalisation = ({navigation}) => {
     );
   };
 
-  const AdditionalView = () => {
-    return (
-      <View style={{ justifyContent: 'center', alignItems: 'center', marginBottom: 50 }}>
-        <Text style= {styles.text}>Personalization Complete! (To update)</Text>
-        <Pressable onPress={() => navigation.navigate("HomePage")}>
-          <Text>Next</Text>
-        </Pressable>
-      </View>
-    );
-  };
-
   const saveSelections = async () => {
     try {
       await AsyncStorage.setItem('userSelections', JSON.stringify(selections));
-      console.log(selections);
     } catch (error) {
       console.error('Error saving selections:', error);
     }
@@ -659,23 +736,17 @@ const Personalisation = ({navigation}) => {
         </View>
 
         {/* Progress Bar */}
-        {/*!showAdditionalView && (*/}
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 20 }}>
-            <ProgressBar question={currentQuestion + 1} questions={questions.length} />
-            <Pressable style={{ marginLeft: 20 }} onPress={handleSkip}>
-              <Text style={[styles.formText, { fontSize: 18 }]}>{skipButtonText}</Text>
-            </Pressable>
-          </View>
-        {/*)}*/}
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 20 }}>
+          <ProgressBar question={currentQuestion + 1} questions={questions.length} />
+          <Pressable style={{ marginLeft: 20 }} onPress={handleSkip}>
+            <Text style={[styles.formText, { fontSize: 18 }]}>{skipButtonText}</Text>
+          </Pressable>
+        </View>
 
         {/* Personalisation Questions */} 
-        {/*{showAdditionalView ? (
-          <AdditionalView />
-        ) : (*/}
-          <View style={[styles.container3, { paddingTop: 50, justifyContent: 'center', alignItems: 'center', marginBottom: 50 }]}>
-            {questions[currentQuestion].content}
-          </View>
-       {/* )}*/}
+        <View style={[styles.container3, { paddingTop: 50, justifyContent: 'center', alignItems: 'center', marginBottom: 50 }]}>
+        {questions[currentQuestion]?.content}
+        </View>
       </View>
     </ScrollView>
   );

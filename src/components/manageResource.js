@@ -39,6 +39,12 @@ export const fetchResources = async () => {
       resources = resources.filter(resource => selectedCategories.includes(resource.category));
     }
 
+    // Further filter resources based on userSelections.q3 status
+    if (userSelections && userSelections.q3) {
+      const statusFilter = userSelections.q3;
+      resources = resources.filter(resource => resource.status.includes(statusFilter));
+    }
+
     // Determine final resources to display
     let finalResources = [];
 
