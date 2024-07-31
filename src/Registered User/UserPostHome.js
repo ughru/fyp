@@ -1,64 +1,103 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { View, Text, Pressable, ScrollView, TouchableOpacity, Platform, StyleSheet, Image } from 'react-native';
-import { Feather, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import styles from '../components/styles';
 import url from '../components/config';
-import { fetchResources } from '../components/manageResource';
 import { useFocusEffect } from '@react-navigation/native';
 
 const formatDate = (date) => {
   const options = { weekday: 'long', day: 'numeric', month: 'long' };
   return date.toLocaleDateString('en-GB', options);
-};  
+};
 
-const UserPostHome = ({navigation}) => {
+const shuffleArray = (array) => {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+};
+
+const UserPostHome = ({ navigation }) => {
   const [currentDate, setCurrentDate] = useState(null);
   const [resources, setResources] = useState([]);
-  const [userInfo, setUserInfo] = useState({
-    firstName: '',
-    lastName: '',
-    email: ''
-  });
+  const [userInfo, setUserInfo] = useState([]);
+  const [personalisation, setPersonalisation] = useState(null);
   const scrollRef = useRef(null);
 
   const fetchUserInfo = useCallback(async () => {
     try {
-        const storedEmail = await AsyncStorage.getItem('user');
-        if (storedEmail) {
+      const storedEmail = await AsyncStorage.getItem('user');
+      if (storedEmail) {
         const response = await axios.get(`${url}/userinfo?email=${storedEmail}`);
         if (response.data) {
-            setUserInfo(response.data);
+          setUserInfo(response.data);
         }
-        }
+      }
     } catch (error) {
-        console.error('Error fetching user info:', error);
+      console.error('Error fetching user info:', error);
     }
   }, []);
 
+  const fetchPersonalisation = useCallback(async () => {
+    try {
+      const storedEmail = await AsyncStorage.getItem('user');
+      if (storedEmail) {
+        const response = await axios.get(`${url}/getPersonalisation?userEmail=${storedEmail}`);
+        if (response.data) {
+          setPersonalisation(response.data.personalisation);
+        }
+      }
+    } catch (error) {}
+  }, []);
+
   useEffect(() => {
-    const fetchAndSetResources = async () => {
-      const fetchedResources = await fetchResources();
-      setResources(fetchedResources);
+    const fetchResources = async () => {
+      try {
+        const response = await axios.get(`${url}/resource`);
+        let resources = response.data.resources;
+        resources = resources.filter(resource => resource.category !== 'Pregnancy Summary' && resource.category !== 'Diet Recommendations' && resource.status.includes(userInfo.status));
+
+        if (personalisation.length > 0) {
+          // Convert personalisation array to a key-value map
+          const parsedPersonalisation = personalisation.reduce((acc, item) => {
+            const [key, value] = item.split(': ');
+            if (value) acc[key] = value;
+            return acc;
+          }, {});
+
+          // Check if q2 exists and is a string of comma-separated categories
+          if (typeof parsedPersonalisation.q2 === 'string') {
+            // Convert the comma-separated string into an array
+            const selectedCategories = parsedPersonalisation.q2.split(',').map(cat => cat.trim());
+            resources = resources.filter(resource => selectedCategories.includes(resource.category));
+          }
+        }
+
+
+        if (resources.length > 10) {
+          resources = shuffleArray(resources).slice(0, 10);
+        }
+
+        setResources(resources);
+      } catch (error) {
+        setResources([]);
+      }
     };
 
-    const setCurrentDateFormatted = () => {
-      const date = new Date();
-      const formattedDate = formatDate(date);
-      setCurrentDate(formattedDate);
-    };
-
-    // Call all functions
     fetchUserInfo();
-    fetchAndSetResources();
-    setCurrentDateFormatted();
-  }, [fetchUserInfo]);
+    fetchPersonalisation();
+    fetchResources();
+    setCurrentDate(formatDate(new Date()));
+  }, [fetchUserInfo, fetchPersonalisation, userInfo.status, personalisation]);
 
   useFocusEffect(
     useCallback(() => {
-        fetchUserInfo();
-    }, [fetchUserInfo])
+      fetchUserInfo();
+      fetchPersonalisation();
+    }, [fetchUserInfo, fetchPersonalisation])
   );
  
   // Page Displays

@@ -1620,26 +1620,29 @@ app.post('/cancelAppointment', async (req, res) => {
    PERSONALISATION
 *************************************************
 ************************************************/
-app.post("/personalise", async(req, res)=> {
-  const {userEmail, personalisation} = req.body;
-  
+app.post("/personalise", async (req, res) => {
+  const { userEmail, personalisation } = req.body;
+
   try {
-    const latestRecord = await Personalisation.findOne().sort({ idNo: -1 });
-    let idNo = 1;
+    // Find an existing record based on userEmail
+    const existingRecord = await Personalisation.findOne({ userEmail });
 
-    if (latestRecord) {
-      idNo = latestRecord.idNo + 1;
+    if (existingRecord) {
+      // Update the existing record with the new personalisation data
+      existingRecord.personalisation = personalisation;
+      await existingRecord.save();
+      res.send({ status: "ok", data: "Personalisation data updated" });
+    } else {
+      // Create a new record if one does not exist
+      await Personalisation.create({
+        userEmail,
+        personalisation,
+      });
+      res.send({ status: "ok", data: "Personalisation data recorded" });
     }
-
-    await Personalisation.create({
-      userEmail: userEmail,
-      personalisation,
-    });
-    res.send({status: "ok", data:"Personalisation data recorded"})
-
   } catch (error) {
-    res.send({status: "error", data: error})
-}
+    res.send({ status: "error", data: error.message });
+  }
 });
 
 app.get("/getPersonalisation", async(req, res)=> {

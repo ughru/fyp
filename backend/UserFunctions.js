@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 
 const PersonalisationSchema = new mongoose.Schema(
 {
-    idNo: {type: Number},
     userEmail: {type: String},
     personalisation: [String],
 },

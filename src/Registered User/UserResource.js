@@ -102,18 +102,14 @@ const UserResource = ({ navigation }) => {
     const matchesSearch = resource.title.toLowerCase().includes(search.toLowerCase());
 
     // Check user status and filter Pregnancy Summary resources accordingly
-    // Only if resource.status math user status then will be displayed
+    // Only if resource.status match user status then will be displayed
     const matchesUserStatus = userInfo.status && resource.status.includes(userInfo.status);
-    if (userInfo.status === "Pre" || userInfo.status === "Post") {
-      return matchesCategory && matchesSearch && matchesUserStatus && resource.category !== "Pregnancy Summary";
-    } else {
-      return matchesCategory && matchesSearch && matchesUserStatus;
-    }
+    return matchesCategory && matchesSearch && matchesUserStatus && resource.category !== "Pregnancy Summary";
   });
 
   return (
     <Keyboard>
-   <ScrollView style={styles.container3} contentContainerStyle={{...Platform.select({web:{} , default:{paddingTop: 50}})}}>
+    <ScrollView style={styles.container3} contentContainerStyle={{...Platform.select({web:{} , default:{paddingTop: 50}})}}>
       <View onLayout={onLayoutTop} style={[styles.container2, { paddingTop: 20, left: 20, width: screenWidth * 0.9 }]}>
         <Text style={[styles.pageTitle]}>Resource Hub</Text>
       </View>

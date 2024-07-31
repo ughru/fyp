@@ -17,6 +17,8 @@ const AdditionalView = ({ navigation, selections }) => {
   useEffect(() => {
     const { q1, q3 = 'Pre', q5, q6, q7, q8, q9, q10 } = selections;
     const messages = [];
+    console.log("Selections:", selections);
+    
     // Check q1 for age range and q3 for status
     if (q1 === '35 and above') {
       messages.push('Consider seeing a doctor for personalized advice.\n\n');
@@ -51,7 +53,7 @@ const AdditionalView = ({ navigation, selections }) => {
 
     // Check if q3 is 'During'
     if (q3 === 'During') {
-      if ((q5 && q5 !== "None of the above") || q7 === "Unsure") {
+      if ((q6 && q6 !== "None of the above") || q7 === "Unsure") {
         messages.push('Refer to our Resource Hub for more information.\n\n');
       }
 
@@ -719,6 +721,7 @@ const Personalisation = ({navigation}) => {
   const saveSelections = async () => {
     try {
       await AsyncStorage.setItem('userSelections', JSON.stringify(selections));
+      console.log(selections);
     } catch (error) {
       console.error('Error saving selections:', error);
     }

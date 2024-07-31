@@ -1,11 +1,10 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { View, Text, Pressable, ScrollView, TouchableOpacity, Image, Platform, StyleSheet} from 'react-native';
-import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import styles from '../components/styles';
 import url from '../components/config';
-import { fetchResources } from '../components/manageResource';
 import { firebase } from '../../firebaseConfig'; 
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -13,6 +12,14 @@ const formatDate = (date) => {
   const options = { weekday: 'long', day: 'numeric', month: 'long' };
   return date.toLocaleDateString('en-GB', options);
 };  
+
+const shuffleArray = (array) => {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+};
 
 const UserDuringHome = ({navigation}) => {
   const [currentDate, setCurrentDate] = useState(null);
@@ -40,45 +47,73 @@ const UserDuringHome = ({navigation}) => {
   }, []);
 
   const fetchPersonalisationData = useCallback(async () => {
-    if (!userInfo.email) return;
     try {
-      const response = await axios.get(`${url}/getPersonalisation`, {
-        params: { userEmail: userInfo.email }
-      });
+      const storedEmail = await AsyncStorage.getItem('user');
+      if (storedEmail) {
+        const response = await axios.get(`${url}/getPersonalisation?userEmail=${storedEmail}`);
+        setPersonalisationData(response.data.personalisation);
+        /*
+        if (response.data.personalisation) {
+         const parsedSelections = JSON.parse(response.data.personalisation);
+          setSelections(parsedSelections);
 
-      setPersonalisationData(response.data);
-
-      if (response.data.personalisation !== '') {
-        const parsedSelections = JSON.parse(response.data.personalisation);
-        setSelections(parsedSelections);
-        
-        // Check for q5 option and set it
-        if (parsedSelections.q5) {
-          setQ5Option(parsedSelections.q5);
-          // Calculate conception week
-          try {
-            const dateObject = convertStringToDate(parsedSelections.q5);
-            const weeks = calculateWeeksSince(dateObject);
-            setConceptionWeek(weeks + 3); // Assuming this logic is correct
-          } catch (error) {
-            console.error('Error calculating conception week:', error);
+          
+          // Check for q5 option and set it
+          if (parsedSelections.q5) {
+            setQ5Option(parsedSelections.q5);
+            // Calculate conception week
+            try {
+              const dateObject = convertStringToDate(parsedSelections.q5);
+              const weeks = calculateWeeksSince(dateObject);
+              setConceptionWeek(weeks + 3); // Adjust according to your logic
+            } catch (error) {
+              console.error('Error calculating conception week:', error);
+            }
           }
-        }
+        }*/
       }
     } catch (error) {
+      console.error('Error fetching personalisation data:', error);
     }
-  }, [userInfo.email]);
+  }, []);
 
   useEffect(() => {
-    const fetchAndSetResources = async () => {
-      const fetchedResources = await fetchResources();
-      setResources(fetchedResources);
+    const fetchResources = async () => {
+      try {
+        const response = await axios.get(`${url}/resource`);
+        let resources = response.data.resources;
+
+        resources = resources.filter(resource =>
+          resource.category !== 'Diet Recommendations' && resource.status.includes(userInfo.status)
+        );
+
+        if (personalisationData.length > 0) {
+          const parsedPersonalisation = personalisationData.reduce((acc, item) => {
+            const [key, value] = item.split(': ');
+            if (value) acc[key] = value;
+            return acc;
+          }, {});
+
+          if (typeof parsedPersonalisation.q2 === 'string') {
+            const selectedCategories = parsedPersonalisation.q2.split(',').map(cat => cat.trim());
+            resources = resources.filter(resource => selectedCategories.includes(resource.category));
+          }
+        }
+
+        if (resources.length > 10) {
+          resources = shuffleArray(resources).slice(0, 10);
+        }
+
+        setResources(resources);
+      } catch (error) {
+        console.error('Error fetching resources:', error);
+        setResources([]);
+      }
     };
 
     const setCurrentDateFormatted = () => {
       const date = new Date();
-      const formattedDate = formatDate(date);
-      setCurrentDate(formattedDate);
+      setCurrentDate(formatDate(date));
     };
 
     const fetchImage = async () => {
@@ -90,12 +125,11 @@ const UserDuringHome = ({navigation}) => {
       }
     };
 
-    // Call all functions
     fetchUserInfo();
-    fetchAndSetResources();
+    fetchResources();
     setCurrentDateFormatted();
     fetchImage();
-  }, [fetchUserInfo]);
+  }, [fetchUserInfo, personalisationData, userInfo.status]);
 
   useEffect(() => {
     if (userInfo.email) {

@@ -118,6 +118,7 @@ const Resource = ({ navigation }) => {
     const matchesSearch = resource.title.toLowerCase().includes(search.toLowerCase());
     
     // Check user status and filter Pregnancy Summary resources accordingly
+    // Only if resource.status match user status then will be displayed
     const matchesUserStatus = selectedStatus && resource.status.includes(selectedStatus);
     if (selectedStatus === "During") {
       return matchesCategory && matchesSearch && matchesUserStatus;

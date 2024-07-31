@@ -150,11 +150,11 @@ const UserForum = ({ navigation }) => {
   const deletePost = async (postID) => {
     try {
         await axios.delete(`${url}/deletePost`, { params: { postID } });
-        Alert.alert('Success', 'Post deleted successfully');
+        alert('Success', 'Post deleted successfully');
         fetchData();
         setDropdownVisible(false);
     } catch (error) {
-        Alert.alert('Error', 'Failed to delete post');
+        alert('Error', 'Failed to delete post');
         console.error('Error deleting post:', error);
     }
   };
