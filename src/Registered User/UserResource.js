@@ -24,18 +24,65 @@ const UserResource = ({ navigation }) => {
   const [image, setImageUrl] = useState(null);
   const [userInfo, setUserInfo] = useState([]);
 
+  const fetchPersonalisationData = useCallback(async () => {
+    try {
+      const storedEmail = await AsyncStorage.getItem('user');
+      if (storedEmail) {
+        const response = await axios.get(`${url}/getPersonalisation?userEmail=${storedEmail}`);
+        const personalisationData = response.data;
+  
+        const parsedSelections = personalisationData.personalisation.reduce((acc, item) => {
+          const [key, value] = item.split(': ');
+          if (key === 'q2') {
+            acc[key] = value.split(','); // Handle comma-separated values for categories
+          } else {
+            acc[key] = value;
+          }
+          return acc;
+        }, {});
+  
+        // Check if q2 exists in the personalisation data
+        const q2Data = parsedSelections.q2;
+        return q2Data ? q2Data : null;
+      }
+    } catch (error) {
+      console.error('Error fetching personalisation data:', error);
+    }
+    return null;
+  }, []);  
+
+  // Fetch categories and resources
   const fetchData = useCallback(async () => {
     try {
-      const [categoriesResponse, resourcesResponse] = await Promise.all([
+      const [categoriesResponse, resourcesResponse, q2] = await Promise.all([
         axios.get(`${url}/categories`),
-        axios.get(`${url}/resource`)
+        axios.get(`${url}/resource`),
+        fetchPersonalisationData(),
       ]);
-      setCategories(categoriesResponse.data);
+  
+      let sortedCategories = categoriesResponse.data;
+  
+      if (q2) {
+        const filteredCategories = sortedCategories.filter(cat =>
+          cat.categoryName === "All" || q2.includes(cat.categoryName)
+        );
+        const otherCategories = sortedCategories.filter(cat =>
+          cat.categoryName !== "All" && !q2.includes(cat.categoryName)
+        );
+  
+        // Sort categories as per the requirements
+        sortedCategories = [
+          ...filteredCategories.sort((a, b) => a.categoryName.localeCompare(b.categoryName)),
+          ...otherCategories.sort((a, b) => a.categoryName.localeCompare(b.categoryName))
+        ];
+      }
+  
+      setCategories(sortedCategories);
       setResources(resourcesResponse.data.resources);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
-  }, []);
+  }, [fetchPersonalisationData]);  
 
   const fetchUserInfo = useCallback(async () => {
     try {
@@ -104,7 +151,11 @@ const UserResource = ({ navigation }) => {
     // Check user status and filter Pregnancy Summary resources accordingly
     // Only if resource.status match user status then will be displayed
     const matchesUserStatus = userInfo.status && resource.status.includes(userInfo.status);
-    return matchesCategory && matchesSearch && matchesUserStatus && resource.category !== "Pregnancy Summary";
+    if (userInfo.status === "During") {
+      return matchesCategory && matchesSearch && matchesUserStatus;
+    } else {
+      return matchesCategory && matchesSearch && matchesUserStatus && resource.category !== "Pregnancy Summary";
+    }
   });
 
   return (

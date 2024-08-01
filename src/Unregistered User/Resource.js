@@ -27,19 +27,19 @@ const Resource = ({ navigation }) => {
 
   const fetchData = useCallback(async () => {
     try {
-      const [categoriesResponse, resourcesResponse, storedStatus] = await Promise.all([
+      const [categoriesResponse, resourcesResponse, storedStatus, userSelections] = await Promise.all([
         axios.get(`${url}/categories`),
         axios.get(`${url}/resource`),
-        AsyncStorage.getItem('selectedStatus')
+        AsyncStorage.getItem('selectedStatus'),
+        AsyncStorage.getItem('userSelections')
       ]);
       setCategories(categoriesResponse.data);
       setResources(resourcesResponse.data.resources);
       setSelectedStatus(storedStatus);
 
       // Fetch user selections based on q4
-      const q4Selections = await AsyncStorage.getItem('userSelections');
-      if (q4Selections) {
-        const selections = JSON.parse(q4Selections);
+      if (userSelections) {
+        const selections = JSON.parse(userSelections);
         if (selections.q4) {
           // Filter categories based on user selections
           const selectedCategories = categoriesResponse.data.filter(category => selections.q4.includes(category.categoryName));

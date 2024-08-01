@@ -188,8 +188,10 @@ const UserPersonalisation = ({navigation}) => {
       }, {});
 
       setPersonalisationData(personalisationData);
-      setSelections(parsedSelections);
-      setSelectedCategories(parsedSelections.q2 || []);
+      if (parsedSelections.q0 === userInfo.status) {
+        setSelections(parsedSelections);
+        setSelectedCategories(parsedSelections.q2 || []);
+      }
     } catch (error) {
     }
   }, []);
@@ -205,7 +207,7 @@ const UserPersonalisation = ({navigation}) => {
 
       // Process categories
       const filteredCategories = categoriesResponse.data.filter(category =>
-        category.categoryName !== "All"
+        category.categoryName !== "All" && category.categoryName !== "Pregnancy Summary"
       );
 
       setCategories(filteredCategories);
@@ -635,6 +637,7 @@ const UserPersonalisation = ({navigation}) => {
 
     setSelections(prevSelections => ({
       ...prevSelections,
+      q0: userInfo.status,
       q2: updatedCategories
     }));
   };

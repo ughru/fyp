@@ -7,6 +7,10 @@ const formatDate = (date) => {
   return date.toLocaleDateString('en-GB', options);
 };
 
+const filterResources = (resources) => {
+  return resources.filter(resource => resource.category !== 'Pregnancy Summary');
+};
+
 const getRandomSample = (array, sampleSize) => {
   const shuffled = array.sort(() => 0.5 - Math.random());
   return shuffled.slice(0, sampleSize);
@@ -50,10 +54,11 @@ export const fetchResources = async () => {
 
     if (userSelections && userSelections.q4) {
       // Display all filtered resources if <= 10
-      finalResources = resources;
+      finalResources = filterResources(resources);
     } else {
-      // Otherwise, get a random sample of 10 resources from all resources
-      finalResources = getRandomSample(resources, 10);
+      // Filter out resources under 'Pregnancy Summary' and then get a random sample of 10 resources
+      const filteredResources = filterResources(resources);
+      finalResources = getRandomSample(filteredResources, 10);
     }
 
     // Store resources and date

@@ -17,7 +17,6 @@ const AdditionalView = ({ navigation, selections }) => {
   useEffect(() => {
     const { q1, q3 = 'Pre', q5, q6, q7, q8, q9, q10 } = selections;
     const messages = [];
-    console.log("Selections:", selections);
     
     // Check q1 for age range and q3 for status
     if (q1 === '35 and above') {
@@ -94,25 +93,38 @@ const AdditionalView = ({ navigation, selections }) => {
     setMessage(messages.join(' '));
   }, [selections]);
 
+  const saveSelections = async () => {
+    try {
+      await AsyncStorage.setItem('userSelections', JSON.stringify(selections));
+    } catch (error) {
+      console.error('Error saving selections:', error);
+    }
+  };
+
+  const handleNextPress = async () => {
+    await saveSelections();
+    navigation.navigate('HomePage');
+  };
+
   return (
     <View style={{ justifyContent: 'center', alignItems: 'center', marginBottom: 50 }}>
-    {message ? (
-      <Text style={[styles.text, { marginBottom: 20 }]}>{message}</Text>
-    ) : (
-      <>
-        {imageUrl && (
-          <Image
-            source={{ uri: imageUrl }}
-            style={{ width: 200, height: 200, marginBottom: 10 }}
-          />
-        )}
-        <Text style= {[styles.text, {marginBottom: 20}]}>No Personalized Recommendations</Text>
-      </>
-    )}
-    <Pressable style={styles.button} onPress={() => navigation.navigate('HomePage')}>
-      <Text>Next</Text>
-    </Pressable>
-  </View>
+      {message ? (
+        <Text style={[styles.text, { marginBottom: 20 }]}>{message}</Text>
+      ) : (
+        <>
+          {imageUrl && (
+            <Image
+              source={{ uri: imageUrl }}
+              style={{ width: 200, height: 200, marginBottom: 10 }}
+            />
+          )}
+          <Text style={[styles.text, { marginBottom: 20 }]}>No Personalized Recommendations</Text>
+        </>
+      )}
+      <Pressable style={styles.button} onPress={handleNextPress}>
+        <Text>Next</Text>
+      </Pressable>
+    </View>
   );
 };
 
@@ -140,7 +152,7 @@ const Personalisation = ({navigation}) => {
       ]);
 
       filteredCategories = categoriesResponse.data.filter(category =>
-        category.categoryName !== "All"
+        category.categoryName !== "All" && category.categoryName !== "Pregnancy Summary"
       );
 
       setCategories(filteredCategories);
@@ -150,33 +162,32 @@ const Personalisation = ({navigation}) => {
     }
   }, []);
 
-  const fetchSelectedStatus = useCallback(async () => {
+  const fetchUserSelections = useCallback(async () => {
     try {
-      const storedStatus = await AsyncStorage.getItem('selectedStatus');
-      if (storedStatus !== null) {
-        setSelectedStatus(storedStatus);
-      } else {
-        // Default to 'Pre' if no status is stored
-        setSelectedStatus('Pre');
+      const storedSelections = await AsyncStorage.getItem('userSelections');
+      if (storedSelections !== null) {
+        setSelections(JSON.parse(storedSelections));
+        const parsedSelections = JSON.parse(storedSelections);
+        setSelectedStatus(parsedSelections.q3 || 'Pre');
+        setSelectedCategories(parsedSelections.q4 || []);
+        setConceptionDate(parsedSelections.q5 || '');
       }
     } catch (error) {
-      console.error('Error fetching selected status from AsyncStorage:', error);
-      // Default to 'Pre' in case of error
-      setSelectedStatus('Pre');
+      console.error('Error fetching userSelections from AsyncStorage:', error);
     }
   }, []);
 
   useEffect(() => { 
-    fetchSelectedStatus();
+    fetchUserSelections();
     fetchData(); 
-  }, [fetchData, fetchSelectedStatus]);
+  }, [fetchUserSelections, fetchData]);
 
   useFocusEffect(
     useCallback(() => {
-      fetchSelectedStatus();
+      fetchUserSelections();
       fetchData();
       setCurrentQuestion(0);
-    }, [fetchData, fetchSelectedStatus])
+    }, [fetchUserSelections, fetchData])
   );
 
   const initialQuestion = [
@@ -720,13 +731,13 @@ const Personalisation = ({navigation}) => {
 
   const saveSelections = async () => {
     try {
+      // Save selections to AsyncStorage
       await AsyncStorage.setItem('userSelections', JSON.stringify(selections));
-      console.log(selections);
     } catch (error) {
       console.error('Error saving selections:', error);
     }
   };
-
+  
   return (
     <ScrollView contentContainerStyle={[styles.container]}>
       {/* Back Button */}
