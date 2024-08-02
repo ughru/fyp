@@ -25,6 +25,7 @@ const UserPreHome = ({ navigation }) => {
   const [currentDate, setCurrentDate] = useState(null);
   const [resources, setResources] = useState([]);
   const [userInfo, setUserInfo] = useState([]);
+  const [dietReco, setDietReco] = useState([]);
   const [personalisation, setPersonalisation] = useState(null);
   const scrollRef = useRef(null);
 
@@ -41,68 +42,132 @@ const UserPreHome = ({ navigation }) => {
     }
   }, []);
 
-  const fetchPersonalisation = useCallback(async () => {
+  const fetchPersonalisationAndResources = useCallback(async () => {
     try {
+      // Fetch user email
       const storedEmail = await AsyncStorage.getItem('user');
-      if (storedEmail) {
-        const response = await axios.get(`${url}/getPersonalisation?userEmail=${storedEmail}`);
-        if (response.data) {
-          setPersonalisation(response.data.personalisation);
+      if (!storedEmail) return; // Exit if no email is found
+  
+      // Fetch personalisation data
+      const personalisationResponse = await axios.get(`${url}/getPersonalisation?userEmail=${storedEmail}`);
+      const personalisationData = personalisationResponse.data.personalisation || [];
+  
+      // Parse personalisation data
+      const parsedSelections = personalisationData.reduce((acc, item) => {
+        const [key, value] = item.split(': ');
+        if (value) acc[key] = value;
+        return acc;
+      }, {});
+      
+      // Set personalisation data
+      setPersonalisation(parsedSelections);
+  
+      // Fetch resources
+      const resourceResponse = await axios.get(`${url}/resource`);
+      let resources = resourceResponse.data.resources;
+  
+      // Filter resources based on user status
+      resources = resources.filter(resource => 
+        resource.category !== 'Pregnancy Summary' && 
+        resource.category !== 'Diet Recommendations' && 
+        resource.status.includes(userInfo.status)
+      );
+  
+      // Apply filtering based on personalisation data
+      if (personalisationData.length > 0) {
+        // Check if q2 exists and is a string of comma-separated categories
+        if (typeof parsedSelections.q2 === 'string') {
+          const selectedCategories = parsedSelections.q2.split(',').map(cat => cat.trim());
+          resources = resources.filter(resource => selectedCategories.includes(resource.category));
         }
       }
+  
+      // Shuffle and select 10 random resources
+      if (resources.length > 10) {
+        resources = shuffleArray(resources).slice(0, 10);
+      }
+  
+      // Set resources state
+      setResources(resources);
+      
     } catch (error) {
+      console.error('Error fetching personalisation or resources:', error);
+      setResources([]);
     }
-  }, []);
+  }, [userInfo.status]);
+
+  const dietRecos = useCallback(async () => {
+    try {
+      // Fetch the user email
+      const storedEmail = await AsyncStorage.getItem('user');
+      if (!storedEmail) return;
+  
+      // Fetch all resources
+      const { data: { resources } } = await axios.get(`${url}/resource`);
+      const dietResources = resources.filter(resource => resource.category === 'Diet Recommendations');
+  
+      // Fetch weight logs
+      const { data: weightLogs } = await axios.get(`${url}/allWeightLogs`, { params: { userEmail: storedEmail } });
+  
+      let filteredResources = [];
+  
+      if (weightLogs && weightLogs.length > 0) {
+        // Process weight logs if they exist
+        weightLogs.forEach(log => {
+          if (log.record && log.record.length > 0) {
+            const specificCategory = log.record[log.record.length - 1].category;
+            const bmiMap = {
+              'Underweight': 'Underweight',
+              'Normal Weight': 'Normal',
+              'Overweight': 'Overweight',
+              'Obese': 'Obese'
+            };
+            const bmi = bmiMap[specificCategory] || '';
+  
+            // Filter diet resources based on BMI
+            const filtered = dietResources.filter(resource => resource.bmi.includes(bmi));
+            filteredResources = [...filteredResources, ...filtered];
+          }
+        });
+      }
+  
+      // Shuffle and select 10 random resources
+      const randomResources = shuffleArray(filteredResources).slice(0, 10);
+      setDietReco(randomResources);
+    } catch (error) {
+      // Fetch all resources
+      const { data: { resources } } = await axios.get(`${url}/resource`);
+      const dietResources = resources.filter(resource => resource.category === 'Diet Recommendations');
+      let filteredResources = [];
+      filteredResources = dietResources;
+
+      // Shuffle and select 10 random resources
+      const randomResources = shuffleArray(filteredResources).slice(0, 10);
+      setDietReco(randomResources);
+    }
+  }, []);  
 
   useEffect(() => {
-    const fetchResources = async () => {
-      try {
-        // Fetch all resources
-        const response = await axios.get(`${url}/resource`);
-        let resources = response.data.resources;
-        resources = resources.filter(resource => resource.category !== 'Pregnancy Summary' && resource.category !== 'Diet Recommendations' && resource.status.includes(userInfo.status));
-
-        // Filter resources based on personalisation data
-        if (personalisation.length > 0) {
-          // Convert personalisation array to a key-value map
-          const parsedPersonalisation = personalisation.reduce((acc, item) => {
-            const [key, value] = item.split(': ');
-            if (value) acc[key] = value;
-            return acc;
-          }, {});
-
-          // Check if q2 exists and is a string of comma-separated categories
-          if (typeof parsedPersonalisation.q2 === 'string') {
-            // Convert the comma-separated string into an array
-            const selectedCategories = parsedPersonalisation.q2.split(',').map(cat => cat.trim());
-            resources = resources.filter(resource => selectedCategories.includes(resource.category));
-          }
-        }
-
-        // Shuffle and select 10 random resources
-        if (resources > 10) {
-          resources = shuffleArray(resources).slice(0, 10);
-        } else {
-          resources = resources;
-        }
-
-        setResources(resources);
-      } catch (error) {
-        setResources([]);
-      }
-    };
-
     fetchUserInfo();
-    fetchPersonalisation();
-    fetchResources();
+    fetchPersonalisationAndResources();
+    if (personalisation && personalisation.q2 && personalisation.q2.includes('Diet Recommendations')) {
+      dietRecos();
+    } else {
+      setDietReco([]);
+    }
     setCurrentDate(formatDate(new Date()));
-  }, [fetchUserInfo, fetchPersonalisation, userInfo.status, personalisation]);
+  }, [fetchUserInfo, fetchPersonalisationAndResources, dietRecos]);
 
   useFocusEffect(
     useCallback(() => {
       fetchUserInfo();
-      fetchPersonalisation();
-    }, [fetchUserInfo, fetchPersonalisation])
+      fetchPersonalisationAndResources();
+      if (personalisation && personalisation.q2 && personalisation.q2.includes('Diet Recommendations')) {
+      dietRecos();
+    } else {
+      setDietReco([]);
+    }
+    }, [fetchUserInfo, fetchPersonalisationAndResources, dietRecos])
   );
 
   return (
@@ -143,11 +208,33 @@ const UserPreHome = ({ navigation }) => {
             <Text style={styles.questionText}>Weight Tracker</Text>
           </Pressable>
         </View>
-
-        <Text style={[styles.titleNote, { marginBottom: 20 }]}>Suggested for you</Text>
       </View>
 
-      <View>
+      {dietReco.length > 0 && (
+      <View style = {[styles.container4]}>
+      <Text style={[styles.titleNote, { marginBottom: 20 }]}>Diet Recommendations For You</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
+          {dietReco.map((reco, index) => (
+            <View key={index} style={{ marginBottom: 20 }}>
+              <TouchableOpacity style={styles.resourceBtn}   onPress={() => navigation.navigate('UserResourceInfo', { resourceID: reco.resourceID })}>
+                <View style={{ ...StyleSheet.absoluteFillObject }}>
+                  <Image
+                    source={{ uri: reco.imageUrl }}
+                    style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'cover' }}
+                  />
+                </View>
+              </TouchableOpacity>
+              <Text style={[styles.text, { marginTop: 5, width: 100, textAlign: 'flex-start' }]}>
+                {reco.title}
+              </Text>
+            </View>
+          ))}
+        </ScrollView>
+      </View>
+      )}
+
+      <View style = {[styles.container4]}>
+        <Text style={[styles.titleNote, { marginBottom: 20 }]}>Suggested for you</Text>
         <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
           {resources.map(

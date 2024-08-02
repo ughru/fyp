@@ -677,7 +677,7 @@ const UserPersonalisation = ({navigation}) => {
         setSelectedOption(null); // Reset selectedOption
         setCurrentQuestion(index + 1); // Move to the next question
       } else {
-        navigation.navigate("Home");
+        navigation.navigate('Settings');
       }
     }, 200);
   };

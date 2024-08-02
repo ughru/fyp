@@ -27,7 +27,8 @@ const UserDuringHome = ({navigation}) => {
   const [imageUrl, setImageUrl] = useState(null);
   const [userInfo, setUserInfo] = useState([]);
   const scrollRef = useRef(null);
-  const [q5Option, setQ5Option] = useState('');
+  const [dietReco, setDietReco] = useState([]);
+  const [q3Option, setQ3Option] = useState('');
   const [conceptionWeek, setConceptionWeek] = useState('');
   const [personalisationData, setPersonalisationData] = useState([]);
   const [selections, setSelections] = useState({});
@@ -46,76 +47,124 @@ const UserDuringHome = ({navigation}) => {
     }
   }, []);
 
-  const fetchPersonalisationData = useCallback(async () => {
+  const fetchPersonalisationAndResources = useCallback(async () => {
     try {
+      // Fetch user email
       const storedEmail = await AsyncStorage.getItem('user');
-      if (storedEmail) {
-        const response = await axios.get(`${url}/getPersonalisation?userEmail=${storedEmail}`);
-        setPersonalisationData(response.data.personalisation);
-        /*
-        if (response.data.personalisation) {
-         const parsedSelections = JSON.parse(response.data.personalisation);
-          setSelections(parsedSelections);
-
-          
-          // Check for q5 option and set it
-          if (parsedSelections.q5) {
-            setQ5Option(parsedSelections.q5);
-            // Calculate conception week
-            try {
-              const dateObject = convertStringToDate(parsedSelections.q5);
-              const weeks = calculateWeeksSince(dateObject);
-              setConceptionWeek(weeks + 3); // Adjust according to your logic
-            } catch (error) {
-              console.error('Error calculating conception week:', error);
-            }
-          }
-        }*/
+      if (!storedEmail) return; // Exit if no email is found
+  
+      // Fetch personalisation data
+      const personalisationResponse = await axios.get(`${url}/getPersonalisation?userEmail=${storedEmail}`);
+      const personalisationData = personalisationResponse.data.personalisation || [];
+  
+      // Parse personalisation data
+      const parsedSelections = personalisationData.reduce((acc, item) => {
+        const [key, value] = item.split(': ');
+        if (value) acc[key] = value;
+        return acc;
+      }, {});
+  
+      // Set personalisation data
+      setPersonalisationData(parsedSelections);
+  
+      // Handle q3 option
+      if (parsedSelections.q3) {
+        setQ3Option(parsedSelections.q3);
+        try {
+          const dateObject = convertStringToDate(parsedSelections.q3);
+          const weeks = calculateWeeksSince(dateObject);
+          setConceptionWeek(weeks + 3); // Adjust according to your logic
+        } catch (error) {
+          console.error('Error calculating conception week:', error);
+        }
       }
+  
+      // Fetch resources
+      const resourceResponse = await axios.get(`${url}/resource`);
+      let resources = resourceResponse.data.resources;
+  
+      // Filter resources based on user status
+      resources = resources.filter(resource => 
+        resource.category !== 'Pregnancy Summary' && 
+        resource.category !== 'Diet Recommendations' && 
+        resource.status.includes(userInfo.status)
+      );
+  
+      // Apply filtering based on personalisation data
+      if (personalisationData.length > 0) {
+        // Check if q2 exists and is a string of comma-separated categories
+        if (typeof parsedSelections.q2 === 'string') {
+          const selectedCategories = parsedSelections.q2.split(',').map(cat => cat.trim());
+          resources = resources.filter(resource => selectedCategories.includes(resource.category));
+        }
+      }
+  
+      // Shuffle and select 10 random resources
+      if (resources.length > 10) {
+        resources = shuffleArray(resources).slice(0, 10);
+      }
+  
+      // Set resources state
+      setResources(resources);
+      
     } catch (error) {
-      console.error('Error fetching personalisation data:', error);
+      console.error('Error fetching personalisation or resources:', error);
+      setResources([]);
     }
-  }, []);
+  }, [userInfo.status]);
+
+  const dietRecos = useCallback(async () => {
+    try {
+      // Fetch the user email
+      const storedEmail = await AsyncStorage.getItem('user');
+      if (!storedEmail) return;
+  
+      // Fetch all resources
+      const { data: { resources } } = await axios.get(`${url}/resource`);
+      const dietResources = resources.filter(resource => resource.category === 'Diet Recommendations');
+  
+      // Fetch weight logs
+      const { data: weightLogs } = await axios.get(`${url}/allWeightLogs`, { params: { userEmail: storedEmail } });
+  
+      let filteredResources = [];
+  
+      if (weightLogs && weightLogs.length > 0) {
+        // Process weight logs if they exist
+        weightLogs.forEach(log => {
+          if (log.record && log.record.length > 0) {
+            const specificCategory = log.record[log.record.length - 1].category;
+            const bmiMap = {
+              'Underweight': 'Underweight',
+              'Normal Weight': 'Normal',
+              'Overweight': 'Overweight',
+              'Obese': 'Obese'
+            };
+            const bmi = bmiMap[specificCategory] || '';
+  
+            // Filter diet resources based on BMI
+            const filtered = dietResources.filter(resource => resource.bmi.includes(bmi));
+            filteredResources = [...filteredResources, ...filtered];
+          }
+        });
+      }
+  
+      // Shuffle and select 10 random resources
+      const randomResources = shuffleArray(filteredResources).slice(0, 10);
+      setDietReco(randomResources);
+    } catch (error) {
+      // Fetch all resources
+      const { data: { resources } } = await axios.get(`${url}/resource`);
+      const dietResources = resources.filter(resource => resource.category === 'Diet Recommendations');
+      let filteredResources = [];
+      filteredResources = dietResources;
+
+      // Shuffle and select 10 random resources
+      const randomResources = shuffleArray(filteredResources).slice(0, 10);
+      setDietReco(randomResources);
+    }
+  }, []);  
 
   useEffect(() => {
-    const fetchResources = async () => {
-      try {
-        const response = await axios.get(`${url}/resource`);
-        let resources = response.data.resources;
-
-        resources = resources.filter(resource =>
-          resource.category !== 'Diet Recommendations' && resource.status.includes(userInfo.status)
-        );
-
-        if (personalisationData.length > 0) {
-          const parsedPersonalisation = personalisationData.reduce((acc, item) => {
-            const [key, value] = item.split(': ');
-            if (value) acc[key] = value;
-            return acc;
-          }, {});
-
-          if (typeof parsedPersonalisation.q2 === 'string') {
-            const selectedCategories = parsedPersonalisation.q2.split(',').map(cat => cat.trim());
-            resources = resources.filter(resource => selectedCategories.includes(resource.category));
-          }
-        }
-
-        if (resources.length > 10) {
-          resources = shuffleArray(resources).slice(0, 10);
-        }
-
-        setResources(resources);
-      } catch (error) {
-        console.error('Error fetching resources:', error);
-        setResources([]);
-      }
-    };
-
-    const setCurrentDateFormatted = () => {
-      const date = new Date();
-      setCurrentDate(formatDate(date));
-    };
-
     const fetchImage = async () => {
       try {
         const url = await firebase.storage().ref('miscellaneous/illustration.PNG').getDownloadURL();
@@ -125,22 +174,29 @@ const UserDuringHome = ({navigation}) => {
       }
     };
 
-    fetchUserInfo();
-    fetchResources();
-    setCurrentDateFormatted();
     fetchImage();
-  }, [fetchUserInfo, personalisationData, userInfo.status]);
-
-  useEffect(() => {
-    if (userInfo.email) {
-      fetchPersonalisationData();
+    fetchUserInfo();
+    fetchPersonalisationAndResources();
+    fetchPersonalisationAndResources();
+    if (personalisationData && personalisationData.q2 && personalisationData.q2.includes('Diet Recommendations')) {
+      dietRecos();
+    } else {
+      setDietReco([]);
     }
-  }, [userInfo.email, fetchPersonalisationData]);
+    setCurrentDate(formatDate(new Date()));
+  }, [fetchUserInfo,  fetchPersonalisationAndResources, dietRecos]);
 
   useFocusEffect(
     useCallback(() => {
       fetchUserInfo();
-    }, [fetchUserInfo])
+      fetchPersonalisationAndResources();
+      fetchPersonalisationAndResources();
+      if (personalisationData && personalisationData.q2 && personalisationData.q2.includes('Diet Recommendations')) {
+        dietRecos();
+      } else {
+        setDietReco([]);
+      }
+    }, [fetchUserInfo,  fetchPersonalisationAndResources, dietRecos])
   );
 
   const convertStringToDate = (dateString) => {
@@ -220,44 +276,66 @@ const UserDuringHome = ({navigation}) => {
           <Text style={styles.questionText}>Weight Tracker</Text>
         </Pressable>
       </View>
-
-      <Text style={[styles.titleNote]}>Suggested for you</Text>
     </View>
 
-      {/* Dynamically get 10 recommended resources */}
-      <View>
-        <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
-          {resources.map(
-            (resource, index) => (
-              <View key={index} style= {{marginBottom: 20}}>
-              <TouchableOpacity
-                key={index}
-                style={styles.resourceBtn}
-                onPress={() => navigation.navigate('UserResourceInfo', { resourceID: resource.resourceID })}
-              >
-                {/* Image */}
+    {dietReco.length > 0 && (
+      <View style = {[styles.container4]}>
+      <Text style={[styles.titleNote, { marginBottom: 20 }]}>Diet Recommendations For You</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
+          {dietReco.map((reco, index) => (
+            <View key={index} style={{ marginBottom: 20 }}>
+              <TouchableOpacity style={styles.resourceBtn}   onPress={() => navigation.navigate('UserResourceInfo', { resourceID: reco.resourceID })}>
                 <View style={{ ...StyleSheet.absoluteFillObject }}>
                   <Image
-                    source={{ uri: resource.imageUrl}}
+                    source={{ uri: reco.imageUrl }}
                     style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'cover' }}
                   />
                 </View>
               </TouchableOpacity>
-              <Text style= {[styles.text, {marginTop: 5, width: 100, textAlign: 'flex-start'}]}>
-                {resource.title} 
+              <Text style={[styles.text, { marginTop: 5, width: 100, textAlign: 'flex-start' }]}>
+                {reco.title}
               </Text>
-              </View>
-            )
-          )}
+            </View>
+          ))}
         </ScrollView>
       </View>
+      )}
+
+    {/* Dynamically get 10 recommended resources */}
+    <View style = {[styles.container4]}>
+      <Text style={[styles.titleNote, { marginBottom: 20 }]}>Suggested for you</Text>
+      <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
+        {resources.map(
+          (resource, index) => (
+            <View key={index} style= {{marginBottom: 20}}>
+            <TouchableOpacity
+              key={index}
+              style={styles.resourceBtn}
+              onPress={() => navigation.navigate('UserResourceInfo', { resourceID: resource.resourceID })}
+            >
+              {/* Image */}
+              <View style={{ ...StyleSheet.absoluteFillObject }}>
+                <Image
+                  source={{ uri: resource.imageUrl}}
+                  style={{ width: '100%', height: '100%', borderRadius: 10, resizeMode: 'cover' }}
+                />
+              </View>
+            </TouchableOpacity>
+            <Text style= {[styles.text, {marginTop: 5, width: 100, textAlign: 'flex-start'}]}>
+              {resource.title} 
+            </Text>
+            </View>
+          )
+        )}
+      </ScrollView>
+    </View>
 
 
-      <Pressable style={[styles.button, { alignSelf: 'center' }]} onPress={() => navigation.navigate("Resources")}>
-        <Text style={styles.text}>See more</Text>
-      </Pressable>
-    </ScrollView>
+    <Pressable style={[styles.button, { alignSelf: 'center' }]} onPress={() => navigation.navigate("Resources")}>
+      <Text style={styles.text}>See more</Text>
+    </Pressable>
+  </ScrollView>
   );
 };
 
