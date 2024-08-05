@@ -11,6 +11,7 @@ import { AntDesign } from '@expo/vector-icons';
 const RegisterUser= ({navigation}) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [contact, setContact] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
@@ -20,6 +21,7 @@ const RegisterUser= ({navigation}) => {
   const [emailError, setError3] = useState('');
   const [pwError, setError4] = useState('');
   const [confirmPwError, setError5] = useState('');
+  const [contactError, setError6] = useState('');
 
   const [selectedStatus, setSelectedStatus] = useState(null);
   const [selections, setSelections] = useState({});
@@ -60,6 +62,7 @@ const RegisterUser= ({navigation}) => {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       email: email.trim(),
+      contact: contact,
       password,
       status: selectedStatus, 
       state: "active",
@@ -116,6 +119,19 @@ const RegisterUser= ({navigation}) => {
         setError3('');
       }
 
+      const phoneNoCheck = /^(8\d{3}\d{4}|9[0-8]\d{2}\d{4})$/;
+      if(!contact.trim()) {
+        setError6('* Required field');
+        valid = false;
+      } else if (!phoneNoCheck.test(contact)) {
+        setError6('* Invalid phone number');
+        valid = false;
+      } else {
+        setError6('');
+      }
+
+      const strongPasswordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+
       // Validate Password
       if (!password.trim() || !confirmPw.trim()) {
         setError4('* Required field');
@@ -125,15 +141,24 @@ const RegisterUser= ({navigation}) => {
         setError4('* Passwords do not match');
         setError5('* Passwords do not match');
         valid = false;
-      } else if (password.length < 6) {
-        setError4('* Password must be at least 6 characters');
-        valid = false;
-      } else if (confirmPw.length < 6) {
-        setError5('* Password must be at least 6 characters');
-        valid = false;
       } else {
-        setError4('');
-        setError5('');
+        // Validate Password
+        let validPassword = true;
+        if (!strongPasswordRegex.test(password)) {
+          setError4(`* Password must be: \n - At least 8 characters long \n - Contain an uppercase letter \n - Contain a lowercase letter \n - Contain a number \n - Contain a special character`);
+          validPassword = false;
+          valid = false;
+        } else {
+          setError4('');
+        }
+        
+        // Validate Confirm Password
+        if (!validPassword || !strongPasswordRegex.test(confirmPw)) {
+          setError5(`* Password must be: \n - At least 8 characters long \n - Contain an uppercase letter \n - Contain a lowercase letter \n - Contain a number \n - Contain a special character`);
+          valid = false;
+        } else {
+          setError5('');
+        }
       }
 
       if (valid) {
@@ -196,6 +221,11 @@ const RegisterUser= ({navigation}) => {
             <Text style={[styles.formText, {marginBottom: 10}]}> Last Name {lastNameError ? <Text style={styles.error}>{lastNameError}</Text> : null} </Text>
             <TextInput style={[styles.input]} value={lastName} onChangeText={setLastName} />
           </View>
+
+          <View style={{ marginBottom: 30 }}>
+            <Text style={[styles.formText, {marginBottom: 10}]}> Contact Number {contactError ? <Text style={styles.error}>{contactError}</Text> : null} </Text>
+            <TextInput style={[styles.input]} value={contact} onChangeText={setContact} placeholder="+65" placeholderTextColor= "grey" keyboardType="numeric"/>
+          </View>
     
           <View style={{ marginBottom: 30 }}>
             <Text style={[styles.formText, {marginBottom: 10}]}> Email {emailError ? <Text style={styles.error}>{emailError}</Text> : null} </Text>
@@ -203,12 +233,14 @@ const RegisterUser= ({navigation}) => {
           </View>
     
           <View style={{ marginBottom: 30 }}>
-            <Text style={[styles.formText, {marginBottom: 10}]}> Password {pwError ? <Text style={styles.error}>{pwError}</Text> : null} </Text>
+            <Text style={[styles.formText, {marginBottom: 10}]}> Password </Text>
+            {pwError ? <Text style={[styles.error, {fontSize: 16, marginBottom: 10}]}>{pwError}</Text> : null}
             <TextInput style={[styles.input]} value={password} onChangeText={setPassword} secureTextEntry={true} textContentType={'oneTimeCode'}/>
           </View>
     
           <View style={{ marginBottom: 30 }}>
-            <Text style={[styles.formText, {marginBottom: 10}]}> Confirm Password {confirmPwError ? <Text style={styles.error}>{confirmPwError}</Text> : null} </Text>
+            <Text style={[styles.formText, {marginBottom: 10}]}> Confirm Password </Text>
+            {confirmPwError ? <Text style={[styles.error, {fontSize: 16, marginBottom: 10}]}>{confirmPwError}</Text> : null}
             <TextInput style={[styles.input]} value={confirmPw} onChangeText={setConfirmPw} secureTextEntry={true} textContentType={'oneTimeCode'}/>
           </View>
         </View>

@@ -102,7 +102,7 @@ const SpecialistAdvertisements = ({navigation}) => {
           <Text style={{ width: 10, fontWeight: 'bold' }}> </Text>
         </View>
 
-        {/* List of Admin Advertisements */}
+        {/* List of Admin Service Advertisements */}
         {specialistAds.map((ad, index) => (
           <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10, borderWidth: 1, borderColor: '#ddd' }}>
             <Text style={{ flex: 1 }}>{ad.userEmail}</Text>
@@ -178,7 +178,7 @@ const SpecialistAdvertisements = ({navigation}) => {
             <Text style={styles.text}> back </Text>
           </Pressable>
 
-          <Text style={[styles.pageTitle, { marginLeft: 20}]}> Advertisements </Text>
+          <Text style={[styles.pageTitle, { marginLeft: 60}]}> Services </Text>
 
           <Pressable style={[styles.iconContainer, {flex: 1, alignItems: 'flex-end'}]} onPress={() => navigation.navigate("SpecialistCreateAds")}>
             <Feather name="edit" size={24} color="black" />

@@ -172,7 +172,7 @@ const SpecialistCreateAds = ({ navigation }) => {
     <Keyboard>
     <ScrollView contentContainerStyle={styles.container}>
         <View style={[{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', paddingBottom:20 }, {...Platform.select({web:{} , default:{paddingTop:50}})}]}>
-            <Text style={[styles.pageTitle]}> Create Advertisements </Text>
+            <Text style={[styles.pageTitle]}> Create Service Ad </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 20 }}>
                 <Pressable style={[styles.formText, {}]} onPress={() => navigation.goBack()}>
                     <Entypo name="cross" size={30} color="black" />

@@ -154,9 +154,7 @@ const SpecialistForum = ({ navigation }) => {
                   { cancelable: false }
               );
           }
-      } else if (action === 'report') {
-          Alert.alert('Report functionality is not implemented yet.');
-      }
+      } 
   };
 
   const toggleCommentDropdown = (comment, forumpost) => {
@@ -183,8 +181,6 @@ const SpecialistForum = ({ navigation }) => {
           { cancelable: false }
         );
       }
-    } else if (action === 'report') {
-      Alert.alert('Report functionality is not implemented yet.');
     }
   };
 
@@ -326,13 +322,15 @@ const SpecialistForum = ({ navigation }) => {
       <View key={index} style={styles.forumPostContainer}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Text style={[styles.text3, { flex: 1, margin: 10 }]}>{post.userInfo.firstName} {post.userInfo.lastName}</Text>
-          <Text style={styles.titleNote}>{formatDate(post.dateCreated)}</Text>
+          <Text style={[styles.titleNote, {paddingRight: 10}]}>{formatDate(post.dateCreated)}</Text>
+          {post.userEmail === userEmail && (
           <TouchableHighlight
-            style={[styles.iconContainer, {marginLeft: 15}]}
+            style={[styles.iconContainer]}
             onPress={() => toggleDropdown(post)}
             underlayColor={Platform.OS === 'web' ? 'transparent' : '#e0e0e0'}>
             <Entypo name="dots-three-vertical" size={16} />
           </TouchableHighlight>
+          )}
         </View>
 
         {/* Modal for user actions - edit, delete, report */}
@@ -359,12 +357,13 @@ const SpecialistForum = ({ navigation }) => {
               </View>
               </>
             ) : (
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-                  <MaterialIcons name="report" size={24} color="black" />
-                  <Pressable style={{ marginLeft: 10 }} onPress={() => handleSelection('report')}>
-                      <Text style={styles.text}>Report Post</Text>
-                  </Pressable>
-              </View>
+              //<View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+              //    <MaterialIcons name="report" size={24} color="black" />
+              //    <Pressable style={{ marginLeft: 10 }} onPress={() => handleSelection('report')}>
+              //        <Text style={styles.text}>Report Post</Text>
+              //    </Pressable>
+              //</View>
+              null
             )}
           </View>
         </View>
@@ -400,13 +399,15 @@ const SpecialistForum = ({ navigation }) => {
               <View key={commentIndex} style={[styles.container4, { marginLeft: 20, marginBottom: 20, marginRight: 10 }]}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
                   <Text style={[styles.text3, {flex: 1, marginBottom: 10 }]}>{comment.userInfo.firstName} {comment.userInfo.lastName}</Text>
-                  <Text style={[styles.formText, { marginBottom: 8, marginLeft: 20 }]}>{formatDate(comment.date)} </Text>
+                  <Text style={[styles.formText, { marginBottom: 8, paddingRight: 10 }]}>{formatDate(comment.date)} </Text>
+                  {comment.userEmail === userEmail && (
                   <TouchableHighlight
-                    style={[styles.iconContainer, {marginBottom: 8, marginLeft: 15  }]}
+                    style={[styles.iconContainer, {marginBottom: 8 }]}
                     underlayColor={Platform.OS === 'web' ? 'transparent' : '#e0e0e0'}
                     onPress={() => toggleCommentDropdown(comment , post)}>
                     <Entypo name="dots-three-vertical" size={16} />
                   </TouchableHighlight>
+                  )}
                 </View>
                 <Text style={[styles.text]}>{comment.userComment}</Text>
             </View>
@@ -460,12 +461,13 @@ const SpecialistForum = ({ navigation }) => {
                     </View>
                   </>
                 ) : (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-                    <MaterialIcons name="report" size={24} color="black" />
-                    <Pressable style={{ marginLeft: 10 }} onPress={() => handleCommentSelection('report')}>
-                      <Text style={styles.text}>Report Comment</Text>
-                    </Pressable>
-                  </View>
+                  //<View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+                  //  <MaterialIcons name="report" size={24} color="black" />
+                  //  <Pressable style={{ marginLeft: 10 }} onPress={() => handleCommentSelection('report')}>
+                  //    <Text style={styles.text}>Report Comment</Text>
+                  //  </Pressable>
+                  //</View>
+                  null
                 )}
               </View>
             </View>

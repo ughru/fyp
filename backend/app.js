@@ -308,7 +308,7 @@ app.post('/saveSpecialisation', async (req, res) => {
 *************************************************
 ************************************************/
 app.post("/register", async(req, res)=> {
-  const {firstName, lastName, status, email, password, state} = req.body;
+  const {firstName, lastName, status, contact, email, password, state} = req.body;
   const oldUser = await User.findOne({email: email});
 
   if(oldUser) {
@@ -323,6 +323,7 @@ app.post("/register", async(req, res)=> {
           firstName: firstName,
           lastName: lastName,
           status,
+          contact: contact,
           email: email,
           password: hashedPassword,
           state, 
@@ -335,7 +336,7 @@ app.post("/register", async(req, res)=> {
 
 // register specialist
 app.post("/registerSpecialist", async(req, res)=> {
-  const {firstName, lastName, uen, specialisation, email, password, state} = req.body;
+  const {firstName, lastName, contact, uen, specialisation, email, password, state} = req.body;
   const oldUser = await Specialist.findOne({email: email});
 
   if(oldUser) {
@@ -349,6 +350,7 @@ app.post("/registerSpecialist", async(req, res)=> {
       await Specialist.create({
           firstName: firstName,
           lastName: lastName,
+          contact: contact,
           uen,
           specialisation,
           email: email,

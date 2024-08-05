@@ -7,11 +7,7 @@ import url from "../components/config";
 import { useFocusEffect } from '@react-navigation/native';
 
 const SpecialistSettings= ({navigation}) => {
-  const [specialistInfo, setSpecialistInfo] = useState({
-    firstName: '',
-    lastName: '',
-    email: ''
-  });
+  const [specialistInfo, setSpecialistInfo] = useState({ firstName: '', lastName: '', contact: '' });
 
   const fetchSpecialistInfo = useCallback(async () => {
     try {
@@ -71,6 +67,10 @@ const SpecialistSettings= ({navigation}) => {
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', marginBottom: 20 }}>
           <Text style={[styles.text]}> Last Name </Text>
           <TextInput style={[styles.input2]} value={specialistInfo.lastName} />
+        </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', marginBottom: 20 }}>
+          <Text style={[styles.text]}> Contact No </Text>
+          <TextInput style={[styles.input2]} value={specialistInfo.contact} />
         </View>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', marginBottom: 20 }}>
           <Text style={[styles.text]}> UEN </Text>

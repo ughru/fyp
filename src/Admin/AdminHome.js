@@ -405,6 +405,7 @@ const AdminHome = ({navigation}) => {
             <Text style={styles.questionText}>Advertisements</Text>
           </Pressable>
         </View>
+        {/* 
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
           <FontAwesome5 name="clipboard-list" size={24} color="black" />
           <Pressable style={{ marginLeft: 10 }}>
@@ -413,9 +414,10 @@ const AdminHome = ({navigation}) => {
         </View>
 
         <Text style= {styles.questionText}> Manage Users </Text>
+        */}
 
         {/* Search Bar */}
-        <View style={[styles.search, {paddingTop: 20 , right: 30, marginBottom: 20}]}>
+        <View style={[styles.search, { right: 30, marginBottom: 20}]}>
           <View style={[styles.iconContainer, {left: 40}]}>
             <Ionicons name="search-outline" size={24} color="black" />
           </View>

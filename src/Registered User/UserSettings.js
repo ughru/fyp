@@ -7,12 +7,7 @@ import url from "../components/config";
 import { useFocusEffect } from '@react-navigation/native';
 
 const UserSettings  = ({navigation, selectedStatus, setSelectedStatus}) => {
-  const [userInfo, setUserInfo] = useState({
-    firstName: '',
-    lastName: '',
-    uen: '',
-    email: ''
-  });
+  const [userInfo, setUserInfo] = useState({ firstName: '', lastName: '', contact: '' });
 
   // Fetch user email
   const fetchUserInfo = useCallback(async () => {
@@ -96,6 +91,10 @@ const UserSettings  = ({navigation, selectedStatus, setSelectedStatus}) => {
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', marginBottom: 20 }}>
           <Text style={[styles.text]}> Last Name </Text>
           <TextInput style={[styles.input2]} value={userInfo.lastName} />
+        </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', marginBottom: 20 }}>
+          <Text style={[styles.text]}> Contact No </Text>
+          <TextInput style={[styles.input2]} value={userInfo.contact} />
         </View>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', marginBottom: 20 }}>
           <Text style={[styles.text]}> Email </Text>

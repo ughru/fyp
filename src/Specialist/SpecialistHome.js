@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, Pressable, ScrollView, Platform, Image } from 'react-native';
-import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import styles from '../components/styles';
@@ -138,9 +138,9 @@ const SpecialistHome = ({ navigation }) => {
       </View>
 
       <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 20, marginBottom: 20 }}>
-        <FontAwesome5 name="ad" size={24} color="black" />
+        <MaterialIcons name="local-offer" size={24} color="black" />
         <Pressable style={{ marginLeft: 10 }} onPress={() => navigation.navigate("SpecialistAdvertisements")}>
-          <Text style={styles.questionText}>Advertisements</Text>
+          <Text style={styles.questionText}>Offered Services</Text>
         </Pressable>
       </View>
 

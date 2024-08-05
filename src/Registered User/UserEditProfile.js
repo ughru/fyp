@@ -16,6 +16,7 @@ const UserEditProfile = ({ navigation }) => {
 
     const [firstNameError, setError1] = useState('');
     const [lastNameError, setError2] = useState('');
+    const [contactError, setError3] = useState('');
 
     // Handle input changes
     const handleChange = (name, value) => {
@@ -72,6 +73,17 @@ const UserEditProfile = ({ navigation }) => {
             setError2('');
         }
 
+        const phoneNoCheck = /^(8\d{3}\d{4}|9[0-8]\d{2}\d{4})$/;
+        if(!userInfo.contact.trim()) {
+            setError3('* Required field');
+            valid = false;
+        } else if (!phoneNoCheck.test(userInfo.contact)) {
+            setError3('* Invalid phone number');
+            valid = false;
+        } else {
+            setError3('');
+        }
+
         if (valid) {
             try {
                 const storedEmail = await AsyncStorage.getItem('user');
@@ -118,6 +130,11 @@ const UserEditProfile = ({ navigation }) => {
             <View style={{ marginBottom: 30 }}>
                 <Text style={[styles.formText, {marginBottom: 10}]}> Last Name {lastNameError ? <Text style={styles.error}>{lastNameError}</Text> : null} </Text>
                 <TextInput style={[styles.input]} value={userInfo.lastName} onChangeText={(text) => handleChange('lastName', text)}/>
+            </View>
+
+            <View style={{ marginBottom: 30 }}>
+                <Text style={[styles.formText, {marginBottom: 10}]}> Contact No {contactError ? <Text style={styles.error}>{contactError}</Text> : null} </Text>
+                <TextInput style={[styles.input]} value={userInfo.contact} onChangeText={(text) => handleChange('contact', text)}/>
             </View>
         </View>
 

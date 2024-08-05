@@ -3,7 +3,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, Pressable, ScrollView, TextInput, Image, Platform, TouchableOpacity, TouchableHighlight, Modal, Alert } from 'react-native';
 import styles from '../components/styles';
 import { storage } from '../../firebaseConfig';
-import { AntDesign, MaterialCommunityIcons, FontAwesome5, Entypo, Ionicons, Feather} from '@expo/vector-icons';
+import { AntDesign, MaterialCommunityIcons, MaterialIcons, Entypo, Ionicons, Feather} from '@expo/vector-icons';
 import axios from 'axios';
 import url from '../components/config';
 import moment from 'moment';
@@ -216,9 +216,9 @@ const SpecialistAppointments = ({navigation}) => {
           </Pressable>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-          <FontAwesome5 name="ad" size={24} color="black" />
+        <MaterialIcons name="local-offer" size={24} color="black" />
           <Pressable style={{ marginLeft: 10 }} onPress={() => navigation.navigate("SpecialistAdvertisements")}>
-            <Text style={styles.questionText}>Advertisements</Text>
+            <Text style={styles.questionText}>Offered Services</Text>
           </Pressable>
         </View>
 

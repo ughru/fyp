@@ -15,6 +15,7 @@ const RegisterSpecialist = ({ navigation }) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [contact, setContact] = useState('');
   const [uen, setUEN] = useState('');
   const [specialisation, setSpecialisation] = useState('');
   const [customSpecialisation, setCustomSpecialisation] = useState('');
@@ -28,6 +29,7 @@ const RegisterSpecialist = ({ navigation }) => {
   const [specialisationError, setError5] = useState('');
   const [pwError, setError6] = useState('');
   const [confirmPwError, setError7] = useState('');
+  const [contactError, setError8] = useState('');
 
   const [registrationInProgress, setRegistrationInProgress] = useState(false);
   const [specialisations, setSpecialisations] = useState([]);
@@ -56,6 +58,7 @@ const RegisterSpecialist = ({ navigation }) => {
       setCustomSpecialisation('');
       setPassword('');
       setConfirmPw('');
+      setContact('');
       setError1('');
       setError2('');
       setError3('');
@@ -63,6 +66,7 @@ const RegisterSpecialist = ({ navigation }) => {
       setError5('');
       setError6('');
       setError7('');
+      setError8('');
 
       fetchSpecialisations();
     }, [fetchSpecialisations])
@@ -83,6 +87,7 @@ const RegisterSpecialist = ({ navigation }) => {
     const userData = {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
+      contact: contact,
       uen: uen.trim(),
       specialisation: finalSpecialisation,
       email: email.trim(),
@@ -138,6 +143,17 @@ const RegisterSpecialist = ({ navigation }) => {
         setError3('');
       }
 
+      const phoneNoCheck = /^(8\d{3}\d{4}|9[0-8]\d{2}\d{4})$/;
+      if(!contact) {
+        setError8('* Required field');
+        valid = false;
+      } else if (!phoneNoCheck.test(contact)) {
+        setError8('* Invalid phone number');
+        valid = false;
+      } else {
+        setError8('');
+      }
+
       // Handle UEN errors
       // types: (1) nnnnnnnnX (9 digits) (2) yyyynnnnnX (10 digits) (3) TyyPQnnnnX (10 digits)
       /* 
@@ -173,20 +189,35 @@ const RegisterSpecialist = ({ navigation }) => {
         setError5('');
       }
 
+      const strongPasswordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
       // Handle Password Errors
+      // Validate Password
       if (!password.trim() || !confirmPw.trim()) {
-        // Check if empty
         setError6('* Required field');
         setError7('* Required field');
         valid = false;
       } else if (password !== confirmPw) {
-        // Check if passwords match
-        setError6('* Password do not match');
-        setError7('* Password do not match');
+        setError6('* Passwords do not match');
+        setError7('* Passwords do not match');
         valid = false;
       } else {
-        setError6('');
-        setError7('');
+        // Validate Password
+        let validPassword = true;
+        if (!strongPasswordRegex.test(password)) {
+          setError6(`* Password must be: \n - At least 8 characters long \n - Contain an uppercase letter \n - Contain a lowercase letter \n - Contain a number \n - Contain a special character`);
+          validPassword = false;
+          valid = false;
+        } else {
+          setError6('');
+        }
+        
+        // Validate Confirm Password
+        if (!validPassword || !strongPasswordRegex.test(confirmPw)) {
+          setError7(`* Password must be: \n - At least 8 characters long \n - Contain an uppercase letter \n - Contain a lowercase letter \n - Contain a number \n - Contain a special character`);
+          valid = false;
+        } else {
+          setError7('');
+        }
       }
 
       if (valid) {
@@ -251,6 +282,11 @@ const RegisterSpecialist = ({ navigation }) => {
           </View>
 
           <View style={{ marginBottom: 30 }}>
+            <Text style={[styles.formText, {marginBottom: 10}]}> Contact Number {contactError ? <Text style={styles.error}>{contactError}</Text> : null} </Text>
+            <TextInput style={[styles.input]} value={contact} onChangeText={setContact} placeholder="+65" placeholderTextColor= "grey" keyboardType="numeric"/>
+          </View>
+
+          <View style={{ marginBottom: 30 }}>
             <Text style={[styles.formText, { marginBottom: 10 }]}> Email {emailError ? <Text style={styles.error}>{emailError}</Text> : null} </Text>
             <TextInput style={[styles.input]} value={email} onChangeText={setEmail} keyboardType="email-address" />
           </View>
@@ -297,12 +333,14 @@ const RegisterSpecialist = ({ navigation }) => {
           </View>
 
           <View style={{ marginBottom: 30, alignItems: 'center'}}>
-            <Text style={[styles.formText, {alignSelf: 'flex-start', marginLeft: 12, marginBottom: 10}]}> Password {pwError ? <Text style={styles.error}>{pwError}</Text> : null} </Text>
+            <Text style={[styles.formText, {alignSelf: 'flex-start', marginLeft: 12, marginBottom: 10}]}> Password </Text>
+            {pwError ? <Text style={[styles.error, {alignSelf: 'flex-start', marginLeft: 12, fontSize: 16, marginBottom: 10}]}>{pwError}</Text> : null}
             <TextInput style={[styles.input]} value={password} onChangeText={setPassword} secureTextEntry={true} textContentType={'oneTimeCode'} />
           </View>
 
           <View style={{ marginBottom: 30, alignItems: 'center' }}>
-            <Text style={[styles.formText, {alignSelf: 'flex-start', marginLeft: 12, marginBottom: 10}]}> Confirm Password {confirmPwError ? <Text style={styles.error}>{confirmPwError}</Text> : null} </Text>
+            <Text style={[styles.formText, {alignSelf: 'flex-start', marginLeft: 12, marginBottom: 10}]}> Confirm Password </Text>
+            {confirmPwError ?<Text style={[styles.error, {alignSelf: 'flex-start', marginLeft: 12, fontSize: 16, marginBottom: 10}]}>{confirmPwError}</Text> : null}
             <TextInput style={[styles.input]} value={confirmPw} onChangeText={setConfirmPw} secureTextEntry={true} textContentType={'oneTimeCode'} />
           </View>
 

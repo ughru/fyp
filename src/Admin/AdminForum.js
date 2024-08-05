@@ -279,7 +279,7 @@ const handleCategoryButtonClick = (category) => {
             </TouchableHighlight>
           </View>
 
-          {/* Modal for user actions - edit, delete, report */}
+          {/* Modal for user actions - report */}
           <Modal transparent={true} animationType="fade" visible={isDropdownVisible} onRequestClose={() => setDropdownVisible(false)}>
           <View style={[styles.modalOverlay, { justifyContent: 'flex-end' }]}>
             <View style={{ width: '90%', backgroundColor: '#E3C2D7', borderRadius: 10, padding: 20 }}>
