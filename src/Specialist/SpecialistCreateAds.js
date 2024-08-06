@@ -8,12 +8,14 @@ import url from '../components/config';
 import { Camera } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import {storage} from '../../firebaseConfig';
+import RNPickerSelect from 'react-native-picker-select';
 
 // import own code
 import styles from '../components/styles';
 
 const SpecialistCreateAds = ({ navigation }) => {
     const [title, setTitle] = useState('');
+    const [categories, setCategories] = useState([]);
     const [company, setCompany] = useState('');
     const [description, setDescription] = useState('');
     const [imageUri, setImageUri] = useState(null);
@@ -23,6 +25,8 @@ const SpecialistCreateAds = ({ navigation }) => {
     const [descriptionError, setError3] = useState('');
     const [imageError, setError4] = useState('');
     const [descriptionHeight, setDescriptionHeight] = useState(0);
+    const [categoryError, setError5] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState(null);
 
     const [specialistInfo, setSpecialistInfo] = useState([]);
 
@@ -42,8 +46,22 @@ const SpecialistCreateAds = ({ navigation }) => {
             }
         };
 
-        fetchSpecialistInfo(); 
+        const fetchCategories = async () => {
+            try {
+                const response = await axios.get(`${url}/getAllAdCategories`);
+                const categoryItems = response.data.map((category) => ({
+                    label: category.categoryName,
+                    value: category.categoryName,
+                }));
+                const filteredCategoryItems = categoryItems.slice(1);
+                setCategories(filteredCategoryItems);
+            } catch (error) {
+                console.error(error);
+            }
+        };
 
+        fetchSpecialistInfo(); 
+        fetchCategories();
     }, []);
 
     const onSaveAd = async () => {
@@ -58,6 +76,13 @@ const SpecialistCreateAds = ({ navigation }) => {
             valid = false;
         } else {
             setError1('');
+        }
+
+        if (selectedCategory === 'Select a category') {
+            setError5('* Required field');
+            valid = false;
+        } else {
+            setError5('');
         }
 
         if (!company.trim()) {
@@ -95,6 +120,7 @@ const SpecialistCreateAds = ({ navigation }) => {
                 const specialistAd = {
                     userEmail: `${specialistInfo.email}`,
                     title,
+                    category: selectedCategory,
                     company,
                     description,
                     imageUrl
@@ -183,8 +209,20 @@ const SpecialistCreateAds = ({ navigation }) => {
         {/* Form fields */}
         <View style={[styles.container4, { marginBottom: 20 }]}>
             <View style={{ marginBottom: 30 }}>
-                <Text style={[styles.text, { marginBottom: 10 }]}> Title {titleError ? <Text style={styles.error}>{titleError}</Text> : null} </Text>
+                <Text style={[styles.text, { marginBottom: 10 }]}> Service Title {titleError ? <Text style={styles.error}>{titleError}</Text> : null} </Text>
                 <TextInput style={[styles.input3]} value={title} onChangeText={setTitle} />
+            </View>
+
+            <View style={{ marginBottom: 30 }}>
+                <Text style={[styles.text, { marginBottom: 10 }]}> Category {categoryError ? <Text style={styles.error}>{categoryError}</Text> : null} </Text>
+                <RNPickerSelect
+                    onValueChange={(value) => {
+                        setSelectedCategory(value)
+                    }}
+                    items={categories}
+                    style={styles.pickerSelectStyles}
+                    placeholder={{ label: 'Select a category', value: 'Select a category' }}
+                />
             </View>
 
             <View style={{ marginBottom: 30 }}>

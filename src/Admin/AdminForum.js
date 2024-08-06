@@ -253,6 +253,11 @@ const handleCategoryButtonClick = (category) => {
                 { label: 'Newest', value: 'newest' },
                 { label: 'Oldest', value: 'oldest' },
             ]}
+            style={{
+              inputIOS: styles.text,
+              inputAndroid: styles.text,
+              inputWeb: styles.text,
+            }}
           />
           {Platform.OS !== 'web' && 
             <View style={[styles.iconContainer, { marginLeft: 10 }]}>

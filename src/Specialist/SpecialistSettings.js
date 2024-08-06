@@ -95,9 +95,11 @@ const SpecialistSettings= ({navigation}) => {
         <Pressable style={[styles.formText, {marginBottom: 20}]} onPress={() => navigation.navigate("ForgetPw", { origin: 'SpecialistSettings' })}>
           <Text style={styles.text}> Change Password </Text>
         </Pressable>
+        {/*
         <Pressable style={[styles.formText, {marginBottom: 20}]}>
           <Text style={styles.text}> Report a Problem </Text>
         </Pressable>
+        */}
 
         {/* Logout Button */}
         <Pressable style={[styles.formText]} onPress={handleLogout}>

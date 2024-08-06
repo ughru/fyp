@@ -25,8 +25,10 @@ const SpecialistAppointments = ({navigation}) => {
 
   const fetchAppointments = useCallback(async () => {
     try {
+      if (!userEmail) return; // Early return if userEmail is not set
+  
       const response = await axios.get(`${url}/bookedAppt2`, { params: { specialistEmail: userEmail } });
-      
+  
       // Initialize categorized appointments
       const categorizedAppointments = { Upcoming: [], Completed: [], Cancelled: [] };
   
@@ -44,7 +46,7 @@ const SpecialistAppointments = ({navigation}) => {
   
       // Set state based on selected category
       setAppointments(sortAppointments(categorizedAppointments[activeButton]));
-      
+  
       // Fetch user details
       const userEmails = [...new Set(response.data.map(app => app.userEmail))];
       const responses = await Promise.all(
@@ -123,7 +125,21 @@ const SpecialistAppointments = ({navigation}) => {
   };
 
   const handleMoreIconClick = (appointmentDetail) => {
-    setSelectedAppointment(appointmentDetail);
+    // Find the specialist email based on selected appointment
+    const appointmentWithUser = appointments.find(appointment =>
+      appointment.details.some(detail =>
+        detail.date === appointmentDetail.date && detail.time === appointmentDetail.time
+      )
+    );
+  
+    if (appointmentWithUser) {
+      // Set selected appointment with userEmail
+      setSelectedAppointment({
+        ...appointmentDetail,
+        userEmail: appointmentWithUser.userEmail // Add userEmail here
+      });
+    }
+  
     setModalVisible(true);
   };
 
@@ -327,6 +343,9 @@ const SpecialistAppointments = ({navigation}) => {
               <View>
                 <Text style={[styles.text, {marginBottom: 10}]}>Date: {formatDate(selectedAppointment.date)}</Text>
                 <Text style={[styles.text, {marginBottom: 10}]}>Time: {selectedAppointment.time}</Text>
+                {['Upcoming'].includes(selectedAppointment.status) && (
+                <Text style={[styles.text, { marginBottom: 10 }]}>Contact: {userDetails[selectedAppointment.userEmail]?.contact}</Text>
+                )}
                 <Text style={[styles.text, {marginBottom: 10}]}>User Comments: {selectedAppointment.userComments || 'N.A.'}</Text>
                 {['Completed'].includes(selectedAppointment.status) && (
                   <Text style={[styles.text, { marginBottom: 10 }]}>

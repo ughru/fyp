@@ -37,6 +37,7 @@ const Personalisation = mongoose.model('personalisation');
 const Specialisation = mongoose.model('specialisation');
 const SpecialistAppointment = mongoose.model('specialistAppointment');
 const Appointment = mongoose.model('appointment');
+const AdCategory = mongoose.model('adCategory');
 
 // Function to get a random sample from an array
 function getRandomSample(array, sampleSize) {
@@ -1260,6 +1261,17 @@ app.get('/getAdminAds', async (req, res) => {
   }
 });
 
+//get specialist ad categories
+app.get('/getAllAdCategories', async (req, res) => {
+  try {
+    const categories = await AdCategory.find({});
+    res.status(200).json(categories);
+  } catch (error) {
+    console.error('Error fetching ad categories:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Admin create Ad
 app.post("/createAd", async (req, res) => {
   const { userEmail, title, company, type, description, imageUrl } = req.body;
@@ -1304,28 +1316,23 @@ app.post("/createAd", async (req, res) => {
 
 // Get all specialist ads
 app.get('/getSpecialistAds', async (req, res) => {
-  const { userEmail } = req.query;
-  if (!userEmail) {
-    return res.status(400).json({ message: 'Email is required' });
-  }
-
   try {
-      // Retrieve all resources from the database
-      const ad = await SpecialistAd.find({userEmail});
+    // Retrieve all ads from the database without filtering by userEmail
+    const ads = await SpecialistAd.find();
 
-      if (ad.length > 0) {
-        res.json(ad);
-      } else {
-        res.status(404).json({ message: 'Ad by specialist not found' });
-      }
-    } catch (err) {
-      res.status(500).json({ message: 'Error retrieving ads', error: err.message });
+    if (ads.length > 0) {
+      res.json(ads);
+    } else {
+      res.status(404).json({ message: 'No ads found' });
     }
+  } catch (err) {
+    res.status(500).json({ message: 'Error retrieving ads', error: err.message });
+  }
 });
 
 // Specialist create Ad
 app.post("/specialistCreateAd", async (req, res) => {
-  const { userEmail, title, company, description, imageUrl } = req.body;
+  const { userEmail, title, category, company, description, imageUrl } = req.body;
 
   try {
     // Find the highest adID currently in the database
@@ -1341,6 +1348,7 @@ app.post("/specialistCreateAd", async (req, res) => {
       adID,
       userEmail,
       title,
+      category,
       company,
       description,
       imageUrl,

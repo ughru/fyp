@@ -141,9 +141,22 @@ const UserAppointments = ({ navigation }) => {
     return sortedAppointments;
   };
   
-
   const handleMoreIconClick = (appointmentDetail) => {
-    setSelectedAppointment(appointmentDetail);
+    // Find the specialist email based on selected appointment
+    const appointmentWithUser = appointments.find(appointment =>
+      appointment.details.some(detail =>
+        detail.date === appointmentDetail.date && detail.time === appointmentDetail.time
+      )
+    );
+  
+    if (appointmentWithUser) {
+      // Set selected appointment with userEmail
+      setSelectedAppointment({
+        ...appointmentDetail,
+        userEmail: appointmentWithUser.userEmail // Add userEmail here
+      });
+    }
+  
     setModalVisible(true);
   };
 
@@ -341,6 +354,9 @@ const UserAppointments = ({ navigation }) => {
               <View>
                 <Text style={[styles.text, {marginBottom: 10}]}>Date: {formatDate(selectedAppointment.date)}</Text>
                 <Text style={[styles.text, {marginBottom: 10}]}>Time: {selectedAppointment.time}</Text>
+                {['Upcoming'].includes(selectedAppointment.status) && (
+                <Text style={[styles.text, { marginBottom: 10 }]}>Contact: {specialistDetails[selectedAppointment.userEmail]?.contact}</Text>
+                )}
                 {['Completed'].includes(selectedAppointment.status) && (
                   <Text style={[styles.text, { marginBottom: 10 }]}>
                     Specialist Notes: {selectedAppointment.specialistNotes || 'N.A.'}

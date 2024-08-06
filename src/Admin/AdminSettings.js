@@ -86,9 +86,11 @@ const AdminSettings= ({navigation}) => {
         <Pressable style={[styles.formText, {marginBottom: 20}]} onPress={() => navigation.navigate("Home")}>
           <Text style={styles.text}> Manage Users </Text>
         </Pressable>
+        {/*
         <Pressable style={[styles.formText, {marginBottom: 20}]}>
           <Text style={styles.text}> Manage Reports </Text>
         </Pressable>
+        */}
 
         <Text style= {[styles.questionText, {marginBottom: 20}]}> Info and Support </Text>
         <Pressable style={[styles.formText, {marginBottom: 20}]} onPress={() => navigation.navigate("ForgetPw", { origin: 'AdminSettings' })}>
