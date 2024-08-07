@@ -12,6 +12,17 @@ import axios from 'axios';
 import styles from '../components/styles';
 import url from '../components/config';
 
+const showAlert = (title, message, onPress) => {
+  if (Platform.OS === 'web') {
+    // For web platform
+    window.alert(`${title}\n${message}`);
+    if (onPress) onPress();  // Execute the onPress callback for web
+  } else {
+    // For mobile platforms
+    Alert.alert(title, message, [{ text: 'OK', onPress }], { cancelable: false });
+  }
+};
+
 const CreateAppointments = ({ navigation }) => {
   const [userEmail, setUserEmail] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
@@ -91,7 +102,7 @@ const CreateAppointments = ({ navigation }) => {
       }
     } catch (error) {
       console.error('Error fetching existing appointments:', error);
-      Alert.alert('Error', 'Failed to fetch existing appointments');
+      showAlert('Error', 'Failed to fetch existing appointments');
     }
   }, []);
   
@@ -244,7 +255,7 @@ const CreateAppointments = ({ navigation }) => {
 
         if (response.status === 201) {
           // Appointment saved successfully
-          Alert.alert('Success', 'Appointment saved successfully');
+          showAlert('Success', 'Appointment saved successfully');
           setShowAppointmentSelection(false); // Close appointment selection section
           setSelectedDate(''); // Clear selected date
           setMarkedDates({}); // Clear marked dates
@@ -257,7 +268,7 @@ const CreateAppointments = ({ navigation }) => {
         }}
     } catch (error) {
       console.error('Error saving appointment:', error.message);
-      Alert.alert('Error', 'Failed to save appointment');
+      showAlert('Error', 'Failed to save appointment');
     }
   };
 

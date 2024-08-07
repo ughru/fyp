@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, Pressable, ScrollView, TextInput, Platform, Alert, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Entypo, Ionicons } from '@expo/vector-icons';
@@ -11,6 +11,21 @@ import {storage} from '../../firebaseConfig';
 
 // import own code
 import styles from '../components/styles';
+
+const showAlert = (title, message, onConfirm = () => {}, onCancel = () => {}) => {
+    if (Platform.OS === 'web') {
+        if (window.confirm(`${title}\n${message}`)) {
+        onConfirm();
+        } else {
+        onCancel();
+        }
+    } else {
+        Alert.alert(title, message, [
+        { text: 'Cancel', onPress: onCancel, style: 'cancel' },
+        { text: 'OK', onPress: onConfirm }
+        ]);
+    }
+};  
 
 const CreateAds = ({ navigation }) => {
     const [title, setTitle] = useState('');
@@ -131,22 +146,14 @@ const CreateAds = ({ navigation }) => {
                 }
 
                 // Alert success and navigate back
-                Alert.alert('Success', 'Ad successfully created!',
-                    [{
-                        text: 'OK', onPress: async () => {
-                            navigation.goBack();
-                        }
-                    }],
-                    { cancelable: false }
-                );
+                showAlert('Success', 'Ad successfully created!', () => {
+                    navigation.goBack();
+                });
             } catch (error) {
                 console.error('Ad error:', error.message);
 
                 // Alert failure
-                Alert.alert('Failure', 'Ad was not created!',
-                    [{ text: 'OK' }],
-                    { cancelable: false }
-                );
+                showAlert('Failure', 'Ad was not created!');
             }
         }
     }; 
@@ -166,7 +173,7 @@ const CreateAds = ({ navigation }) => {
             } 
         } catch (error) {
             console.error('Error picking image:', error);
-            Alert.alert('Error', 'Failed to pick an image.');
+            showAlert('Error', 'Failed to pick an image.');
         }
     };
 
@@ -185,16 +192,23 @@ const CreateAds = ({ navigation }) => {
                 } 
             } catch (error) {
                 console.error('Error taking photo:', error);
-                Alert.alert('Error', 'Failed to take a photo.');
+                showAlert('Error', 'Failed to take a photo.');
             }
         } else {
-            Alert.alert('Permission denied', 'Camera permissions are required to take a photo.');
+            showAlert('Permission denied', 'Camera permissions are required to take a photo.');
         }
     };
 
     const removeImage = () => {
         setImageUri(null);
     };
+
+    const handleInputHeightChange = useCallback((height) => {
+        setDescriptionHeight(prevState => ({
+            ...prevState,
+            description: height
+        }));
+    }, []);
 
     return (
     <Keyboard>
@@ -247,7 +261,7 @@ const CreateAds = ({ navigation }) => {
                     value={description}
                     onChangeText={setDescription}
                     multiline
-                    onContentSizeChange={(e) => setDescriptionHeight(e.nativeEvent.contentSize.height)}
+                    onContentSizeChange={(contentSize) => handleInputHeightChange(contentSize.height)}
                 /> 
             </View>
 

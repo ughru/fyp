@@ -12,6 +12,14 @@ import { storage } from '../../firebaseConfig';
 import styles from '../components/styles';
 import url from '../components/config';
 
+const showAlert = (title, message) => {
+    if (Platform.OS === 'web') {
+        window.alert(`${title}\n${message}`);
+    } else {
+        Alert.alert(title, message);
+    }
+};
+
 const ViewSchedule = ({ navigation }) => {
     const [userEmail, setUserEmail] = useState('');
     const [selectedDate, setSelectedDate] = useState('');
@@ -62,7 +70,7 @@ const ViewSchedule = ({ navigation }) => {
             }
         } catch (error) {
             console.error('Error fetching existing appointments:', error);
-            Alert.alert('Error', 'Failed to fetch existing appointments');
+            showAlert('Error', 'Failed to fetch existing appointments');
         }
     }, []);
 

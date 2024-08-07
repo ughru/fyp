@@ -13,6 +13,21 @@ const formatDate = (date) => {
   return date.toLocaleDateString('en-GB', options);
 };
 
+const showAlert = (title, message, onConfirm = () => {}, onCancel = () => {}) => {
+  if (Platform.OS === 'web') {
+    if (window.confirm(`${title}\n${message}`)) {
+      onConfirm();
+    } else {
+      onCancel();
+    }
+  } else {
+    Alert.alert(title, message, [
+      { text: 'Cancel', onPress: onCancel, style: 'cancel' },
+      { text: 'OK', onPress: onConfirm }
+    ]);
+  }
+};
+
 const AdminHome = ({navigation}) => {
   const [currentDate, setCurrentDate] = useState(null);
   const [search, setSearch] = useState('');
@@ -112,62 +127,46 @@ const AdminHome = ({navigation}) => {
   };
 
   const handleSuspend = (email) => {
-    Alert.alert(
+    showAlert(
       "Confirm Suspend",
       `Are you sure you want to suspend the user: ${email}?`,
-      [
-        {
-          text: "Cancel",
-          style: "cancel"
-        },
-        {
-          text: "Confirm",
-          onPress: async () => {
-            try {
-              const response = await axios.post(`${url}/suspendUser`, { email });
-              if (response.data.success) {
-                Alert.alert("Success", "User has been suspended.");
-                handleCategoryButtonClick(activeButton); // Refresh the list
-              } else {
-                Alert.alert("Error", "Failed to suspend the user.");
-              }
-            } catch (error) {
-              console.error('Error suspending user:', error);
-              Alert.alert("Error", "An error occurred while suspending the user.");
-            }
+      async () => {
+        try {
+          const response = await axios.post(`${url}/suspendUser`, { email });
+          if (response.data.success) {
+            showAlert("Success", "User has been suspended.");
+            handleCategoryButtonClick(activeButton); // Refresh the list
+          } else {
+            showAlert("Error", "Failed to suspend the user.");
           }
+        } catch (error) {
+          console.error('Error suspending user:', error);
+          showAlert("Error", "An error occurred while suspending the user.");
         }
-      ]
+      },
+      () => {} // No action needed for cancel
     );
-  };
+  };  
 
   const handleReactivate = (email) => {
-    Alert.alert(
+    showAlert(
       "Confirm Reactivate",
       `Are you sure you want to reactivate the user: ${email}?`,
-      [
-        {
-          text: "Cancel",
-          style: "cancel"
-        },
-        {
-          text: "Confirm",
-          onPress: async () => {
-            try {
-              const response = await axios.post(`${url}/reactivateUser`, { email });
-              if (response.data.success) {
-                Alert.alert("Success", "User has been reactivated.");
-                handleCategoryButtonClick(activeButton); // Refresh the list
-              } else {
-                Alert.alert("Error", "Failed to reactivate the user.");
-              }
-            } catch (error) {
-              console.error('Error reactivating user:', error);
-              Alert.alert("Error", "An error occurred while reactivating the user.");
-            }
+      async () => {
+        try {
+          const response = await axios.post(`${url}/reactivateUser`, { email });
+          if (response.data.success) {
+            showAlert("Success", "User has been reactivated.");
+            handleCategoryButtonClick(activeButton); // Refresh the list
+          } else {
+            showAlert("Error", "Failed to reactivate the user.");
           }
+        } catch (error) {
+          console.error('Error reactivating user:', error);
+          showAlert("Error", "An error occurred while reactivating the user.");
         }
-      ]
+      },
+      () => {} // No action needed for cancel
     );
   };
 

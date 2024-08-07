@@ -9,6 +9,14 @@ import styles from '../components/styles';
 import Keyboard from '../components/Keyboard'; 
 import url from "../components/config";
 
+const showAlert = (title, message, onPress) => {
+    if (Platform.OS === 'web') {
+        window.alert(`${title}\n${message}`);
+    } else {
+        Alert.alert(title, message, [{ text: 'OK', onPress }], { cancelable: false });
+    }
+};
+
 const SpecialistEditProfile = ({ navigation }) => {
     // values
     const [userInfo, setUserInfo] = useState([]);
@@ -117,33 +125,22 @@ const SpecialistEditProfile = ({ navigation }) => {
                 if (storedEmail) {
                     const response = await axios.put(`${url}/editSpecialist?email=${storedEmail}`, userInfo);
                     if (response.data.state === 'suspended') {
-                        Alert.alert(
+                        showAlert(
                             'Account Re-Verification',
-                            'Profile with UEN pdated successfully.\n Verification required.\n You will be logged out.',
-                            [{
-                                text: 'OK',
-                                onPress: async () => {
-                                    await AsyncStorage.removeItem('user');
-                                    navigation.navigate('Login');
-                                }
-                            }],
-                            { cancelable: false }
+                            'Profile with UEN updated successfully.\nVerification required.\nYou will be logged out.',
+                            async () => {
+                                await AsyncStorage.removeItem('user');
+                                navigation.navigate('Login');
+                            }
                         );
                     } else {
                         await AsyncStorage.setItem('user', userInfo.email);
-                        Alert.alert('Profile updated successfully', '',
-                            [{
-                                text: 'OK', onPress: async () => {
-                                    navigation.goBack();
-                                }
-                            }],
-                            { cancelable: false }
-                        );
+                        showAlert('Profile updated successfully', '', () => navigation.goBack());
                     }
                 }
             } catch (error) {
                 console.error('Error updating profile:', error);
-                Alert.alert('Error updating profile');
+                showAlert('Error updating profile', 'Please try again later.');
             }
         }
     };

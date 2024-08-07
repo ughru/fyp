@@ -19,6 +19,21 @@ const symptomsList = [
   'Sleep Disturbance'
 ];
 
+const showAlert = (title, message, onConfirm = () => {}, onCancel = () => {}) => {
+  if (Platform.OS === 'web') {
+    if (window.confirm(`${title}\n${message}`)) {
+      onConfirm();
+    } else {
+      onCancel();
+    }
+  } else {
+    Alert.alert(title, message, [
+      { text: 'Cancel', onPress: onCancel, style: 'cancel' },
+      { text: 'OK', onPress: onConfirm }
+    ]);
+  }
+};
+
 const LogPeriod = ({ navigation, route }) => {
   const [activeButton, setActiveButton] = useState('');
   const [selectedType, setSelectedType] = useState('');
@@ -100,7 +115,7 @@ const LogPeriod = ({ navigation, route }) => {
       try {
         const storedEmail = await AsyncStorage.getItem('user');
         if (!storedEmail) {
-          Alert.alert('Error', 'User email not found');
+          showAlert('Error', 'User email not found');
           return;
         }
         
@@ -119,16 +134,14 @@ const LogPeriod = ({ navigation, route }) => {
         const response = await axios.post(`${url}/periodLog`, periodLogData);
   
         if (response.status === 201) {
-          Alert.alert('Success', 'Period Log successfully created!', [{
-            text: 'OK', onPress: () => {
-              navigation.goBack(); 
-            }
-          }], { cancelable: false });
+          showAlert('Success', 'Period Log successfully created!', () => {
+            navigation.goBack(); 
+          });
         } else {
-          Alert.alert('Error', 'Failed to create Period Log');
+          showAlert('Error', 'Failed to create Period Log');
         }
       } catch (error) {
-        Alert.alert('Error', 'Period Log for today already exist!');
+        showAlert('Error', 'Period Log for today already exist!');
       }
     };
   }

@@ -9,6 +9,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import url from "../components/config";
 
+const showAlert = (title, message, onPress) => {
+  if (Platform.OS === 'web') {
+    // For web platform
+    window.alert(`${title}\n${message}`);
+    if (onPress) onPress();  // Execute the onPress callback for web
+  } else {
+    // For mobile platforms
+    Alert.alert(title, message, [{ text: 'OK', onPress }], { cancelable: false });
+  }
+};
+
 const WeightTracker = ({ navigation }) => {
   const [imageUrl, setImageUrl] = useState(null);
   const [imageStyle, setImageStyle] = useState({});
@@ -50,41 +61,51 @@ const WeightTracker = ({ navigation }) => {
     try {
       const storedEmail = await AsyncStorage.getItem('user');
       if (storedEmail) {
-        const response = await axios.get(`${url}/userinfo?email=${storedEmail}`);
-        if (response.data) {
-          setUserInfo(response.data);
-
+        // Fetch user info
+        const userInfoResponse = await axios.get(`${url}/userinfo?email=${storedEmail}`);
+        if (userInfoResponse.data) {
+          setUserInfo(userInfoResponse.data);
+  
           // Fetch the appropriate image URL based on the status
-          if (response.data.status === "During") {
-            const url = await storage.ref('miscellaneous/weight gain.PNG').getDownloadURL();
-            setImageUrl(url);
-            setImageStyle({ width: 320, height: 100 });
+          let imageUrl;
+          let imageStyle;
+  
+          if (userInfoResponse.data.status === "During") {
+            imageUrl = await storage.ref('miscellaneous/weight gain.PNG').getDownloadURL();
+            imageStyle = { width: 320, height: 100 };
           } else {
-            const url = await storage.ref('miscellaneous/bmi.PNG').getDownloadURL();
-            setImageUrl(url);
-            setImageStyle({ width: 350, height: 150 });
+            imageUrl = await storage.ref('miscellaneous/bmi.PNG').getDownloadURL();
+            imageStyle = { width: 350, height: 150 };
           }
-
-          // Fetch today's weight log or the most recent log
-          const weightLogResponse = await axios.get(`${url}/recentLog`, { params: { userEmail: storedEmail } });
-          if (weightLogResponse.data) {
-            const latestLog = weightLogResponse.data;
+  
+          setImageUrl(imageUrl);
+          setImageStyle(imageStyle);
+  
+          // Fetch all weight logs
+          const weightLogsResponse = await axios.get(`${url}/allWeightLogs`, { params: { userEmail: storedEmail } });
+          if (weightLogsResponse.data && weightLogsResponse.data.length > 0) {
+            // Assume the most recent log is the last one in the array
+            const weightLogs = weightLogsResponse.data;
+            const mostRecentLog = weightLogs.reduce((latest, log) => {
+              if (log.record.length > 0) {
+                return log.record[log.record.length - 1]; // Get the latest record
+              }
+              return latest;
+            }, {});
+  
             setHealthDetails({
-              height: latestLog.height || '-',
-              weight: latestLog.weight || '-',
-              bmi: latestLog.bmi || '-',
-              category: latestLog.category || '-'
+              height: mostRecentLog.height || '-',
+              weight: mostRecentLog.weight || '-',
+              bmi: mostRecentLog.bmi || '-',
+              category: mostRecentLog.category || '-'
             });
-          }
-
-          const allWeightLogsResponse = await axios.get(`${url}/allWeightLogs`, { params: { userEmail: storedEmail } });
-          if (allWeightLogsResponse.data) {
-            setWeightLogs(allWeightLogsResponse.data);
+  
+            setWeightLogs(weightLogs); // Set the weight logs
           }
         }
       }
     } catch (error) {
-      // Remove console error logs
+      console.error('Error fetching user info:', error);
     }
   }, []);
 
@@ -128,50 +149,39 @@ const WeightTracker = ({ navigation }) => {
     try {
       const userEmail = await AsyncStorage.getItem('user');
       if (!userEmail) {
-        Alert.alert('Error', 'User email not found');
+        showAlert('Error', 'User email not found');
         return;
       }
   
-      Alert.alert(
+      showAlert(
         'Confirm Delete',
         'Are you sure you want to delete this weight log?',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: 'Delete',
-            onPress: async () => {
-              try {
-                const response = await axios.delete(`${url}/deleteWeightLog`, {
-                  data: {
-                    userEmail,
-                    date: logDate
-                  }
-                });
-  
-                if (response.status === 200) {
-                  // Refresh the weight logs after deletion
-                  setWeightLogs(weightLogs.map(log => ({
-                    ...log,
-                    record: log.record.filter(record => record.date !== logDate)
-                  })).filter(log => log.record.length > 0));
-                  Alert.alert('Success', 'Weight log deleted successfully');
-                }
-              } catch (error) {
-                Alert.alert('Error', 'Failed to delete weight log');
+        async () => {
+          try {
+            const response = await axios.delete(`${url}/deleteWeightLog`, {
+              data: {
+                userEmail,
+                date: logDate
               }
-            },
-            style: 'destructive'
+            });
+  
+            if (response.status === 200) {
+              // Refresh the weight logs after deletion
+              setWeightLogs(weightLogs.map(log => ({
+                ...log,
+                record: log.record.filter(record => record.date !== logDate)
+              })).filter(log => log.record.length > 0));
+              showAlert('Success', 'Weight log deleted successfully');
+            }
+          } catch (error) {
+            showAlert('Error', 'Failed to delete weight log');
           }
-        ],
-        { cancelable: true }
+        }
       );
     } catch (error) {
-      Alert.alert('Error', 'Failed to delete weight log');
+      showAlert('Error', 'Failed to delete weight log');
     }
-  };
+  };  
 
   const openModal = (log) => {
     setSelectedLog(log);
@@ -267,16 +277,17 @@ const WeightTracker = ({ navigation }) => {
           return log;
         });
         setWeightLogs(updatedLogs);
-        Alert.alert('Success', 'Weight log updated successfully');
+        showAlert('Success', 'Weight log updated successfully');
         closeModal();
       } else {
-        Alert.alert('Error', 'Failed to update weight log');
+        showAlert('Error', 'Failed to update weight log');
       }
     } catch (error) {
       console.error('Update weight log error:', error);
-      Alert.alert('Error', 'Failed to update weight log');
-    }}
-  };  
+      showAlert('Error', 'Failed to update weight log');
+    }
+  }
+  };
 
   // Page Displays
   return (

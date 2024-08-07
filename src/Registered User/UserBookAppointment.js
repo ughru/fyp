@@ -12,6 +12,21 @@ import styles from '../components/styles';
 import url from '../components/config';
 import Keyboard from '../components/Keyboard';
 
+const showAlert = (title, message, onConfirm = () => {}, onCancel = () => {}) => {
+    if (Platform.OS === 'web') {
+        if (window.confirm(`${title}\n${message}`)) {
+        onConfirm();
+        } else {
+        onCancel();
+        }
+    } else {
+        Alert.alert(title, message, [
+        { text: 'Cancel', onPress: onCancel, style: 'cancel' },
+        { text: 'OK', onPress: onConfirm }
+        ]);
+    }
+};
+
 const UserCreateAppointment = ({ navigation }) => {
     const [userEmail, setUserEmail] = useState('');
     const [specialisations, setSpecialisations] = useState([]);
@@ -75,7 +90,7 @@ const UserCreateAppointment = ({ navigation }) => {
                 setExistingAppointments(fetchedAppointments);
             }
         } catch (error) {
-            Alert.alert('Error', 'Failed to fetch existing appointments');
+            showAlert('Error', 'Failed to fetch existing appointments');
         }
     }, []);
 
@@ -86,7 +101,7 @@ const UserCreateAppointment = ({ navigation }) => {
             });
             setBookedAppointments(response.data);
         } catch (error) {
-            Alert.alert('Error', 'Failed to fetch booked appointments');
+            showAlert('Error', 'Failed to fetch booked appointments');
         }
     }, []);
 
@@ -287,7 +302,7 @@ const UserCreateAppointment = ({ navigation }) => {
             });
 
             if (response.status === 200) {
-                Alert.alert('Success', 'Appointment booked successfully');
+                showAlert('Success', 'Appointment booked successfully');
                 setShowAppointmentSelection(false);
                 setSelectedDate('');
                 setSelectedTime(null);
@@ -299,12 +314,19 @@ const UserCreateAppointment = ({ navigation }) => {
                 fetchExistingAppointments(selectedSpecialist.email, currentMonth);
                 fetchBookedAppointments(selectedSpecialist.email, currentMonth);
             } else {
-                Alert.alert('Error', 'Failed to book appointment');
+                showAlert('Error', 'Failed to book appointment');
             }}
         } catch (error) {
-            Alert.alert('Error', 'Failed to book appointment');
+            showAlert('Error', 'Failed to book appointment');
         }
     };
+
+    const handleInputHeightChange = useCallback((height) => {
+        setInputHeight(prevState => ({
+            ...prevState,
+            description: height
+        }));
+    }, []);
 
     return(
     <Keyboard>
@@ -409,7 +431,7 @@ const UserCreateAppointment = ({ navigation }) => {
                                 value={userComments}
                                 onChangeText={setUserComments}
                                 multiline
-                                onContentSizeChange={(e) => setInputHeight(e.nativeEvent.contentSize.height)}/>
+                                onContentSizeChange={(contentSize) => handleInputHeightChange(contentSize.height)}/>
 
                             <Pressable style={[styles.button, { alignSelf: 'center' }]} onPress={handleBooking}>
                                 <Text style={styles.text}> Book Appointment </Text>

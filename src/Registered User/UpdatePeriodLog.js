@@ -43,6 +43,21 @@ const symptomsList = [
   'Sleep Disturbance'
 ];
 
+const showAlert = (title, message, onConfirm = () => {}, onCancel = () => {}) => {
+  if (Platform.OS === 'web') {
+    if (window.confirm(`${title}\n${message}`)) {
+      onConfirm();
+    } else {
+      onCancel();
+    }
+  } else {
+    Alert.alert(title, message, [
+      { text: 'Cancel', onPress: onCancel, style: 'cancel' },
+      { text: 'OK', onPress: onConfirm }
+    ]);
+  }
+};
+
 const UpdatePeriodLog = ({ navigation, route }) => {
   const { record } = route.params;
   const { weekDays, weekDates, currentDay } = getWeek(formatDate(record.date));
@@ -110,7 +125,7 @@ const UpdatePeriodLog = ({ navigation, route }) => {
       try {
         const storedEmail = await AsyncStorage.getItem('user');
         if (!storedEmail) {
-          Alert.alert('Error', 'User email not found');
+          showAlert('Error', 'User email not found');
           return;
         }
 
@@ -129,16 +144,14 @@ const UpdatePeriodLog = ({ navigation, route }) => {
         const response = await axios.put(`${url}/updatePeriodLog`, periodLogData);
 
         if (response.status === 200) {
-          Alert.alert('Success', 'Period Log successfully updated!', [{
-            text: 'OK', onPress: () => {
-              navigation.goBack(); 
-            }
-          }], { cancelable: false });
+          showAlert('Success', 'Period Log successfully updated!', () => {
+            navigation.goBack(); 
+          });
         } else {
-          Alert.alert('Error', 'Failed to update Period Log');
+          showAlert('Error', 'Failed to update Period Log');
         }
       } catch (error) {
-        Alert.alert('Error', 'Failed to update Period Log');
+        showAlert('Error', 'Failed to update Period Log');
       }
     };
   }

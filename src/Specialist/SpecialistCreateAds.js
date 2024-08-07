@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, Pressable, ScrollView, TextInput, Platform, Alert, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Entypo, Ionicons } from '@expo/vector-icons';
@@ -12,6 +12,14 @@ import RNPickerSelect from 'react-native-picker-select';
 
 // import own code
 import styles from '../components/styles';
+
+const showAlert = (title, message, onPress) => {
+    if (Platform.OS === 'web') {
+        window.alert(`${title}\n${message}`);
+    } else {
+        Alert.alert(title, message, [{ text: 'OK', onPress }], { cancelable: false });
+    }
+};
 
 const SpecialistCreateAds = ({ navigation }) => {
     const [title, setTitle] = useState('');
@@ -129,22 +137,14 @@ const SpecialistCreateAds = ({ navigation }) => {
                 const response = await axios.post(`${url}/specialistCreateAd`, specialistAd);
 
                 // Alert success and navigate back
-                Alert.alert('Success', 'Ad successfully created!',
-                    [{
-                        text: 'OK', onPress: async () => {
-                            navigation.goBack();
-                        }
-                    }],
-                    { cancelable: false }
-                );
+                showAlert('Success', 'Ad successfully created!', () => {
+                    navigation.goBack();
+                });
             } catch (error) {
                 console.error('Ad error:', error.message);
 
                 // Alert failure
-                Alert.alert('Failure', 'Ad was not created!',
-                    [{ text: 'OK' }],
-                    { cancelable: false }
-                );
+                showAlert('Failure', 'Ad was not created!');
             }
         }
     }; 
@@ -164,7 +164,7 @@ const SpecialistCreateAds = ({ navigation }) => {
             } 
         } catch (error) {
             console.error('Error picking image:', error);
-            Alert.alert('Error', 'Failed to pick an image.');
+            showAlert('Error', 'Failed to pick an image.');
         }
     };
 
@@ -183,16 +183,23 @@ const SpecialistCreateAds = ({ navigation }) => {
                 } 
             } catch (error) {
                 console.error('Error taking photo:', error);
-                Alert.alert('Error', 'Failed to take a photo.');
+                showAlert('Error', 'Failed to take a photo.');
             }
         } else {
-            Alert.alert('Permission denied', 'Camera permissions are required to take a photo.');
+            showAlert('Permission denied', 'Camera permissions are required to take a photo.');
         }
     };
 
     const removeImage = () => {
         setImageUri(null);
     };
+
+    const handleInputHeightChange = useCallback((height) => {
+        setDescriptionHeight(prevState => ({
+            ...prevState,
+            description: height
+        }));
+    }, []);
 
     return (
     <Keyboard>
@@ -237,7 +244,7 @@ const SpecialistCreateAds = ({ navigation }) => {
                     value={description}
                     onChangeText={setDescription}
                     multiline
-                    onContentSizeChange={(e) => setDescriptionHeight(e.nativeEvent.contentSize.height)}
+                    onContentSizeChange={(contentSize) => handleInputHeightChange(contentSize.height)}
                 />
             </View>
 

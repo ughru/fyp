@@ -23,6 +23,14 @@ const Login = () => {
     setPassword('');
   }); 
 
+  const showAlert = (title, message) => {
+    if (Platform.OS === 'web') {
+      window.alert(`${title}\n${message}`);
+    } else {
+      Alert.alert(title, message);
+    }
+  };
+
   const handleLogin = async () => {
     let valid = true;
 
@@ -58,9 +66,9 @@ const Login = () => {
             setError1('* Invalid email or password');
             setError2('* Invalid email or password');
           } else if (response.data.error === 'Suspended account' && response.data.type === 'user') {
-            Alert.alert('Account Suspended', 'Please contact support for assistance.');
+            showAlert('Account Suspended', 'Please contact support for assistance.');
           } else if (response.data.error === 'Suspended account' && response.data.type === 'specialist') {
-            Alert.alert('Not Verified Account', 'Account to be verified within 1 day. Please contact support for assistance.');
+            showAlert('Not Verified Account', 'Account to be verified within 1 day. Please contact support for assistance.');
           } else {
             console.error('Login Error:', response.data.error);
           }
@@ -85,7 +93,7 @@ const Login = () => {
       }
     } catch (error) {
       console.error('Login Error:', error);
-      Alert.alert('Login Error', 'An error has occurred. Please try again.');
+      showAlert('Login Error', 'An error has occurred. Please try again.');
     }
   };
 

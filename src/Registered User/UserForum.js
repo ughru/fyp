@@ -35,6 +35,14 @@ const formatDate = (dateString) => {
     }
 };
 
+const showAlert = (title, message) => {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}\n${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
+};
+
 const UserForum = ({ navigation }) => {
   const [forumPosts, setForumPosts] = useState([]);
   const [visibleComments, setVisibleComments] = useState({});
@@ -149,13 +157,13 @@ const UserForum = ({ navigation }) => {
 
   const deletePost = async (postID) => {
     try {
-        await axios.delete(`${url}/deletePost`, { params: { postID } });
-        alert('Success', 'Post deleted successfully');
-        fetchData();
-        setDropdownVisible(false);
+      await axios.delete(`${url}/deletePost`, { params: { postID } });
+      showAlert('Success', 'Post deleted successfully');
+      fetchData();
+      setDropdownVisible(false);
     } catch (error) {
-        alert('Error', 'Failed to delete post');
-        console.error('Error deleting post:', error);
+      showAlert('Error', 'Failed to delete post');
+      console.error('Error deleting post:', error);
     }
   };
   
@@ -214,7 +222,7 @@ const UserForum = ({ navigation }) => {
       const response = await axios.delete(`${url}/deleteComment`, { params: { postID, commentID } });
 
       if (response.data.status === 'ok') {
-        Alert.alert('Success', 'Comment deleted successfully');
+        showAlert('Success', 'Comment deleted successfully');
         // Remove the deleted comment from visibleComments state
         setVisibleComments(prevState => ({
           ...prevState,
@@ -229,11 +237,11 @@ const UserForum = ({ navigation }) => {
         setCommentDropdownVisible(false);
       } else {
         console.error('Failed to delete comment:', response.data.error);
-        Alert.alert('Error', 'Failed to delete comment');
+        showAlert('Error', 'Failed to delete comment');
       }
     } catch (error) {
       console.error('Error deleting comment:', error);
-      Alert.alert('Error', 'Failed to delete comment');
+      showAlert('Error', 'Failed to delete comment');
     }
   };
 
@@ -296,11 +304,11 @@ const UserForum = ({ navigation }) => {
         }))
       } else {
         console.error('Failed to add comment:', response.data.error);
-        Alert.alert('Error', 'Failed to add comment');
+        showAlert('Error', 'Failed to add comment');
       }
     } catch (error) {
       console.error('Error adding comment:', error);
-      Alert.alert('Error', 'Failed to add comment');
+      showAlert('Error', 'Failed to add comment');
     }
   };
 

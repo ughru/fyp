@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, ScrollView, Alert, TextInput } from 'react-native';
+import { View, Text, Pressable, ScrollView, Alert, TextInput, Platform } from 'react-native';
 import { Entypo } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -8,6 +8,21 @@ import url from '../components/config';
 
 // import own code
 import styles from '../components/styles';
+
+const showAlert = (title, message, onConfirm = () => {}, onCancel = () => {}) => {
+    if (Platform.OS === 'web') {
+      if (window.confirm(`${title}\n${message}`)) {
+        onConfirm();
+      } else {
+        onCancel();
+      }
+    } else {
+      Alert.alert(title, message, [
+        { text: 'Cancel', onPress: onCancel, style: 'cancel' },
+        { text: 'OK', onPress: onConfirm }
+      ]);
+    }
+  };
 
 const CreateWeightLog = ({ navigation }) => {
     const [height, setHeight] = useState('');
@@ -75,7 +90,7 @@ const CreateWeightLog = ({ navigation }) => {
             try {
                 const storedEmail = await AsyncStorage.getItem('user');
                 if (!storedEmail) {
-                    Alert.alert('Error', 'User email not found');
+                    showAlert('Error', 'User email not found');
                     return;
                 }
     
@@ -95,14 +110,14 @@ const CreateWeightLog = ({ navigation }) => {
                 const response = await axios.post(`${url}/weightLog`, weightLog);
     
                 if (response.status === 201) {
-                    Alert.alert('Success', 'Weight Log successfully created!', [{
-                        text: 'OK', onPress: () => navigation.goBack()
-                    }]);
+                    showAlert('Success', 'Weight Log successfully created!', () => {
+                        navigation.goBack(); 
+                    });
                 } else {
-                    Alert.alert('Failure', 'Weight Log was not created.');
+                    showAlert('Failure', 'Weight Log was not created.');
                 }
             } catch (error) {
-                Alert.alert('Failure', 'Weight Log for today already exist.');
+                showAlert('Failure', 'Weight Log for today already exist.');
             }
         }
     };

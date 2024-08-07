@@ -34,6 +34,16 @@ const SpecialistResource = ({ navigation }) => {
     email: ''
   });
 
+  const showAlert = (title, message, onPress) => {
+    if (Platform.OS === 'web') {
+        // Web-specific alert
+        window.alert(`${title}\n${message}`);
+    } else {
+        // Native alert
+        Alert.alert(title, message, [{ text: 'OK', onPress }], { cancelable: false });
+    }
+  };
+
   const fetchData = useCallback(async () => {
     try {
         const storedEmail = await AsyncStorage.getItem('user');
@@ -97,11 +107,11 @@ const SpecialistResource = ({ navigation }) => {
       await storageRef.delete();
       }
 
-      Alert.alert('Success', 'Resource deleted successfully');
+      showAlert('Success', 'Resource deleted successfully');
       fetchData();
       setDropdownVisible(false);
     } catch (error) {
-      Alert.alert('Error', 'Failed to delete resource');
+      showAlert('Error', 'Failed to delete resource');
       console.error('Error deleting resource:', error);
     }
   };
@@ -155,11 +165,7 @@ const SpecialistResource = ({ navigation }) => {
     try {
       await axios.post(`${url}/addCategory`, { categoryName: newCategory });
 
-      Alert.alert(
-        'Category Added',
-        'Category has been successfully added!',
-        [{ text: 'OK', onPress: () => closeModal() }]
-      );
+      showAlert('Category Added', 'Category has been successfully added!', closeModal);
     } catch (error) {
       console.error('Error adding category:', error);
     }

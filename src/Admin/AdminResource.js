@@ -10,6 +10,21 @@ import { storage } from '../../firebaseConfig';
 
 const { width: screenWidth } = Dimensions.get('window');
 
+const showAlert = (title, message, onConfirm = () => {}, onCancel = () => {}) => {
+  if (Platform.OS === 'web') {
+    if (window.confirm(`${title}\n${message}`)) {
+      onConfirm();
+    } else {
+      onCancel();
+    }
+  } else {
+    Alert.alert(title, message, [
+      { text: 'Cancel', onPress: onCancel, style: 'cancel' },
+      { text: 'OK', onPress: onConfirm }
+    ]);
+  }
+};
+
 const AdminResource = ({ navigation }) => {
   const [search, setSearch] = useState('');
   const [categories, setCategories] = useState([]);
@@ -133,10 +148,10 @@ const AdminResource = ({ navigation }) => {
       try {
         await axios.post(`${url}/addCategory`, { categoryName: newCategory });
   
-        Alert.alert(
+        showAlert(
           'Category Added',
           'Category has been successfully added!',
-          [{ text: 'OK', onPress: () => closeModal() }]
+          () => closeModal()
         );
         fetchData();
       } catch (error) {
@@ -184,10 +199,10 @@ const AdminResource = ({ navigation }) => {
   
         // Check response status and handle accordingly
         if (response.status === 200) {
-          Alert.alert(
+          showAlert(
             'Category Updated',
             'Category has been successfully updated!',
-            [{ text: 'OK', onPress: () => closeModal3() }]
+            () => closeModal3()
           );
   
           // Fetch updated data after successful update
@@ -221,28 +236,29 @@ const AdminResource = ({ navigation }) => {
 
   // delete category function
   const handleDeleteCategory = async (categoryName) => {
-    Alert.alert(
+    // Show confirmation dialog
+    showAlert(
       'Confirm Delete',
       `Are you sure you want to delete the category "${categoryName}"?`,
-      [
-        {
-          text: 'Cancel',
-        },
-        {
-          text: 'Delete',
-          onPress: async () => {
-            try {
-              await axios.delete(`${url}/deleteCategory`, { data: { categoryName } });
-              setCategories(categories.filter(category => category.categoryName !== categoryName));
-              Alert.alert('Success', 'Category deleted successfully');
-            } catch (error) {
-              console.error('Error deleting category:', error);
-            }
-          },
-          style: 'destructive'
+      async () => {
+        try {
+          // Proceed with category deletion
+          await axios.delete(`${url}/deleteCategory`, { data: { categoryName } });
+          
+          // Update state to remove the deleted category
+          setCategories(categories.filter(category => category.categoryName !== categoryName));
+          
+          // Show success message
+          showAlert('Success', 'Category deleted successfully');
+        } catch (error) {
+          console.error('Error deleting category:', error);
+          // Show error message
+          showAlert('Error', 'Failed to delete category.');
         }
-      ],
-      { cancelable: true }
+      },
+      () => {
+        // No action needed for cancel, this is just to satisfy the onCancel parameter
+      }
     );
   };
 

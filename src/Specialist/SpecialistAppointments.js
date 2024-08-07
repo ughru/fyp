@@ -23,6 +23,16 @@ const SpecialistAppointments = ({navigation}) => {
   const [noteInput, setNoteInput] = useState('');
   const [inputHeight, setInputHeight] = useState(30);
 
+  const showAlert = (title, message) => {
+    if (Platform.OS === 'web') {
+      // For web platform
+      window.alert(`${title}\n${message}`);
+    } else {
+      // For mobile platforms
+      Alert.alert(title, message, [{ text: 'OK' }]);
+    }
+  };
+  
   const fetchAppointments = useCallback(async () => {
     try {
       if (!userEmail) return; // Early return if userEmail is not set
@@ -186,7 +196,7 @@ const SpecialistAppointments = ({navigation}) => {
         });
   
         if (response.status === 200) {
-          Alert.alert('Appointment updated successfully.');
+          showAlert('Success', 'Appointment updated successfully.');
           setUpdateModalVisible(false);
   
           // Update state to reflect cancellation
@@ -203,13 +213,20 @@ const SpecialistAppointments = ({navigation}) => {
 
           fetchAppointments();
         } else {
-          Alert.alert('Failed to update appointment.');
+          showAlert('Error', 'Failed to update appointment.');
         }
       }
     } catch (error) {
-      Alert.alert('An error occurred while updating the appointment.');
+      showAlert('Error', 'An error occurred while updating the appointment.');
     }
   };  
+
+  const handleInputHeightChange = useCallback((height) => {
+    setInputHeight(prevState => ({
+        ...prevState,
+        description: height
+    }));
+  }, []);
 
   // Page Displays
   return (
@@ -378,7 +395,7 @@ const SpecialistAppointments = ({navigation}) => {
                   value={noteInput}
                   onChangeText={setNoteInput}
                   multiline
-                  onContentSizeChange={(e) => setInputHeight(e.nativeEvent.contentSize.height)}/>
+                  onContentSizeChange={(contentSize) => handleInputHeightChange(contentSize.height)}/>
                 <TouchableOpacity style={[styles.button, {borderWidth: 1, borderColor: 'black'}]} onPress={handleNoteSubmit}>
                   <Text style={styles.text}>Submit</Text>
                 </TouchableOpacity>

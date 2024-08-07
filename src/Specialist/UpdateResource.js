@@ -14,6 +14,16 @@ import {storage} from '../../firebaseConfig';
 // Import styles
 import styles from '../components/styles';
 
+const showAlert = (title, message, onPress) => {
+    if (Platform.OS === 'web') {
+        window.alert(`${title}\n${message}`);
+    } else {
+        Alert.alert(title, message, [{ text: 'OK', onPress }], {
+            cancelable: false
+        });
+    }
+};
+
 const UpdateResource = ({ navigation, route }) => {
     // Values
     const { resourceID} = route.params;
@@ -200,15 +210,17 @@ const UpdateResource = ({ navigation, route }) => {
     
                 await axios.put(`${url}/updateresource`, resourceData);
     
+                const title = 'Success';
+                const message = 'Resource successfully updated!';
                 // Alert success and navigate back
-                Alert.alert('Success', 'Resource successfully updated!', [{ text: 'OK', onPress: () => navigation.goBack() }], {
-                    cancelable: false
-                });
+                showAlert('Success', 'Resource successfully updated!', () => navigation.goBack());
             } catch (error) {
                 console.error('Resource update error:', error);
+                const title = 'Failure';
+                const message = 'Resource was not updated!';
     
                 // Alert failure
-                Alert.alert('Failure', 'Resource was not updated!', [{ text: 'OK' }], { cancelable: false });
+                showAlert('Failure', 'Resource was not updated!', () => navigation.goBack());
             }
         }
     };
@@ -249,7 +261,7 @@ const UpdateResource = ({ navigation, route }) => {
                 console.error('Error taking photo:', error);
             }
         } else {
-            Alert.alert('Permission denied', 'Camera permissions are required to take a photo.');
+            showAlert('Permission denied', 'Camera permissions are required to take a photo.');
         }
     };    
 

@@ -11,6 +11,14 @@ import moment from 'moment';
 
 const { width: screenWidth } = Dimensions.get('window');
 
+const showAlert = (title, message) => {
+  if (Platform.OS === 'web') {
+      window.alert(`${message}`);
+  } else {
+      Alert.alert(message);
+  }
+};
+
 const UserAppointments = ({ navigation }) => {
   const [userEmail, setUserEmail] = useState('');
   const [imageUrl, setImageUrls] = useState(null);
@@ -192,7 +200,7 @@ const UserAppointments = ({ navigation }) => {
         });
   
         if (response.status === 200) {
-          Alert.alert('Appointment cancelled successfully.');
+          showAlert('Appointment cancelled successfully.');
     
           // Update state to reflect cancellation
           setAppointments(prevAppointments =>
@@ -207,11 +215,11 @@ const UserAppointments = ({ navigation }) => {
           );
           setModalVisible(false);
         } else {
-          Alert.alert('Failed to cancel appointment.');
+          showAlert('Failed to cancel appointment.');
         }
       }
     } catch (error) {
-      Alert.alert('An error occurred while cancelling the appointment.');
+      showAlert('An error occurred while cancelling the appointment.');
     }
   };  
   

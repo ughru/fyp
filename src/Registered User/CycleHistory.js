@@ -21,11 +21,19 @@ const CycleHistory = ({ navigation, route }) => {
   const [ovulationDates, setOvulationDates] = useState([]);
   const [selectedDate, setSelectedDate] = useState(route.params?.date || new Date().toISOString().split('T')[0]);
 
+  const showAlert = (title, message) => {
+    if (Platform.OS === 'web') {
+        window.alert(`${title}\n${message}`);
+    } else {
+        Alert.alert(title, message);
+    }
+  };
+
   const fetchData = useCallback(async () => {
     try {
       const storedEmail = await AsyncStorage.getItem('user');
       if (!storedEmail) {
-        Alert.alert('Error', 'User email not found');
+        showAlert('Error', 'User email not found');
         return;
       }
 

@@ -33,6 +33,16 @@ const formatDate = (dateString) => {
     }
 };
 
+const showAlert = (title, message, onPress) => {
+  if (Platform.OS === 'web') {
+      // Web-specific alert
+      window.alert(`${title}\n${message}`);
+  } else {
+      // Native alert
+      Alert.alert(title, message, [{ text: 'OK', onPress }], { cancelable: false });
+  }
+};
+
 const SpecialistForum = ({ navigation }) => {
   const [forumPosts, setForumPosts] = useState([]);
   const [visibleComments, setVisibleComments] = useState({});
@@ -124,13 +134,13 @@ const SpecialistForum = ({ navigation }) => {
 
   const deletePost = async (postID) => {
       try {
-          await axios.delete(`${url}/deletePost`, { params: { postID } });
-          Alert.alert('Success', 'Post deleted successfully');
-          fetchData();
-          setDropdownVisible(false);
+        await axios.delete(`${url}/deletePost`, { params: { postID } });
+        showAlert('Success', 'Post deleted successfully');
+        fetchData();
+        setDropdownVisible(false);
       } catch (error) {
-          Alert.alert('Error', 'Failed to delete post');
-          console.error('Error deleting post:', error);
+        showAlert('Error', 'Failed to delete post');
+        console.error('Error deleting post:', error);
       }
   };
 
@@ -140,18 +150,14 @@ const SpecialistForum = ({ navigation }) => {
           navigation.navigate('SpecialistUpdatePost', { postID: selectedPost.postID });
       } else if (action === 'delete') {
           if (Platform.OS === 'web') {
-              if (window.confirm('Are you sure you want to delete this post?')) {
-                  deletePost(selectedPost.postID);
-              }
+            if (window.confirm('Are you sure you want to delete this post?')) {
+                deletePost(selectedPost.postID);
+            }
           } else {
-              Alert.alert(
+              showAlert(
                   'Deletion of Post',
                   'Are you sure you want to delete this post?',
-                  [
-                      { text: 'Cancel' },
-                      { text: 'Delete', onPress: () => deletePost(selectedPost.postID) }
-                  ],
-                  { cancelable: false }
+                  () => deletePost(selectedPost.postID)
               );
           }
       } 
@@ -189,7 +195,7 @@ const SpecialistForum = ({ navigation }) => {
       const response = await axios.delete(`${url}/deleteComment`, { params: { postID, commentID } });
 
       if (response.data.status === 'ok') {
-        Alert.alert('Success', 'Comment deleted successfully');
+        showAlert('Success', 'Comment deleted successfully');
         // Remove the deleted comment from visibleComments state
         setVisibleComments(prevState => ({
           ...prevState,
@@ -204,11 +210,11 @@ const SpecialistForum = ({ navigation }) => {
         }));
       } else {
         console.error('Failed to delete comment:', response.data.error);
-        Alert.alert('Error', 'Failed to delete comment');
+        showAlert('Error', 'Failed to delete comment');
       }
     } catch (error) {
       console.error('Error deleting comment:', error);
-      Alert.alert('Error', 'Failed to delete comment');
+      showAlert('Error', 'Failed to delete comment');
     }
   };
 
@@ -267,11 +273,11 @@ const SpecialistForum = ({ navigation }) => {
         }))
       } else {
         console.error('Failed to add comment:', response.data.error);
-        Alert.alert('Error', 'Failed to add comment');
+        showAlert('Error', 'Failed to add comment');
       }
     } catch (error) {
       console.error('Error adding comment:', error);
-      Alert.alert('Error', 'Failed to add comment');
+      showAlert('Error', 'Failed to add comment');
     }
   };
 

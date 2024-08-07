@@ -10,6 +10,21 @@ import url from '../components/config';
 // import own code
 import styles from '../components/styles';
 
+const showAlert = (title, message, onConfirm = () => {}, onCancel = () => {}) => {
+    if (Platform.OS === 'web') {
+      if (window.confirm(`${title}\n${message}`)) {
+        onConfirm();
+      } else {
+        onCancel();
+      }
+    } else {
+      Alert.alert(title, message, [
+        { text: 'Cancel', onPress: onCancel, style: 'cancel' },
+        { text: 'OK', onPress: onConfirm }
+      ]);
+    }
+  };
+
 const UserCreatePost = ({ navigation }) => {
     // values
     const [description, setDescription] = useState('');
@@ -68,22 +83,12 @@ const UserCreatePost = ({ navigation }) => {
                 await axios.post(`${url}/createForumPost`, postData);
 
                 // Alert success and navigate back
-                Alert.alert('Success', 'Post successfully created!',
-                    [{
-                        text: 'OK', onPress: async () => {
-                            navigation.goBack();
-                        }
-                    }],
-                    { cancelable: false }
+                showAlert('Success', 'Post successfully created!', () => {navigation.goBack();}
                 );
             } catch (error) {
                 console.error('Post error:', error.message);
 
-                // Alert failure
-                Alert.alert('Failure', 'Post was not created!',
-                    [{ text: 'OK' }],
-                    { cancelable: false }
-                );
+                showAlert('Failure', 'Post was not created!');
             }
         }
     };

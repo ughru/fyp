@@ -10,6 +10,14 @@ import url from '../components/config';
 // import own code
 import styles from '../components/styles';
 
+const showAlert = (title, message, onPress) => {
+    if (Platform.OS === 'web') {
+        window.alert(`${title}\n${message}`);
+    } else {
+        Alert.alert(title, message, [{ text: 'OK', onPress }], { cancelable: false });
+    }
+};
+
 const SpecialistCreatePost = ({ navigation }) => {
     // values
     const [description, setDescription] = useState('');
@@ -56,22 +64,14 @@ const SpecialistCreatePost = ({ navigation }) => {
                 await axios.post(`${url}/createForumPost`, postData);
 
                 // Alert success and navigate back
-                Alert.alert('Success', 'Post successfully created!',
-                    [{
-                        text: 'OK', onPress: async () => {
-                            navigation.goBack();
-                        }
-                    }],
-                    { cancelable: false }
-                );
+                showAlert('Success', 'Post successfully created!', () => {
+                    navigation.goBack();
+                });
             } catch (error) {
                 console.error('Post error:', error.message);
 
                 // Alert failure
-                Alert.alert('Failure', 'Post was not created!',
-                    [{ text: 'OK' }],
-                    { cancelable: false }
-                );
+                showAlert('Failure', 'Post was not created!');
             }
         }
     };

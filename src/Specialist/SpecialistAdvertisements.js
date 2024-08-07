@@ -16,8 +16,18 @@ const SpecialistAdvertisements = ({navigation}) => {
   const [imageUrl, setImageUrl] = useState(null);
   const [specialistInfo, setSpecialistInfo] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
-const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState([]);
 
+  const showAlert = (title, message) => {
+    if (Platform.OS === 'web') {
+      // For web platform
+      window.alert(`${title}\n${message}`);
+    } else {
+      // For mobile platforms
+      Alert.alert(title, message, [{ text: 'OK' }]);
+    }
+  };
+  
   const fetchSpecialistAds = async () => {
     try {
       const response = await axios.get(`${url}/getSpecialistAds`);
@@ -33,7 +43,7 @@ const [categories, setCategories] = useState([]);
         );
         setSpecialistAds(adsWithSpecialistInfo);
       } else {
-        Alert.alert('Error', 'No ads found');
+        showAlert('Error', 'No ads found');
       }
     } catch (error) {
       console.error('Error fetching specialist ads:', error);
@@ -70,7 +80,7 @@ const [categories, setCategories] = useState([]);
         if (response.data) {
           setCategories(response.data);
         } else {
-          Alert.alert('Error', 'No categories found');
+          showAlert('Error', 'No categories found');
         }
       } catch (error) {
         console.error('Error fetching categories:', error);
@@ -88,44 +98,59 @@ const [categories, setCategories] = useState([]);
   );
 
   const handleDeleteAd = async (adId, imageUrl) => {
-    // Confirm deletion with user
-    Alert.alert(
-      'Confirm Delete',
-      'Are you sure you want to delete this ad?',
-      [
-        {
-          text: 'Cancel',
-        },
-        {
-          text: 'Delete',
-          onPress: async () => {
-            try {
-              // Delete the ad from the server
-              const response = await axios.delete(`${url}/deleteSpecialistAd?adID=${adId}`);
+    const confirmDelete = Platform.OS === 'web'
+      ? window.confirm('Are you sure you want to delete this ad?')
+      : Alert.alert('Confirm Delete', 'Are you sure you want to delete this ad?', [
+          { text: 'Cancel' },
+          { text: 'Delete', onPress: async () => deleteAd() },
+        ]);
+
+    if (confirmDelete) {
+      const deleteAd = async () => {
+        try {
+          // Delete the ad from the server
+          const response = await axios.delete(`${url}/deleteSpecialistAd?adID=${adId}`);
           
-              if (response.data.status === 'ok') {
-                // Delete associated image from Firebase Storage if imageUrl exists
-                if (imageUrl) {
-                  const storageRef = storage.refFromURL(imageUrl);
-                  await storageRef.delete();
-                }
-                
-                Alert.alert('Success', 'Ad deleted successfully', [
-                  { text: 'OK', onPress: () => fetchSpecialistAds() } // Refresh list 
-                ]);
-              } else {
-                Alert.alert('Error', 'Failed to delete ad');
-              }
-            } catch (error) {
-              // Handle errors appropriately
-              console.error('Error deleting ad:', error);
-              Alert.alert('Error', 'Failed to delete ad');
+          if (response.data.status === 'ok') {
+            // Delete associated image from Firebase Storage if imageUrl exists
+            if (imageUrl) {
+              const storageRef = storage.refFromURL(imageUrl);
+              await storageRef.delete();
+            }
+            
+            const successMessage = Platform.OS === 'web'
+              ? 'Ad deleted successfully'
+              : 'Success';
+            const errorMessage = Platform.OS === 'web'
+              ? 'Failed to delete ad'
+              : 'Error';
+            
+            window.alert(successMessage) // Use platform-specific alert
+              .then(() => fetchSpecialistAds()); // Refresh list on web
+            
+            if (Platform.OS !== 'web') {
+              Alert.alert(successMessage, '', [{ text: 'OK', onPress: () => fetchSpecialistAds() }]); // Refresh list on mobile
+            }
+          } else {
+            window.alert(errorMessage);
+            if (Platform.OS !== 'web') {
+              Alert.alert(errorMessage);
             }
           }
+        } catch (error) {
+          console.error('Error deleting ad:', error);
+          const errorMessage = Platform.OS === 'web'
+            ? 'Failed to delete ad'
+            : 'Error';
+          
+          window.alert(errorMessage);
+          if (Platform.OS !== 'web') {
+            Alert.alert(errorMessage);
+          }
         }
-      ]
-    );
-  };  
+      };
+    }
+  };
 
   const renderSpecialistAds = () => {
     // Filter ads based on the selected category

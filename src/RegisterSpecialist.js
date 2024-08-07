@@ -38,11 +38,13 @@ const RegisterSpecialist = ({ navigation }) => {
   const fetchSpecialisations = useCallback(async () => {
     try {
       const response = await axios.get(`${url}/specialisations`);
-      setSpecialisations(response.data);
+      // Sort specialisations alphabetically by name
+      const sortedSpecialisations = response.data.sort((a, b) => a.specialisationName.localeCompare(b.specialisationName));
+      setSpecialisations(sortedSpecialisations);
     } catch (error) {
       console.error('Error fetching specialisations:', error);
     }
-  }, []);
+  }, []);  
 
   useEffect(() => {
     fetchSpecialisations();

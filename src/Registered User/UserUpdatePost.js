@@ -10,6 +10,17 @@ import url from '../components/config';
 // import own code
 import styles from '../components/styles';
 
+const showAlert = (title, message, onPress) => {
+    if (Platform.OS === 'web') {
+        // For web platform
+        window.alert(`${title}\n${message}`);
+        if (onPress) onPress();  // Execute the onPress callback for web
+    } else {
+        // For mobile platforms
+        Alert.alert(title, message, [{ text: 'OK', onPress }], { cancelable: false });
+    }
+};
+
 const UserUpdatePost = ({ navigation, route }) => {
     // values
     const { postID } = route.params;
@@ -92,22 +103,13 @@ const UserUpdatePost = ({ navigation, route }) => {
                 await axios.put(`${url}/updatePost`, postData);
     
                 // Alert success and navigate back
-                Alert.alert('Success', 'Post successfully updated!',
-                    [{
-                        text: 'OK', onPress: async () => {
-                            navigation.goBack();
-                        }
-                    }],
-                    { cancelable: false }
-                );
+                showAlert('Success', 'Post successfully updated!', () => {
+                    navigation.goBack();
+                });
             } catch (error) {
                 console.error('Post update error:', error.message);
-    
-                // Alert failure
-                Alert.alert('Failure', 'Post was not updated!',
-                    [{ text: 'OK' }],
-                    { cancelable: false }
-                );
+
+                showAlert('Failure', 'Post was not updated!');
             }
         }
     };    

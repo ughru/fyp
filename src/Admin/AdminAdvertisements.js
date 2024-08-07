@@ -8,6 +8,30 @@ import axios from 'axios';
 import url from '../components/config';
 import {storage} from '../../firebaseConfig';
 
+const showAlert = (title, message, onPress) => {
+  if (Platform.OS === 'web') {
+    // For web, using window.confirm to simulate the alert with a button
+    if (window.confirm(`${title}\n${message}`)) {
+      if (onPress) onPress();
+    }
+  } else {
+    // For mobile, using Alert.alert with an onPress callback
+    Alert.alert(
+      title,
+      message,
+      [
+        {
+          text: 'OK',
+          onPress: () => {
+            if (onPress) onPress();
+          }
+        }
+      ],
+      { cancelable: false }
+    );
+  }
+};
+
 const AdminAdvertisements = ({navigation}) => {
   const [adminAds, setAdminAds] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -55,44 +79,34 @@ const AdminAdvertisements = ({navigation}) => {
   };
 
   const handleDeleteAd = async (adId, imageUrl) => {
-    // Confirm deletion with user
-    Alert.alert(
+    showAlert(
       'Confirm Delete',
       'Are you sure you want to delete this ad?',
-      [
-        {
-          text: 'Cancel',
-        },
-        {
-          text: 'Delete',
-          onPress: async () => {
-            try {
-              // Delete the ad from the server
-              const response = await axios.delete(`${url}/deleteAd?adID=${adId}`);
+      async () => {
+        try {
+          // Delete the ad from the server
+          const response = await axios.delete(`${url}/deleteAd`, { params: { adID: adId } });
           
-              if (response.data.status === 'ok') {
-                // Delete associated image from Firebase Storage if imageUrl exists
-                if (imageUrl) {
-                  const storageRef = storage.refFromURL(imageUrl);
-                  await storageRef.delete();
-                }
-                
-                Alert.alert('Success', 'Ad deleted successfully', [
-                  { text: 'OK', onPress: () => fetchAdminAds() } // Refresh list 
-                ]);
-              } else {
-                Alert.alert('Error', 'Failed to delete ad');
-              }
-            } catch (error) {
-              // Handle errors appropriately
-              console.error('Error deleting ad:', error);
-              Alert.alert('Error', 'Failed to delete ad');
+          if (response.data.status === 'ok') {
+            // Delete associated image from Firebase Storage if imageUrl exists
+            if (imageUrl) {
+              const storageRef = storage.refFromURL(imageUrl);
+              await storageRef.delete();
             }
+            
+            showAlert('Success', 'Ad deleted successfully', () => {
+              fetchAdminAds(); // Refresh list after deletion
+            });
+          } else {
+            showAlert('Error', 'Failed to delete ad');
           }
+        } catch (error) {
+          console.error('Error deleting ad:', error);
+          showAlert('Error', 'Failed to delete ad');
         }
-      ]
+      }
     );
-  };  
+  };
 
   const renderAdminAds = () => {
     const filteredAds = adminAds.filter(ad => ad.type === activeButton);

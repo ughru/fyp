@@ -14,6 +14,17 @@ import {storage} from '../../firebaseConfig';
 // import own code
 import styles from '../components/styles';
 
+const showAlert = (title, message, onPress) => {
+    if (Platform.OS === 'web') {
+      // For web platform
+      window.alert(`${title}\n${message}`);
+      if (onPress) onPress();  // Execute the onPress callback for web
+    } else {
+      // For mobile platforms
+      Alert.alert(title, message, [{ text: 'OK', onPress }], { cancelable: false });
+    }
+};  
+
 const CreateResource = ({ navigation }) => {
     // values
     const [title, setTitle] = useState('');
@@ -190,22 +201,14 @@ const CreateResource = ({ navigation }) => {
                 }
 
                 // Alert success and navigate back
-                Alert.alert('Success', 'Resource successfully created!',
-                    [{
-                        text: 'OK', onPress: async () => {
-                            navigation.goBack();
-                        }
-                    }],
-                    { cancelable: false }
-                );
+                showAlert('Success', 'Resource successfully created!', () => {
+                    navigation.goBack();
+                  });
             } catch (error) {
                 console.error('Resource error:', error.message);
 
                 // Alert failure
-                Alert.alert('Failure', 'Resource was not created!',
-                    [{ text: 'OK' }],
-                    { cancelable: false }
-                );
+                showAlert('Failure', 'Resource was not created!');
             }
         }
     };
@@ -225,7 +228,7 @@ const CreateResource = ({ navigation }) => {
             } 
         } catch (error) {
             console.error('Error picking image:', error);
-            Alert.alert('Error', 'Failed to pick an image.');
+            showAlert('Error', 'Failed to pick an image.');
         }
     };
 
@@ -244,10 +247,10 @@ const CreateResource = ({ navigation }) => {
                 } 
             } catch (error) {
                 console.error('Error taking photo:', error);
-                Alert.alert('Error', 'Failed to take a photo.');
+                showAlert('Error', 'Failed to take a photo.');
             }
         } else {
-            Alert.alert('Permission denied', 'Camera permissions are required to take a photo.');
+            showAlert('Permission denied', 'Camera permissions are required to take a photo.');
         }
     };
 

@@ -9,6 +9,21 @@ import styles from '../components/styles';
 import Keyboard from '../components/Keyboard'; 
 import url from "../components/config";
 
+const showAlert = (title, message, onConfirm = () => {}, onCancel = () => {}) => {
+    if (Platform.OS === 'web') {
+      if (window.confirm(`${title}\n${message}`)) {
+        onConfirm();
+      } else {
+        onCancel();
+      }
+    } else {
+      Alert.alert(title, message, [
+        { text: 'Cancel', onPress: onCancel, style: 'cancel' },
+        { text: 'OK', onPress: onConfirm }
+      ]);
+    }
+};
+
 const AdminEditProfile = ({ navigation }) => {
     // values
     const [userInfo, setUserInfo] = useState([]);
@@ -77,18 +92,11 @@ const AdminEditProfile = ({ navigation }) => {
                 if (storedEmail) {
                     const response = await axios.put(`${url}/editAdmin?email=${storedEmail}`, userInfo);
                     await AsyncStorage.setItem('user', userInfo.email);
-                    Alert.alert('Profile updated successfully', '',
-                        [{
-                            text: 'OK', onPress: async () => {
-                                navigation.goBack();
-                            }
-                        }],
-                        { cancelable: false }
-                    );
+                    showAlert('Profile updated successfully', '', () => {navigation.goBack();});
                 }
             } catch (error) {
                 console.error('Error updating profile:', error);
-                Alert.alert('Error updating profile');
+                showAlert('Error updating profile');
             }
         }
     };

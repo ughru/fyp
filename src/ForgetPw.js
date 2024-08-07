@@ -6,6 +6,14 @@ import axios from 'axios';
 import url from "./components/config";
 import { AntDesign } from '@expo/vector-icons';
 
+const showAlert = (title, message) => {
+    if (Platform.OS === 'web') {
+        window.alert(`${title}\n${message}`);
+    } else {
+        Alert.alert(title, message);
+    }
+};
+
 const ForgetPw = ({ navigation, route }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -53,9 +61,9 @@ const ForgetPw = ({ navigation, route }) => {
 
                 // Display successful update
                 navigation.goBack();
-                Alert.alert('Password Reset', 'Password has been reset successfully!');
+                showAlert('Password Reset', 'Password has been reset successfully!');
             } catch (error) {
-                Alert.alert('Reset Error', 'Unable to reset password.');
+                showAlert('Reset Error', 'Unable to reset password.');
             }
         }
     };
