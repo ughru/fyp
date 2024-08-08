@@ -78,7 +78,7 @@ const ViewSchedule = ({ navigation }) => {
         try {
             if (specialistInfo.email) {
                 const response = await axios.get(`${url}/bookedAppt2`, { params: { specialistEmail: specialistInfo.email } });
-                const filteredAppointments = response.data.filter(appointment => appointment.details.some(detail => detail.status === 'Upcoming'));
+                const filteredAppointments = response.data;
 
                 const userEmails = filteredAppointments.map(appointment => appointment.userEmail);
                 const responses = await Promise.all(

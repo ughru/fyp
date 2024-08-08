@@ -146,7 +146,7 @@ const RegisterSpecialist = ({ navigation }) => {
       }
 
       const phoneNoCheck = /^(8\d{3}\d{4}|9[0-8]\d{2}\d{4})$/;
-      if(!contact) {
+      if(!contact.trim()) {
         setError8('* Required field');
         valid = false;
       } else if (!phoneNoCheck.test(contact)) {

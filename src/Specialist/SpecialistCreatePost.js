@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, ScrollView, Alert } from 'react-native';
+import { View, Text, Pressable, ScrollView, Alert, Platform } from 'react-native';
 import { Entypo } from '@expo/vector-icons';
 import axios from 'axios';
 import { RichEditor } from 'react-native-pell-rich-editor';
@@ -9,6 +9,9 @@ import url from '../components/config';
 
 // import own code
 import styles from '../components/styles';
+
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const showAlert = (title, message, onPress) => {
     if (Platform.OS === 'web') {
@@ -99,12 +102,21 @@ const SpecialistCreatePost = ({ navigation }) => {
                             </View>
                         </View>
 
-                        <View style={[styles.container3, { marginBottom: 20 }]}>
+                        <View style={[styles.container3, { marginBottom: 50 }]}>
                         <Text style={[styles.text, { marginBottom: 20 }]}> Description {descriptionError ? <Text style={styles.error}>{descriptionError}</Text> : null} </Text>
+                        {Platform.OS === 'web' ? (
+                        <div>
+                            <ReactQuill value={description} onChange={(newDescription) => setDescription(newDescription)}/>
+                        </div>
+                        ) : (
+                        <>
                         <RichEditor
                             onChange={(newDescription) => setDescription(newDescription)}
                             initialContentHTML={description}
                         />
+                        </>
+                        )
+                        }
                     </View>
 
                     <View style={[styles.container3, { marginBottom: 20 }]}>

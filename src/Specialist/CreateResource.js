@@ -14,6 +14,9 @@ import {storage} from '../../firebaseConfig';
 // import own code
 import styles from '../components/styles';
 
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+
 const showAlert = (title, message, onPress) => {
     if (Platform.OS === 'web') {
       // For web platform
@@ -348,6 +351,12 @@ const CreateResource = ({ navigation }) => {
             {/* Description */}
             <View style={[styles.container4, { marginBottom: 20 }]}>
                 <Text style={[styles.text, { marginBottom: 20 }]}> Description {descriptionError ? <Text style={styles.error}>{descriptionError}</Text> : null} </Text>
+                {Platform.OS === 'web' ? (
+                <div>
+                    <ReactQuill value={description} onChange={(newDescription) => setDescription(newDescription)}/>
+                </div>
+                ) : (
+                <>
                 <RichToolbar
                     editor={editor} 
                     actions={[actions.setBold, actions.setItalic, actions.setUnderline, actions.insertBulletsList,
@@ -365,6 +374,9 @@ const CreateResource = ({ navigation }) => {
                     onChange={(newDescription) => setDescription(newDescription)}
                     initialContentHTML={description}
                 />
+                </>
+                )
+            }
             </View>
 
             {/* Image Upload */}

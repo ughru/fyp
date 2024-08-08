@@ -92,7 +92,21 @@ const UserPostHome = ({ navigation }) => {
       
     } catch (error) {
       console.error('Error fetching personalisation or resources:', error);
-      setResources([]);
+      const resourceResponse = await axios.get(`${url}/resource`);
+      let resources = resourceResponse.data.resources;
+      resources = resourceResponse.data.resources.filter(resource =>
+        resource.category !== 'Pregnancy Summary' &&
+        resource.category !== 'Diet Recommendations' &&
+        resource.status.includes(userInfo.status)
+      );
+  
+      // Shuffle and select 10 random resources
+      if (resources.length > 10) {
+        resources = shuffleArray(resources).slice(0, 10);
+      }
+  
+      // Set resources state
+      setResources(resources);
     }
   }, [userInfo.status]);
 

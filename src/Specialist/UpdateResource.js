@@ -14,6 +14,9 @@ import {storage} from '../../firebaseConfig';
 // Import styles
 import styles from '../components/styles';
 
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+
 const showAlert = (title, message, onPress) => {
     if (Platform.OS === 'web') {
         window.alert(`${title}\n${message}`);
@@ -386,26 +389,34 @@ const UpdateResource = ({ navigation, route }) => {
 
             <View style={[styles.container4, { marginBottom: 20 }]}>
                 <Text style={[styles.text, { marginBottom: 20 }]}> Description </Text>
-                <RichToolbar
-                    editor={editor}
-                    actions={[actions.setBold, actions.setItalic, actions.setUnderline, actions.insertBulletsList,
-                        actions.insertOrderedList, actions.heading1, actions.heading2]}
-                    iconMap={{
-                        [actions.setBold]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}> B </Text>,
-                        [actions.setItalic]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}> I </Text>,
-                        [actions.setUnderline]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}> U </Text>,
-                        
-                        [actions.insertBulletsList]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}> • </Text>,
-                        [actions.insertOrderedList]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}> 1. </Text>,
-                        [actions.heading1]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}> H1 </Text>,
-                        [actions.heading2]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}> H2 </Text>
-                    }}
-                />
-                <RichEditor
-                    ref={editor}
-                    onChange={(newDescription) => setDescription(newDescription)}
-                    initialContentHTML={description}
-                />
+                {Platform.OS === 'web' ? (
+                <div>
+                    <ReactQuill value={description} onChange={(newDescription) => setDescription(newDescription)}/>
+                </div>
+                ) : (
+                    <>
+                        <RichToolbar
+                            editor={editor}
+                            actions={[actions.setBold, actions.setItalic, actions.setUnderline, actions.insertBulletsList,
+                                actions.insertOrderedList, actions.heading1, actions.heading2]}
+                            iconMap={{
+                                [actions.setBold]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}>B</Text>,
+                                [actions.setItalic]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}>I</Text>,
+                                [actions.setUnderline]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}>U</Text>,
+                                [actions.insertBulletsList]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}>•</Text>,
+                                [actions.insertOrderedList]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}>1.</Text>,
+                                [actions.heading1]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}>H1</Text>,
+                                [actions.heading2]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}>H2</Text>
+                            }}
+                        />
+                        <RichEditor
+                            ref={editor}
+                            onChange={(newDescription) => setDescription(newDescription)}
+                            initialContentHTML={description}
+                        />
+                    </>
+                )
+            }
                 {descriptionError ? <Text style={styles.error}>{descriptionError}</Text> : null}
             </View>
 
