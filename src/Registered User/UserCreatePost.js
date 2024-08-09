@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Pressable, ScrollView, Alert, Platform } from 'react-native';
 import { Entypo } from '@expo/vector-icons';
 import axios from 'axios';
-import { RichEditor } from 'react-native-pell-rich-editor';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Keyboard from '../components/Keyboard'; 
 import url from '../components/config';
+import { RichEditor, RichToolbar, actions } from 'react-native-pell-rich-editor';
 
 // import own code
 import styles from '../components/styles';
 
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+//import ReactQuill from 'react-quill';
+//import 'react-quill/dist/quill.snow.css';
 
 const showAlert = (title, message, onConfirm = () => {}, onCancel = () => {}) => {
     if (Platform.OS === 'web') {
@@ -39,6 +39,14 @@ const UserCreatePost = ({ navigation }) => {
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [activeButton, setActiveButton] = useState('');
     const [userEmail, setUserEmail] = useState('');
+
+    const editor = useRef(null);
+
+    let WebQuillEditor;
+    
+    if (Platform.OS === 'web') {
+        WebQuillEditor = require('../components/WebQuillEditor').default;
+    }
 
     // Fetch user email
     useEffect(() => {
@@ -142,11 +150,12 @@ const UserCreatePost = ({ navigation }) => {
                         <Text style={[styles.text, { marginBottom: 20 }]}> Description {descriptionError ? <Text style={styles.error}>{descriptionError}</Text> : null} </Text>
                         {Platform.OS === 'web' ? (
                         <div>
-                            <ReactQuill value={description} onChange={(newDescription) => setDescription(newDescription)}/>
+                            <WebQuillEditor value={description} onChange={(newDescription) => setDescription(newDescription)}/>
                         </div>
                         ) : (
                         <>
                         <RichEditor
+                            ref={editor} 
                             onChange={(newDescription) => setDescription(newDescription)}
                             initialContentHTML={description}
                         />

@@ -203,13 +203,6 @@ const CreateAds = ({ navigation }) => {
         setImageUri(null);
     };
 
-    const handleInputHeightChange = useCallback((height) => {
-        setDescriptionHeight(prevState => ({
-            ...prevState,
-            description: height
-        }));
-    }, []);
-
     return (
     <Keyboard>
     <ScrollView contentContainerStyle={styles.container}>
@@ -257,12 +250,12 @@ const CreateAds = ({ navigation }) => {
             <View style={[styles.container4, { marginBottom: 20 }]}>
                 <Text style={[styles.text, { marginBottom: 20 }]}> Description {descriptionError ? <Text style={styles.error}>{descriptionError}</Text> : null} </Text>
                 <TextInput
-                    style={[styles.input3, { height: Math.max(35, descriptionHeight + 20) }]} // Minimum height set to 35
+                    style={[styles.input3, { height: descriptionHeight, maxHeight: 200 }]}
                     value={description}
                     onChangeText={setDescription}
+                    onContentSizeChange={e => setDescriptionHeight(e.nativeEvent.contentSize.height)}
                     multiline
-                    onContentSizeChange={(contentSize) => handleInputHeightChange(contentSize.height)}
-                /> 
+                />
             </View>
 
             {/* Image Upload */}

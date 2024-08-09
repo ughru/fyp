@@ -219,14 +219,7 @@ const SpecialistAppointments = ({navigation}) => {
     } catch (error) {
       showAlert('Error', 'An error occurred while updating the appointment.');
     }
-  };  
-
-  const handleInputHeightChange = useCallback((height) => {
-    setInputHeight(prevState => ({
-        ...prevState,
-        description: height
-    }));
-  }, []);
+  }; 
 
   // Page Displays
   return (
@@ -389,13 +382,13 @@ const SpecialistAppointments = ({navigation}) => {
               <ScrollView>
                 <Text style= {[styles.text, {marginBottom: 10}]}> Specialist Notes: </Text>
                 <TextInput
-                  style={[styles.input2, { width: 300, height: Math.max(30, inputHeight + 20), marginBottom: 20 }]}
+                  style={[styles.input2, { width: 300, height: inputHeight, maxHeight: 200, marginBottom: 20 }]}
                   placeholder="Enter notes..."
                   placeholderTextColor='black'
                   value={noteInput}
                   onChangeText={setNoteInput}
                   multiline
-                  onContentSizeChange={(contentSize) => handleInputHeightChange(contentSize.height)}/>
+                  onContentSizeChange={e => setInputHeight(e.nativeEvent.contentSize.height)}/>
                 <TouchableOpacity style={[styles.button, {borderWidth: 1, borderColor: 'black'}]} onPress={handleNoteSubmit}>
                   <Text style={styles.text}>Submit</Text>
                 </TouchableOpacity>

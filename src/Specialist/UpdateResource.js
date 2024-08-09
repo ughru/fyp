@@ -4,18 +4,18 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Entypo } from '@expo/vector-icons';
 import RNPickerSelect from 'react-native-picker-select';
 import axios from 'axios';
-import { RichEditor, RichToolbar, actions } from 'react-native-pell-rich-editor';
 import Keyboard from '../components/Keyboard';
 import url from '../components/config';
 import { Camera } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import {storage} from '../../firebaseConfig';
+import { RichEditor, RichToolbar, actions } from 'react-native-pell-rich-editor';
 
 // Import styles
 import styles from '../components/styles';
 
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+//import ReactQuill from 'react-quill';
+//import 'react-quill/dist/quill.snow.css';
 
 const showAlert = (title, message, onPress) => {
     if (Platform.OS === 'web') {
@@ -54,6 +54,12 @@ const UpdateResource = ({ navigation, route }) => {
     const [oldTitle, setOldTitle] = useState('');
 
     const editor = useRef(null);
+
+    let WebQuillEditor;
+    
+    if (Platform.OS === 'web') {
+        WebQuillEditor = require('../components/WebQuillEditor').default;
+    } 
 
     useEffect(() => {
         const fetchSpecialistInfo = async () => {
@@ -390,31 +396,29 @@ const UpdateResource = ({ navigation, route }) => {
             <View style={[styles.container4, { marginBottom: 20 }]}>
                 <Text style={[styles.text, { marginBottom: 20 }]}> Description </Text>
                 {Platform.OS === 'web' ? (
-                <div>
-                    <ReactQuill value={description} onChange={(newDescription) => setDescription(newDescription)}/>
+                    <div>
+                    <WebQuillEditor value={description} onChange={(newDescription) => setDescription(newDescription)}/>
                 </div>
                 ) : (
-                    <>
-                        <RichToolbar
-                            editor={editor}
-                            actions={[actions.setBold, actions.setItalic, actions.setUnderline, actions.insertBulletsList,
-                                actions.insertOrderedList, actions.heading1, actions.heading2]}
-                            iconMap={{
-                                [actions.setBold]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}>B</Text>,
-                                [actions.setItalic]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}>I</Text>,
-                                [actions.setUnderline]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}>U</Text>,
-                                [actions.insertBulletsList]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}>•</Text>,
-                                [actions.insertOrderedList]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}>1.</Text>,
-                                [actions.heading1]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}>H1</Text>,
-                                [actions.heading2]: ({ tintColor }) => <Text style={[{ fontSize: 22, color: '#979595', color: tintColor }]}>H2</Text>
-                            }}
-                        />
-                        <RichEditor
-                            ref={editor}
-                            onChange={(newDescription) => setDescription(newDescription)}
-                            initialContentHTML={description}
-                        />
-                    </>
+                <>
+                <RichToolbar
+                editor={editor} 
+                actions={[actions.setBold, actions.setItalic, actions.setUnderline, actions.insertBulletsList,
+                    actions.insertOrderedList, actions.heading1, actions.heading2]}
+                iconMap={{
+                    [actions.setBold]: ({tintColor}) => <Text style={[{fontSize: 22, color: '#979595', color: tintColor}]}> B </Text>,
+                    [actions.setItalic]: ({tintColor}) => <Text style={[{fontSize: 22, color: '#979595', color: tintColor}]}> I </Text>,
+                    [actions.setUnderline]: ({tintColor}) => <Text style={[{fontSize: 22, color: '#979595', color: tintColor}]}> U </Text>,
+                    [actions.heading1]: ({tintColor}) => <Text style={[{fontSize: 22, color: '#979595', color: tintColor}]}> H1 </Text>,
+                    [actions.heading2]: ({tintColor}) => <Text style={[{fontSize: 22, color: '#979595', color: tintColor}]}> H2 </Text>
+                }}
+                />
+                <RichEditor
+                    ref={editor} 
+                    onChange={(newDescription) => setDescription(newDescription)}
+                    initialContentHTML={description}
+                />
+                </>
                 )
             }
                 {descriptionError ? <Text style={styles.error}>{descriptionError}</Text> : null}

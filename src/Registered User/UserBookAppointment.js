@@ -321,13 +321,6 @@ const UserCreateAppointment = ({ navigation }) => {
         }
     };
 
-    const handleInputHeightChange = useCallback((height) => {
-        setInputHeight(prevState => ({
-            ...prevState,
-            description: height
-        }));
-    }, []);
-
     return(
     <Keyboard>
     <ScrollView contentContainerStyle={styles.container}>
@@ -427,11 +420,12 @@ const UserCreateAppointment = ({ navigation }) => {
                             <Text style={[styles.formText, {marginBottom: 20}]}>Any Additional Information for specialist: </Text>
                             {commentError ? <Text style={[styles.error, {fontSize: 16, marginBottom: 10}]}>{commentError}</Text> : null}
                             <TextInput
-                                style={[styles.input, {height: Math.max(40, inputHeight + 20), marginBottom: 20 }]}
+                                style={[styles.input, { height: inputHeight, maxHeight: 200 }]}
                                 value={userComments}
                                 onChangeText={setUserComments}
                                 multiline
-                                onContentSizeChange={(contentSize) => handleInputHeightChange(contentSize.height)}/>
+                                onContentSizeChange={e => setInputHeight(e.nativeEvent.contentSize.height)}
+                            />
 
                             <Pressable style={[styles.button, { alignSelf: 'center' }]} onPress={handleBooking}>
                                 <Text style={styles.text}> Book Appointment </Text>
