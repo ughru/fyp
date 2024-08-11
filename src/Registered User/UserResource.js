@@ -33,7 +33,7 @@ const UserResource = ({ navigation }) => {
   
         const parsedSelections = personalisationData.personalisation.reduce((acc, item) => {
           const [key, value] = item.split(': ');
-          if (key === 'q2') {
+          if (key === 'q4') {
             acc[key] = value.split(','); // Handle comma-separated values for categories
           } else {
             acc[key] = value;
@@ -41,9 +41,9 @@ const UserResource = ({ navigation }) => {
           return acc;
         }, {});
   
-        // Check if q2 exists in the personalisation data
-        const q2Data = parsedSelections.q2;
-        return q2Data ? q2Data : null;
+        // Check if q4 exists in the personalisation data
+        const q4Data = parsedSelections.q4;
+        return q4Data ? q4Data : null;
       }
     } catch (error) {
       console.error('Error fetching personalisation data:', error);
@@ -54,7 +54,7 @@ const UserResource = ({ navigation }) => {
   // Fetch categories and resources
   const fetchData = useCallback(async () => {
     try {
-      const [categoriesResponse, resourcesResponse, q2] = await Promise.all([
+      const [categoriesResponse, resourcesResponse, q4] = await Promise.all([
         axios.get(`${url}/categories`),
         axios.get(`${url}/resource`),
         fetchPersonalisationData(),
@@ -62,12 +62,12 @@ const UserResource = ({ navigation }) => {
   
       let sortedCategories = categoriesResponse.data;
   
-      if (q2) {
+      if (q4) {
         const filteredCategories = sortedCategories.filter(cat =>
-          cat.categoryName === "All" || q2.includes(cat.categoryName)
+          cat.categoryName === "All" || q4.includes(cat.categoryName)
         );
         const otherCategories = sortedCategories.filter(cat =>
-          cat.categoryName !== "All" && !q2.includes(cat.categoryName)
+          cat.categoryName !== "All" && !q4.includes(cat.categoryName)
         );
   
         // Sort categories as per the requirements

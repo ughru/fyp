@@ -34,13 +34,13 @@ const SpecialistResource = ({ navigation }) => {
     email: ''
   });
 
-  const showAlert = (title, message, onPress) => {
+  const showAlert = (title, message, onConfirm = () => {}) => {
     if (Platform.OS === 'web') {
-        // Web-specific alert
-        window.alert(`${title}\n${message}`);
+      if (window.confirm(`${title}\n${message}`)) {
+        onConfirm();
+      } 
     } else {
-        // Native alert
-        Alert.alert(title, message, [{ text: 'OK', onPress }], { cancelable: false });
+      Alert.alert(title, message, [{ text: 'OK', onPress: onConfirm  }], { cancelable: false });
     }
   };
 

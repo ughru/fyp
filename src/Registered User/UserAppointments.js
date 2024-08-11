@@ -161,7 +161,7 @@ const UserAppointments = ({ navigation }) => {
       // Set selected appointment with userEmail
       setSelectedAppointment({
         ...appointmentDetail,
-        userEmail: appointmentWithUser.userEmail // Add userEmail here
+        specialistEmail: appointmentWithUser.specialistEmail
       });
     }
   
@@ -363,7 +363,7 @@ const UserAppointments = ({ navigation }) => {
                 <Text style={[styles.text, {marginBottom: 10}]}>Date: {formatDate(selectedAppointment.date)}</Text>
                 <Text style={[styles.text, {marginBottom: 10}]}>Time: {selectedAppointment.time}</Text>
                 {['Upcoming'].includes(selectedAppointment.status) && (
-                <Text style={[styles.text, { marginBottom: 10 }]}>Contact: {specialistDetails[selectedAppointment.userEmail]?.contact}</Text>
+                <Text style={[styles.text, { marginBottom: 10 }]}>Contact: {specialistDetails[selectedAppointment?.specialistEmail]?.contact}</Text>
                 )}
                 {['Completed'].includes(selectedAppointment.status) && (
                   <Text style={[styles.text, { marginBottom: 10 }]}>

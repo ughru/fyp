@@ -42,9 +42,18 @@ const WeightTracker = ({ navigation }) => {
         axios.get(`${url}/resource`)
       ]);
 
+      const bmiCategoryMapping = {
+        'Underweight': 'Underweight',
+        'Normal Weight': 'Normal',
+        'Overweight': 'Overweight',
+        'Obese': 'Obese'
+      };
+  
+      const category = bmiCategoryMapping[healthDetails.category] || '';
+
       // Filter resources based on category and BMI
       const filteredResources = resourcesResponse.data.resources
-        .filter(resource => resource.category === 'Diet Recommendations' && resource.bmi.includes(healthDetails.category));
+        .filter(resource => resource.category === 'Diet Recommendations' && resource.bmi.includes(category));
 
       // Select random 10 resources if available, otherwise show all filtered resources
       const selectedResources = filteredResources.length >= 10
@@ -117,6 +126,12 @@ const WeightTracker = ({ navigation }) => {
       console.error('Error fetching image:', error);
     }
   }, []);
+
+  useEffect(() => {
+    fetchImage();
+    fetchData();
+    fetchUserInfo();
+}, [fetchImage, fetchUserInfo,  fetchData]);
 
   useFocusEffect(
     useCallback(() => {
@@ -289,6 +304,8 @@ const WeightTracker = ({ navigation }) => {
   }
   };
 
+  const hasValidWeightLogs = weightLogs.some(log => log.record.length > 0);
+
   // Page Displays
   return (
     <Keyboard>
@@ -337,14 +354,18 @@ const WeightTracker = ({ navigation }) => {
           <Pressable style={[styles.button, { marginBottom: 20 }]} onPress={() => navigation.navigate('CreateWeightLog')}>
             <Text style={styles.text}> Log Weight </Text>
           </Pressable>
-
-          <Text style={[styles.questionText]}> Diet Recommendations </Text>
         </View>
 
         {/* Diet Reco Section */}
+        {hasValidWeightLogs && (
         <View style={[styles.container4]}>
-          <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
+          <Text style={[styles.questionText]}>Diet Recommendations</Text>
+          <ScrollView
+            ref={scrollRef}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 20, paddingVertical: 10 }}
+          >
             {resources.map((resource, index) => (
               <View key={index} style={{ marginBottom: 20 }}>
                 <TouchableOpacity
@@ -365,6 +386,7 @@ const WeightTracker = ({ navigation }) => {
             ))}
           </ScrollView>
         </View>
+        )}
 
         {/* All Weight Logs View Section */}
         <View style={[styles.container4, { marginBottom: 20 }]}>

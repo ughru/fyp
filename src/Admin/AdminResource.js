@@ -14,13 +14,10 @@ const showAlert = (title, message, onConfirm = () => {}, onCancel = () => {}) =>
   if (Platform.OS === 'web') {
     if (window.confirm(`${title}\n${message}`)) {
       onConfirm();
-    } else {
-      onCancel();
     }
   } else {
     Alert.alert(title, message, [
-      { text: 'Cancel', onPress: onCancel, style: 'cancel' },
-      { text: 'OK', onPress: onConfirm }
+      { text: 'Cancel', onPress: onCancel}
     ]);
   }
 };
@@ -176,17 +173,6 @@ const AdminResource = ({ navigation }) => {
       valid = false;
     } else {
       setError1('');
-    }
-
-    // Check if the category already exists (excluding current category)
-    const categoryExists = categories.some(
-      category =>
-        category.categoryName.toLowerCase() === newCategory.toLowerCase() &&
-        category.categoryName !== selectedCategory.toLowerCase()
-    );
-    if (categoryExists) {
-      setError1('* Category already exists');
-      valid = false;
     }
   
     // If validation passes, attempt to update category

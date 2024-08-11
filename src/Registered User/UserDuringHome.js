@@ -92,9 +92,9 @@ const UserDuringHome = ({navigation}) => {
   
       // Apply filtering based on personalisation data
       if (personalisationData.length > 0) {
-        // Check if q2 exists and is a string of comma-separated categories
-        if (typeof parsedSelections.q2 === 'string') {
-          const selectedCategories = parsedSelections.q2.split(',').map(cat => cat.trim());
+        // Check if q4 exists and is a string of comma-separated categories
+        if (typeof parsedSelections.q4 === 'string') {
+          const selectedCategories = parsedSelections.q4.split(',').map(cat => cat.trim());
           resources = resources.filter(resource => selectedCategories.includes(resource.category));
         }
       }
@@ -193,7 +193,7 @@ const UserDuringHome = ({navigation}) => {
     fetchUserInfo();
     fetchPersonalisationAndResources();
     fetchPersonalisationAndResources();
-    if (personalisationData && personalisationData.q2 && personalisationData.q2.includes('Diet Recommendations')) {
+    if (personalisationData && personalisationData.q4 && personalisationData.q4.includes('Diet Recommendations')) {
       dietRecos();
     } else {
       setDietReco([]);
@@ -206,7 +206,7 @@ const UserDuringHome = ({navigation}) => {
       fetchUserInfo();
       fetchPersonalisationAndResources();
       fetchPersonalisationAndResources();
-      if (personalisationData && personalisationData.q2 && personalisationData.q2.includes('Diet Recommendations')) {
+      if (personalisationData && personalisationData.q4 && personalisationData.q4.includes('Diet Recommendations')) {
         dietRecos();
       } else {
         setDietReco([]);

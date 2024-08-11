@@ -17,16 +17,15 @@ import styles from '../components/styles';
 //import ReactQuill from 'react-quill';
 //import 'react-quill/dist/quill.snow.css';
 
-const showAlert = (title, message, onPress) => {
-    if (Platform.OS === 'web') {
-      // For web platform
-      window.alert(`${title}\n${message}`);
-      if (onPress) onPress();  // Execute the onPress callback for web
-    } else {
-      // For mobile platforms
-      Alert.alert(title, message, [{ text: 'OK', onPress }], { cancelable: false });
-    }
-};  
+const showAlert = (title, message, onConfirm = () => {}) => {
+if (Platform.OS === 'web') {
+    if (window.confirm(`${title}\n${message}`)) {
+    onConfirm();
+    } 
+} else {
+    Alert.alert(title, message, [{ text: 'OK', onPress: onConfirm  }], { cancelable: false });
+}
+};
 
 const CreateResource = ({ navigation }) => {
     // values

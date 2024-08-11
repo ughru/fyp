@@ -75,9 +75,9 @@ const UserPreHome = ({ navigation }) => {
   
       // Apply filtering based on personalisation data
       if (personalisationData.length > 0) {
-        // Check if q2 exists and is a string of comma-separated categories
-        if (typeof parsedSelections.q2 === 'string') {
-          const selectedCategories = parsedSelections.q2.split(',').map(cat => cat.trim());
+        // Check if q4 exists and is a string of comma-separated categories
+        if (typeof parsedSelections.q4 === 'string') {
+          const selectedCategories = parsedSelections.q4.split(',').map(cat => cat.trim());
           resources = resources.filter(resource => selectedCategories.includes(resource.category));
         }
       }
@@ -165,7 +165,7 @@ const UserPreHome = ({ navigation }) => {
   useEffect(() => {
     fetchUserInfo();
     fetchPersonalisationAndResources();
-    if (personalisation && personalisation.q2 && personalisation.q2.includes('Diet Recommendations')) {
+    if (personalisation && personalisation.q4 && personalisation.q4.includes('Diet Recommendations')) {
       dietRecos();
     } else {
       setDietReco([]);
@@ -177,7 +177,7 @@ const UserPreHome = ({ navigation }) => {
     useCallback(() => {
       fetchUserInfo();
       fetchPersonalisationAndResources();
-      if (personalisation && personalisation.q2 && personalisation.q2.includes('Diet Recommendations')) {
+      if (personalisation && personalisation.q4 && personalisation.q4.includes('Diet Recommendations')) {
       dietRecos();
     } else {
       setDietReco([]);

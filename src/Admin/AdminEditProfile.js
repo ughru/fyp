@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, ScrollView, TextInput, Alert } from 'react-native';
+import { View, Text, Pressable, ScrollView, TextInput, Alert, Platform } from 'react-native';
 import { Entypo } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -9,16 +9,13 @@ import styles from '../components/styles';
 import Keyboard from '../components/Keyboard'; 
 import url from "../components/config";
 
-const showAlert = (title, message, onConfirm = () => {}, onCancel = () => {}) => {
+const showAlert = (title, message, onConfirm = () => {}) => {
     if (Platform.OS === 'web') {
       if (window.confirm(`${title}\n${message}`)) {
         onConfirm();
-      } else {
-        onCancel();
-      }
+      } 
     } else {
       Alert.alert(title, message, [
-        { text: 'Cancel', onPress: onCancel, style: 'cancel' },
         { text: 'OK', onPress: onConfirm }
       ]);
     }

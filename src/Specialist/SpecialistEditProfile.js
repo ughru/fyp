@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, ScrollView, TextInput, Alert } from 'react-native';
+import { View, Text, Pressable, ScrollView, TextInput, Alert, Platform } from 'react-native';
 import { Entypo } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -9,11 +9,13 @@ import styles from '../components/styles';
 import Keyboard from '../components/Keyboard'; 
 import url from "../components/config";
 
-const showAlert = (title, message, onPress) => {
+const showAlert = (title, message, onConfirm = () => {}) => {
     if (Platform.OS === 'web') {
-        window.alert(`${title}\n${message}`);
+        if (window.confirm(`${title}\n${message}`)) {
+            onConfirm();
+          } 
     } else {
-        Alert.alert(title, message, [{ text: 'OK', onPress }], { cancelable: false });
+        Alert.alert(title, message, [{ text: 'OK', onPress: onConfirm }], { cancelable: false });
     }
 };
 
@@ -116,7 +118,6 @@ const SpecialistEditProfile = ({ navigation }) => {
             valid = false;
         } else {
             setError4('');
-            valid = true; // Set valid to true if one of the patterns matches
         }
             
         if (valid) {

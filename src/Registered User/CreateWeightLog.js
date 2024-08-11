@@ -9,16 +9,13 @@ import url from '../components/config';
 // import own code
 import styles from '../components/styles';
 
-const showAlert = (title, message, onConfirm = () => {}, onCancel = () => {}) => {
+const showAlert = (title, message, onConfirm = () => {}) => {
     if (Platform.OS === 'web') {
       if (window.confirm(`${title}\n${message}`)) {
         onConfirm();
-      } else {
-        onCancel();
       }
     } else {
       Alert.alert(title, message, [
-        { text: 'Cancel', onPress: onCancel, style: 'cancel' },
         { text: 'OK', onPress: onConfirm }
       ]);
     }

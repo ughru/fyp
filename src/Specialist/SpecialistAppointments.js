@@ -11,7 +11,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SpecialistAppointments = ({navigation}) => {
   const [userEmail, setUserEmail] = useState('');
-  const [imageUrl, setImageUrls] = useState(null);
   const [image, setImageUrl] = useState(null);
   const [activeButton, setActiveButton] = useState('Upcoming');
   const [appointments, setAppointments] = useState([]);
@@ -146,7 +145,7 @@ const SpecialistAppointments = ({navigation}) => {
       // Set selected appointment with userEmail
       setSelectedAppointment({
         ...appointmentDetail,
-        userEmail: appointmentWithUser.userEmail // Add userEmail here
+        userEmail: appointmentWithUser.userEmail 
       });
     }
   

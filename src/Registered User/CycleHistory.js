@@ -257,6 +257,12 @@ const CycleHistory = ({ navigation, route }) => {
                 ...prevMarkedDates,
                 ...ovulationDatesRange,
             }));
+        } else {
+          setOvulationDates([]); // Set ovulation dates to an empty array if cycle length is null or invalid
+          setMarkedDates(prevMarkedDates => ({
+            ...prevMarkedDates,
+            ...{} // Remove any existing ovulation date markings
+          }));
         }
     } catch (error) {
         console.error('Error calculating ovulation dates:', error);
