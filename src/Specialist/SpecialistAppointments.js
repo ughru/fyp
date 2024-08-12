@@ -191,7 +191,7 @@ const SpecialistAppointments = ({navigation}) => {
           date: selectedAppointment.date,
           time: selectedAppointment.time,
           status: 'Completed',
-          note: selectedAppointment.specialistNotes
+          note: noteInput
         });
   
         if (response.status === 200) {
@@ -204,7 +204,7 @@ const SpecialistAppointments = ({navigation}) => {
               ...appointment,
               details: appointment.details.map(detail =>
                 detail.date === selectedAppointment.date && detail.time === selectedAppointment.time
-                  ? { ...detail, status: 'Completed', specialistNotes: selectedAppointment.specialistNotes }
+                  ? { ...detail, status: 'Completed', specialistNotes: noteInput }
                   : detail
               )
             }))

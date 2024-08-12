@@ -6,6 +6,7 @@ import axios from 'axios';
 import styles from '../components/styles';
 import url from '../components/config';
 import { useFocusEffect } from '@react-navigation/native';
+import moment from 'moment';
 
 const formatDate = (date) => {
   const options = { weekday: 'long', day: 'numeric', month: 'long' };
@@ -26,6 +27,8 @@ const UserPostHome = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState([]);
   const [dietReco, setDietReco] = useState([]);
   const [personalisation, setPersonalisation] = useState(null);
+  const [specialistDetails, setSpecialistDetails] = useState([]);
+  const [appointments, setAppointments] = useState([]);
   const scrollRef = useRef(null);
 
   const fetchUserInfo = useCallback(async () => {
@@ -41,6 +44,86 @@ const UserPostHome = ({ navigation }) => {
       console.error('Error fetching user info:', error);
     }
   }, []);
+
+  const fetchAppointments = useCallback(async () => {
+    try {
+      if (userInfo.email) {
+        // Fetch appointments from the API
+        const response = await axios.get(`${url}/bookedAppt`, { params: { userEmail: userInfo.email } });
+  
+        // Initialize categorized appointments
+        const categorizedAppointments = { Upcoming: [], Completed: [], Cancelled: [] };
+  
+        // Get today's date for comparison
+        const today = new Date();
+  
+        response.data.forEach(appointment => {
+          // Sort the details by date closest to today's date
+          const sortedDetails = appointment.details.sort((a, b) => {
+            return Math.abs(new Date(a.date) - today) - Math.abs(new Date(b.date) - today);
+          });
+  
+          // Get the closest date details
+          const closestDate = sortedDetails[0].date;
+          const closestDetails = sortedDetails.filter(detail => detail.date === closestDate);
+  
+          // Push all details with the closest date to the categorized appointments
+          closestDetails.forEach(detail => {
+            if (categorizedAppointments[detail.status]) {
+              categorizedAppointments[detail.status].push({
+                ...appointment,
+                details: [detail] // Include only the matching detail
+              });
+            }
+          });
+        });
+  
+        // Set state to only 'Upcoming' appointments
+        setAppointments(sortAppointments(categorizedAppointments['Upcoming']));
+  
+        // Fetch specialist information
+        const specialistEmails = [...new Set(response.data.map(app => app.specialistEmail))];
+        const responses = await Promise.all(
+          specialistEmails.map(email =>
+            axios.get(`${url}/specialistinfo`, { params: { email } })
+          )
+        );
+  
+        // Map specialist details
+        const detailsMap = {};
+        responses.forEach(response => {
+          const specialistInfo = response.data;
+          detailsMap[specialistInfo.email] = specialistInfo;
+        });
+  
+        // Set specialist details state
+        setSpecialistDetails(detailsMap);
+      }
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+    }
+  }, [userInfo.email]);
+  
+  const formatDate2 = (date) => {
+    return moment(date, 'YYYY-MM-DD').format('Do MMMM YYYY');
+  };
+
+  const sortAppointments = (appointments) => {
+    // Sort appointments by their date (Month YYYY)
+    const sortedAppointmentsByMonth = appointments.sort((a, b) => 
+      moment(a.date, 'MMMM YYYY').diff(moment(b.date, 'MMMM YYYY'))
+    );
+  
+    // Sort details within each appointment by date (YYYY-MM-DD)
+    const sortedAppointments = sortedAppointmentsByMonth.map(appointment => ({
+      ...appointment,
+      details: appointment.details.sort((a, b) => 
+        moment(a.date, 'YYYY-MM-DD').diff(moment(b.date, 'YYYY-MM-DD'))
+      )
+    }));
+  
+    return sortedAppointments;
+  };
 
   const fetchPersonalisationAndResources = useCallback(async () => {
     try {
@@ -170,18 +253,20 @@ const UserPostHome = ({ navigation }) => {
       setDietReco([]);
     }
     setCurrentDate(formatDate(new Date()));
-  }, [fetchUserInfo, fetchPersonalisationAndResources, dietRecos]);
+    fetchAppointments();
+  }, [fetchUserInfo, fetchPersonalisationAndResources, dietRecos, fetchAppointments]);
 
   useFocusEffect(
     useCallback(() => {
       fetchUserInfo();
       fetchPersonalisationAndResources();
+      fetchAppointments();
       if (personalisation && personalisation.q4 && personalisation.q4.includes('Diet Recommendations')) {
       dietRecos();
     } else {
       setDietReco([]);
     }
-    }, [fetchUserInfo, fetchPersonalisationAndResources, dietRecos])
+    }, [fetchUserInfo, fetchPersonalisationAndResources, dietRecos, fetchAppointments])
   );
 
   // Page Displays
@@ -196,7 +281,8 @@ const UserPostHome = ({ navigation }) => {
 
       <View style={[styles.container4, { marginBottom: 20 }]}>
         <Text style={[styles.text, { marginBottom: 20 }]}>Upcoming Appointments</Text>
-          <View style={[{width: 320, height: 40, padding: 5, borderRadius: 20, backgroundColor: '#E3C2D7'}]}>
+        {appointments.length === 0 ? (
+          <View style={[{width: 320, height: 40, padding: 5, borderRadius: 20, backgroundColor: '#E3C2D7', marginBottom: 20}]}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <View style = {[{marginLeft: 20, marginRight: 20}]}>
                 <Feather name="calendar" size={24} color="black" />
@@ -204,8 +290,35 @@ const UserPostHome = ({ navigation }) => {
               <Text style={[styles.text, {fontStyle: 'italic'}]}>No Appointments Yet</Text>
             </View>
           </View>
+        ) : (
+        <ScrollView>
+        {appointments.map((appointment, index) => (
+          <View key={index}>
+            {appointment.details.map((detail, detailIndex) => (
+            <View key={detailIndex} style= {{justifyContent: 'center', alignItems: 'center', marginBottom: 20}}>
+              <View style={{ width: '90%', borderWidth: 2, borderColor: '#E3C2D7', borderRadius: 20, padding: 15}}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingRight: 10 }}>
+                {specialistDetails[appointment.specialistEmail] && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: 10 }}>
+                    <Text style={[styles.text3, {flex: 1, marginBottom: 10 }]}>
+                      {specialistDetails[appointment.specialistEmail]?.firstName} {specialistDetails[appointment.specialistEmail]?.lastName}
+                    </Text>
+                  </View>
+                )}
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingRight: 10 }}>
+                  <Text style= {[styles.text, {marginBottom: 10}]}>{formatDate2(detail.date)}, </Text>
+                  <Text style= {[styles.text, {marginBottom: 10}]}>{detail.time}</Text>
+                </View>
+              </View>
+            </View>
+            ))}
+          </View>
+          ))}
+        </ScrollView>
+      )}
 
-        <View style={[styles.container3, { flexDirection: 'row', alignItems: 'center', marginBottom: 20, marginTop: 40 }]}>
+        <View style={[styles.container3, { flexDirection: 'row', alignItems: 'center', marginBottom: 20 }]}>
           <Ionicons name="scale-outline" size={24} color="black" style={{ marginRight: 10 }} />
           <Pressable onPress={() => navigation.navigate("WeightTracker")}>
             <Text style={styles.questionText}>Weight Tracker</Text>

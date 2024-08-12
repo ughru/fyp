@@ -200,16 +200,15 @@ const AdminHome = ({navigation}) => {
           <Text style={{ flex: 1, fontWeight: 'bold' }}>Name</Text>
           <Text style={{ width: 60, fontWeight: 'bold' }}>Type</Text>
           <Text style={{ width: 50, fontWeight: 'bold' }}>State</Text>
-          <Text style={{ width: 40, fontWeight: 'bold' }}>Action</Text>
-          <Text style={{ width: 10, fontWeight: 'bold' }}></Text>
+          <Text style={{ width: 50, fontWeight: 'bold' }}></Text>
         </View>
 
         {allData.map((item, index) => (
           <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10, borderWidth: 1, borderColor: '#ddd' }}>
-            <Text style={{ flex: 1 }}>{item.email}</Text>
-            <Text style={{ flex: 1 }}>{item.firstName} {item.lastName}</Text>
-            <Text style={{ width: 60, }}>{item.type}</Text>
-            <Text style={{ width: 50 }}>{item.state}</Text>
+              <Text style={{ flex: 1 }} numberOfLines={2} ellipsizeMode="tail">{item.email}</Text>
+              <Text style={{ flex: 1 }} numberOfLines={2} ellipsizeMode="tail">{item.firstName} {item.lastName}</Text>
+              <Text style={{ width: 60 }}>{item.type}</Text>
+              <Text style={{ width: 50 }}>{item.state}</Text>
             <TouchableOpacity style={{ width: 30}} onPress={() => openModal(item)}>
               <Ionicons name="eye-outline" size={24} color="black" />
             </TouchableOpacity>
@@ -252,14 +251,13 @@ const AdminHome = ({navigation}) => {
           <Text style={{ flex: 1, fontWeight: 'bold' }}>Name</Text>
           <Text style={{ width: 60, fontWeight: 'bold' }}>Status</Text>
           <Text style={{ width: 50, fontWeight: 'bold' }}>State</Text>
-          <Text style={{ width: 40, fontWeight: 'bold' }}>Action</Text>
-          <Text style={{ width: 10, fontWeight: 'bold' }}></Text>
+          <Text style={{ width: 50, fontWeight: 'bold' }}></Text>
         </View>
 
         {userSearch.map((user, index) => (
           <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10, borderWidth: 1, borderColor: '#ddd' }}>
-            <Text style={{ flex: 1 }}>{user.email}</Text>
-            <Text style={{ flex: 1 }}>{user.firstName} {user.lastName}</Text>
+            <Text style={{ flex: 1 }} numberOfLines={2} ellipsizeMode="tail">{user.email}</Text>
+            <Text style={{ flex: 1 }} numberOfLines={2} ellipsizeMode="tail">{user.firstName} {user.lastName}</Text>
             <Text style={{ width: 60 }}>{user.status}</Text>
             <Text style={{ width: 50 }}>{user.state}</Text>
             <TouchableOpacity style={{ width: 30}} onPress={() => openModal(user)}>
@@ -304,15 +302,14 @@ const AdminHome = ({navigation}) => {
           <Text style={{ flex:1, fontWeight: 'bold'}}>Name</Text>
           <Text style={{ flex:1, marginRight: 5, fontWeight: 'bold' }}>Specialisation</Text>
           <Text style={{ width: 50, fontWeight: 'bold' }}>State</Text>
-          <Text style={{ width: 40, fontWeight: 'bold' }}>Action</Text>
-          <Text style={{ width: 10, fontWeight: 'bold' }}></Text>
+          <Text style={{ width: 50, fontWeight: 'bold' }}></Text>
         </View>
 
         {specialistSearch.map((specialist, index) => (
           <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10, borderWidth: 1, borderColor: '#ddd' }}>
-            <Text style={{ flex: 1 }}>{specialist.email}</Text>
-            <Text style={{ flex: 1}}>{specialist.firstName} {specialist.lastName}</Text>
-            <Text style={{ flex: 1, marginRight: 5 }}>{specialist.specialisation}</Text>
+            <Text style={{ flex: 1 }} numberOfLines={2} ellipsizeMode="tail">{specialist.email}</Text>
+            <Text style={{ flex: 1 }} numberOfLines={2} ellipsizeMode="tail">{specialist.firstName} {specialist.lastName}</Text>
+            <Text style={{ flex: 1, marginRight: 5 }} numberOfLines={2} ellipsizeMode="tail">{specialist.specialisation}</Text>
             <Text style={{ width: 50 }}>{specialist.state}</Text>
             <TouchableOpacity style={{ width: 30}} onPress={() => openModal(specialist)}>
               <Ionicons name="eye-outline" size={24} color="black" />

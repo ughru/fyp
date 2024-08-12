@@ -18,13 +18,13 @@ import styles from '../components/styles';
 //import 'react-quill/dist/quill.snow.css';
 
 const showAlert = (title, message, onConfirm = () => {}) => {
-if (Platform.OS === 'web') {
-    if (window.confirm(`${title}\n${message}`)) {
-    onConfirm();
-    } 
-} else {
-    Alert.alert(title, message, [{ text: 'OK', onPress: onConfirm  }], { cancelable: false });
-}
+    if (Platform.OS === 'web') {
+        if (window.confirm(`${title}\n${message}`)) {
+        onConfirm();
+        } 
+    } else {
+        Alert.alert(title, message, [{ text: 'OK', onPress: onConfirm  }], { cancelable: false });
+    }
 };
 
 const CreateResource = ({ navigation }) => {

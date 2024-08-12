@@ -13,9 +13,9 @@ const { width: screenWidth } = Dimensions.get('window');
 
 const showAlert = (title, message) => {
   if (Platform.OS === 'web') {
-      window.alert(`${message}`);
+      window.confirm(`${title}\n${message}`);
   } else {
-      Alert.alert(message);
+      Alert.alert(title, message);
   }
 };
 
@@ -200,7 +200,7 @@ const UserAppointments = ({ navigation }) => {
         });
   
         if (response.status === 200) {
-          showAlert('Appointment cancelled successfully.');
+          showAlert('Success', 'Appointment cancelled successfully.');
     
           // Update state to reflect cancellation
           setAppointments(prevAppointments =>
@@ -214,12 +214,13 @@ const UserAppointments = ({ navigation }) => {
             }))
           );
           setModalVisible(false);
+          fetchAppointments();
         } else {
-          showAlert('Failed to cancel appointment.');
+          showAlert('Error','Failed to cancel appointment.');
         }
       }
     } catch (error) {
-      showAlert('An error occurred while cancelling the appointment.');
+      showAlert('Error', 'An error occurred while cancelling the appointment.');
     }
   };  
   

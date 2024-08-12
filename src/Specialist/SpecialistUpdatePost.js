@@ -12,11 +12,13 @@ import { RichEditor, RichToolbar, actions } from 'react-native-pell-rich-editor'
 //import ReactQuill from 'react-quill';
 //import 'react-quill/dist/quill.snow.css';
 
-const showAlert = (title, message, onPress) => {
+const showAlert = (title, message, onConfirm = () => {}) => {
     if (Platform.OS === 'web') {
-        window.alert(`${title}\n${message}`);
+        if (window.confirm(`${title}\n${message}`)) {
+        onConfirm();
+        } 
     } else {
-        Alert.alert(title, message, [{ text: 'OK', onPress }], { cancelable: false });
+        Alert.alert(title, message, [{ text: 'OK', onPress: onConfirm  }], { cancelable: false });
     }
 };
 

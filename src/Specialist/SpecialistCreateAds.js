@@ -13,11 +13,13 @@ import RNPickerSelect from 'react-native-picker-select';
 // import own code
 import styles from '../components/styles';
 
-const showAlert = (title, message, onPress) => {
+const showAlert = (title, message, onConfirm = () => {}) => {
     if (Platform.OS === 'web') {
-        window.alert(`${title}\n${message}`);
+        if (window.confirm(`${title}\n${message}`)) {
+        onConfirm();
+        } 
     } else {
-        Alert.alert(title, message, [{ text: 'OK', onPress }], { cancelable: false });
+        Alert.alert(title, message, [{ text: 'OK', onPress: onConfirm  }], { cancelable: false });
     }
 };
 
