@@ -86,17 +86,6 @@ const RegisterSpecialist = ({ navigation }) => {
 
     const finalSpecialisation = specialisation || customSpecialisation.trim();
 
-    const userData = {
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      contact: contact,
-      uen: uen.trim(),
-      specialisation: finalSpecialisation,
-      email: email.trim(),
-      password,
-      state: "suspended",
-    };
-
     try {
       // Handle Name Errors
       if (!firstName.trim()) {
@@ -166,14 +155,15 @@ const RegisterSpecialist = ({ navigation }) => {
         ‘Tyy’ / ‘Syy’ / ‘yyyy’= year of issuance 
         ‘X’ = a check alphabet
       */
+      const validUEN =
+      /^[0-9]{8}[A-Za-z]$/.test(uen) ||
+      /^((19|20)[0-9]{2})[0-9]{5}[A-Za-z]$/.test(uen) ||
+      /^[TS]\d{2}(CM|CD|MD|HS|VH|CH|MH|CL|XL|CX|HC)\d{4}[A-Za-z]$/.test(uen);
+
       if (!uen.trim()) {
         setError4('* Required field');
         valid = false;
-      } else if (
-        !/^[0-9]{8}[A-Za-z]$/.test(uen) &&
-        !/^[A-Za-z]{4}[0-9]{5}[A-Za-z]$/.test(uen) &&
-        !/^([TS]\d{2})[A-Za-z][A-Za-z0-9]\d{4}[A-Za-z]$/.test(uen)
-      ) {
+      } else if (!validUEN) {
         setError4('* Invalid UEN');
         valid = false;
       } else {
@@ -183,6 +173,9 @@ const RegisterSpecialist = ({ navigation }) => {
       // Handle specialisation error
       if (!finalSpecialisation.trim()) {
         setError5('* Required field');
+        valid = false;
+      } else if (finalSpecialisation[0] !== finalSpecialisation[0].toUpperCase()) {
+        setError5('* First letter must be uppercase');
         valid = false;
       } else if (!/^[a-zA-Z\ ]+$/.test(finalSpecialisation)) {
         setError5('* Invalid format');
@@ -222,6 +215,17 @@ const RegisterSpecialist = ({ navigation }) => {
         }
       }
 
+      const userData = {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        contact: contact,
+        uen: uen.trim(),
+        specialisation: finalSpecialisation,
+        email: email.trim(),
+        password,
+        state: "suspended",
+      };
+
       if (valid) {
         try {
           await auth.createUserWithEmailAndPassword(email, password);
@@ -234,7 +238,10 @@ const RegisterSpecialist = ({ navigation }) => {
             setError3('* Specialist already exists');
           }
 
-          await axios.post(`${url}/saveSpecialisation`, { specialisationName: customSpecialisation });
+          if(customSpecialisation)
+          {
+            await axios.post(`${url}/saveSpecialisation`, { specialisationName: customSpecialisation });
+          }
 
           navigation.navigate("Login", { origin: 'RegisterSpecialist' });
         } catch (authError) {

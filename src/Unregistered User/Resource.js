@@ -33,10 +33,13 @@ const Resource = ({ navigation }) => {
         AsyncStorage.getItem('selectedStatus'),
         AsyncStorage.getItem('userSelections')
       ]);
+
+      const parsedStatus = storedStatus !== null ? storedStatus : 'Pre';
+
       setCategories(categoriesResponse.data);
       setResources(resourcesResponse.data.resources);
-      setSelectedStatus(storedStatus);
-
+      setSelectedStatus(parsedStatus);
+      
       // Fetch user selections based on q4
       if (userSelections) {
         const selections = JSON.parse(userSelections);
@@ -51,7 +54,8 @@ const Resource = ({ navigation }) => {
             ...categoriesResponse.data.filter(category => !selectedCategories.includes(category) && category.categoryName !== "All")
           ];
           setOrderedCategories(ordered);
-        } else {
+        } 
+        else {
           // Order categories alphabetically starting with All
           const ordered = [
             { categoryName: "All" },
@@ -111,7 +115,7 @@ const Resource = ({ navigation }) => {
   const toggleModal = () => {
     setModalVisible(!isModalVisible);
   };
-
+  
   const filteredResources = resources.filter(resource => {
     const activeCategory = orderedCategories[activeIndex]?.categoryName;
     const matchesCategory = activeCategory === "All" || resource.category === activeCategory;

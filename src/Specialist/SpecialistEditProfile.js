@@ -106,14 +106,15 @@ const SpecialistEditProfile = ({ navigation }) => {
             ‘Tyy’ / ‘Syy’ / ‘yyyy’= year of issuance 
             ‘X’ = a check alphabet
         */
+        const validUEN =
+        /^[0-9]{8}[A-Za-z]$/.test(userInfo.uen) ||
+        /^((19|20)[0-9]{2})[0-9]{5}[A-Za-z]$/.test(userInfo.uen) ||
+        /^[TS]\d{2}(CM|CD|MD|HS|VH|CH|MH|CL|XL|CX|HC)\d{4}[A-Za-z]$/.test(userInfo.uen);
+
         if (!userInfo.uen.trim()) {
             setError4('* Required field');
             valid = false;
-        } else if (
-            !/^[0-9]{8}[A-Za-z]$/.test(userInfo.uen) &&
-            !/^[A-Za-z]{4}[0-9]{5}[A-Za-z]$/.test(userInfo.uen) &&
-            !/^([TS]\d{2})[A-Za-z][A-Za-z0-9]\d{4}[A-Za-z]$/.test(userInfo.uen)
-        ) {
+        } else if (!validUEN) {
             setError4('* Invalid UEN');
             valid = false;
         } else {

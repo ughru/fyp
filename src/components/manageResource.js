@@ -37,12 +37,6 @@ export const fetchResources = async () => {
     // Fetch user selections
     const userSelections = await fetchUserSelections();
 
-    // Filter resources based on user selections if q4 exists
-    if (userSelections && userSelections.q4) {
-      const selectedCategories = userSelections.q4;
-      resources = resources.filter(resource => selectedCategories.includes(resource.category));
-    }
-
     // Further filter resources based on userSelections.q3 status
     if (userSelections && userSelections.q3) {
       const statusFilter = userSelections.q3;
@@ -53,8 +47,9 @@ export const fetchResources = async () => {
     let finalResources = [];
 
     if (userSelections && userSelections.q4) {
-      // Display all filtered resources if <= 10
-      finalResources = filterResources(resources);
+      const selectedCategories = userSelections.q4;
+      resources = resources.filter(resource => selectedCategories.includes(resource.category));
+      finalResources = getRandomSample(resources, 10);
     } else {
       // Filter out resources under 'Pregnancy Summary' and then get a random sample of 10 resources
       const filteredResources = filterResources(resources);

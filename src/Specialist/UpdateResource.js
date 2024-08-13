@@ -17,13 +17,13 @@ import styles from '../components/styles';
 //import ReactQuill from 'react-quill';
 //import 'react-quill/dist/quill.snow.css';
 
-const showAlert = (title, message, onPress) => {
+const showAlert = (title, message, onConfirm = () => {}) => {
     if (Platform.OS === 'web') {
-        window.alert(`${title}\n${message}`);
+        if (window.confirm(`${title}\n${message}`)) {
+        onConfirm();
+        } 
     } else {
-        Alert.alert(title, message, [{ text: 'OK', onPress }], {
-            cancelable: false
-        });
+        Alert.alert(title, message, [{ text: 'OK', onPress: onConfirm  }], { cancelable: false });
     }
 };
 
@@ -196,18 +196,10 @@ const UpdateResource = ({ navigation, route }) => {
                     // Delete the old image
                     await oldStorageRef.delete();
                 }
-                else {
-                    const response = await fetch(imageUri);
-                    const blob = await response.blob();
-                    const filename = `${title}.${blob.type.split('/')[1]}`;
-                    const storageRef = storage.ref().child(`resource/${filename}`);
-                    await storageRef.put(blob);
-                    imageUrl = await storageRef.getDownloadURL();
-                }
     
                 const resourceData = {
                     resourceID,
-                    title,
+                    title: title,
                     category: selectedCategory,
                     status: selectedStatuses,
                     weekNumber,
@@ -218,15 +210,11 @@ const UpdateResource = ({ navigation, route }) => {
                 };
     
                 await axios.put(`${url}/updateresource`, resourceData);
-    
-                const title = 'Success';
-                const message = 'Resource successfully updated!';
+
                 // Alert success and navigate back
                 showAlert('Success', 'Resource successfully updated!', () => navigation.goBack());
             } catch (error) {
                 console.error('Resource update error:', error);
-                const title = 'Failure';
-                const message = 'Resource was not updated!';
     
                 // Alert failure
                 showAlert('Failure', 'Resource was not updated!', () => navigation.goBack());
