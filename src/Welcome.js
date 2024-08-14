@@ -32,6 +32,11 @@ const Welcome = ({ navigation }) => {
         <Text style={styles.text}>Get Started</Text>
       </Pressable>
 
+      <Text style= {[styles.text, {alignSelf: 'center'}]}> Or </Text>
+      <Pressable style={[styles.button, {alignSelf: 'center'}]} onPress={() => navigation.navigate("Login")}>
+        <Text style={styles.text}>Login</Text>
+      </Pressable>
+
       <Pressable style={[styles.formText, { marginBottom: 20, alignSelf: 'center' }]} onPress={() => navigation.navigate("RegisterSpecialist", { origin: 'RegisterSpecialist' })}>
         <Text style= {styles.text}>Joining as a <Text style= {[styles.text, {fontWeight: 'bold'}]}>SPECIALIST</Text>? <Text style={styles.buttonText}>Sign up</Text></Text>
       </Pressable>

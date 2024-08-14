@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, TouchableHighlight, Modal, Pressable, Image, Platform, Alert } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, TouchableHighlight, Modal, Pressable, Image, Platform, Alert, ActivityIndicator } from 'react-native';
 import { Feather, Entypo, AntDesign, MaterialIcons } from '@expo/vector-icons';
 import axios from 'axios';
 import RNPickerSelect from 'react-native-picker-select';
@@ -55,28 +55,32 @@ const SpecialistForum = ({ navigation }) => {
   const [isCommentDropdownVisible, setCommentDropdownVisible] = useState(false);
   const [selectedComment, setSelectedComment] = useState(null);
   const [inputHeight, setInputHeight] = useState({});
+  const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
-      try {
-          const forumPostsResponse = await axios.get(`${url}/getForumPosts`);
+    setLoading(true);
+    try {
+        const forumPostsResponse = await axios.get(`${url}/getForumPosts`);
 
-          if (forumPostsResponse.data.status === 'ok') {
-              const posts = forumPostsResponse.data.forumPosts;
-              setForumPosts(posts);
-          } else {
-              console.error('Error fetching forum posts:', forumPostsResponse.data.error);
-          }
+        if (forumPostsResponse.data.status === 'ok') {
+            const posts = forumPostsResponse.data.forumPosts;
+            setForumPosts(posts);
+        } else {
+            console.error('Error fetching forum posts:', forumPostsResponse.data.error);
+        }
 
-          // Retrieve user's email from AsyncStorage
-          const storedEmail = await AsyncStorage.getItem('user');
-          if (storedEmail) {
-              setEmail(storedEmail);
-          } else {
-              console.error('Error: User email not found in AsyncStorage.');
-          }
-      } catch (error) {
-          console.error('Error fetching forum posts:', error);
-      }
+        // Retrieve user's email from AsyncStorage
+        const storedEmail = await AsyncStorage.getItem('user');
+        if (storedEmail) {
+            setEmail(storedEmail);
+        } else {
+            console.error('Error: User email not found in AsyncStorage.');
+        }
+    } catch (error) {
+        console.error('Error fetching forum posts:', error);
+    } finally {
+      setLoading(false); 
+    }
   }, []);
 
   useEffect(() => {
@@ -90,6 +94,7 @@ const SpecialistForum = ({ navigation }) => {
   );
 
   const fetchComments = async (postID) => {
+    setLoading(true);
       try {
           const response = await axios.get(`${url}/getComments`, { params: { postID } });
           if (response.data.status === 'ok') {
@@ -103,6 +108,8 @@ const SpecialistForum = ({ navigation }) => {
           }
       } catch (error) {
           console.error('Error fetching comments:', error);
+      } finally {
+        setLoading(false); 
       }
   };
 
@@ -327,7 +334,13 @@ const SpecialistForum = ({ navigation }) => {
 
     {/* Posts + comments */}
     <View style={[styles.container3, {paddingHorizontal: 20}]}>
-    {sortedPosts.map((post, index) => {
+    {loading ? (
+    <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+      <Text>Loading posts...</Text>
+      <ActivityIndicator size="large" color="#E3C2D7" />
+    </View>
+    ) : (
+    sortedPosts.map((post, index) => {
     if (post.category === "Ask Specialist") {
       return (
       <View key={index} style={styles.forumPostContainer}>
@@ -445,7 +458,7 @@ const SpecialistForum = ({ navigation }) => {
       );
     }
       return null;
-    })}
+    }))}
     </View>
 
     {/* Comment Modal */}

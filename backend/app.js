@@ -1221,7 +1221,7 @@ app.put('/updatePeriodLog', async (req, res) => {
 //get all admin event ads (to display)
 app.get('/getAdminEventAds', async (req, res) => {
   try {
-    const ads = await AdminAd.find({ type: 'Events' }).limit(5).exec();
+    const ads = await AdminAd.find();
     res.json({ status: 'ok', adminAds: ads });
   } catch (error) {
     res.status(500).json({ status: 'error', error: error.message });
@@ -1426,10 +1426,27 @@ app.post('/saveAppointment', async (req, res) => {
   try {
       const { date, userEmail, specialistEmail, appointmentDetails } = req.body;
 
-      // Find the existing appointment record for the given user, specialist, and month
+      // Find the existing appointment record for the given user, specialist, and date
       let appointmentRecord = await Appointment.findOne({ userEmail, specialistEmail, date });
 
-      if (!appointmentRecord) {
+      if (appointmentRecord) {
+          // Check if there's a detail with the same date and time
+          const detailIndex = appointmentRecord.details.findIndex(detail =>
+              detail.date === appointmentDetails.date && detail.time === appointmentDetails.time
+          );
+
+          if (detailIndex > -1) {
+              // If detail exists and status is 'Cancelled', update its status to 'Upcoming'
+              if (appointmentRecord.details[detailIndex].status === 'Cancelled') {
+                  appointmentRecord.details[detailIndex].status = 'Upcoming';
+                  appointmentRecord.details[detailIndex].userComments = appointmentDetails.userComments; // Update comments if needed
+                  appointmentRecord.details[detailIndex].specialistNotes = appointmentDetails.specialistNotes; // Update specialist notes if needed
+              }
+          } else {
+              // If detail doesn't exist, add the new appointment details
+              appointmentRecord.details.push(appointmentDetails);
+          }
+      } else {
           // If no record exists, create a new one
           const apptID = await Appointment.countDocuments() + 1;
 
@@ -1438,12 +1455,9 @@ app.post('/saveAppointment', async (req, res) => {
               date,
               userEmail,
               specialistEmail,
-              details: []
+              details: [appointmentDetails]
           });
       }
-
-      // Add the new appointment details to the details array
-      appointmentRecord.details.push(appointmentDetails);
 
       // Save the appointment record
       await appointmentRecord.save();

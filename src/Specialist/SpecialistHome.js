@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, Pressable, ScrollView, Platform, Image } from 'react-native';
+import { View, Text, Pressable, ScrollView, Platform, Image, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -20,8 +20,10 @@ const SpecialistHome = ({ navigation }) => {
   const [image, setImageUrl] = useState(null); // 404 not found display
   const [appointments, setAppointments] = useState([]);
   const [userDetails, setUserDetails] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchSpecialistInfo = useCallback(async () => {
+    setLoading(true);
     try {
       const storedEmail = await AsyncStorage.getItem('user');
       if (storedEmail) {
@@ -32,10 +34,13 @@ const SpecialistHome = ({ navigation }) => {
       }
     } catch (error) {
       console.error('Error fetching user info:', error);
+    } finally {
+      setLoading(false); 
     }
   }, []);
 
   const fetchAppointments = useCallback(async () => {
+    setLoading(true);
     try {
       if (specialistInfo.email) {
         // Fetch appointments from the API
@@ -77,6 +82,8 @@ const SpecialistHome = ({ navigation }) => {
       }
     } catch (error) {
       console.error('Error fetching appointments:', error);
+    } finally {
+      setLoading(false); 
     }
   }, [specialistInfo.email]);  
 
@@ -112,21 +119,24 @@ const SpecialistHome = ({ navigation }) => {
   };
 
   const sortAppointments = (appointments) => {
-    // Sort appointments by their date (Month YYYY)
-    const sortedAppointmentsByMonth = appointments.sort((a, b) => 
-      moment(a.date, 'MMMM YYYY').diff(moment(b.date, 'MMMM YYYY'))
-    );
-  
-    // Sort details within each appointment by date (YYYY-MM-DD)
-    const sortedAppointments = sortedAppointmentsByMonth.map(appointment => ({
+    // Sort details within each appointment by date and time
+    const sortedAppointments = appointments.map(appointment => ({
       ...appointment,
       details: appointment.details.sort((a, b) => 
-        moment(a.date, 'YYYY-MM-DD').diff(moment(b.date, 'YYYY-MM-DD'))
+        moment(`${a.date} ${a.time}`, 'YYYY-MM-DD HH:mm').diff(moment(`${b.date} ${b.time}`, 'YYYY-MM-DD HH:mm'))
       )
     }));
-  
-    return sortedAppointments;
-  };
+    
+    // Sort appointments by the earliest date and time in details
+    const sortedAppointmentsByDateAndTime = sortedAppointments.sort((a, b) => {
+      // Use the earliest date and time from the details of each appointment
+      const dateTimeA = moment(`${a.details[0].date} ${a.details[0].time}`, 'YYYY-MM-DD HH:mm');
+      const dateTimeB = moment(`${b.details[0].date} ${b.details[0].time}`, 'YYYY-MM-DD HH:mm');
+      return dateTimeA.diff(dateTimeB);
+    });
+    
+    return sortedAppointmentsByDateAndTime;
+  };  
  
   // Page Displays
   return (
@@ -151,7 +161,12 @@ const SpecialistHome = ({ navigation }) => {
         </Pressable>
       </View>
 
-      {appointments.length === 0 ? (
+      {loading ? (
+      <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+        <Text>Loading posts...</Text>
+        <ActivityIndicator size="large" color="#E3C2D7" />
+      </View>
+      ) : appointments.length === 0 ? (
         <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20, marginBottom: 40 }}>
           {image && <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />}
           <Text style={[styles.formText, { fontStyle: 'italic' }]}> Oops! Nothing here yet </Text>

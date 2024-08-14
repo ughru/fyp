@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { View, Text, Pressable, ScrollView, TouchableOpacity, Platform, StyleSheet, Image } from 'react-native';
+import { View, Text, Pressable, ScrollView, TouchableOpacity, Platform, StyleSheet, Image, ActivityIndicator } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -30,8 +30,10 @@ const UserPostHome = ({ navigation }) => {
   const [specialistDetails, setSpecialistDetails] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const scrollRef = useRef(null);
+  const [loading, setLoading] = useState(true);
 
   const fetchUserInfo = useCallback(async () => {
+    setLoading(true);
     try {
       const storedEmail = await AsyncStorage.getItem('user');
       if (storedEmail) {
@@ -42,10 +44,13 @@ const UserPostHome = ({ navigation }) => {
       }
     } catch (error) {
       console.error('Error fetching user info:', error);
+    } finally {
+      setLoading(false); 
     }
   }, []);
 
   const fetchAppointments = useCallback(async () => {
+    setLoading(true);
     try {
       if (userInfo.email) {
         // Fetch appointments from the API
@@ -101,6 +106,8 @@ const UserPostHome = ({ navigation }) => {
       }
     } catch (error) {
       console.error('Error fetching appointments:', error);
+    } finally {
+      setLoading(false); 
     }
   }, [userInfo.email]);
   
@@ -126,6 +133,7 @@ const UserPostHome = ({ navigation }) => {
   };
 
   const fetchPersonalisationAndResources = useCallback(async () => {
+    setLoading(true);
     try {
       // Fetch user email
       const storedEmail = await AsyncStorage.getItem('user');
@@ -190,10 +198,13 @@ const UserPostHome = ({ navigation }) => {
   
       // Set resources state
       setResources(resources);
+    } finally {
+      setLoading(false); 
     }
   }, [userInfo.status]);
 
   const dietRecos = useCallback(async () => {
+    setLoading(true);
     try {
       // Fetch the user email
       const storedEmail = await AsyncStorage.getItem('user');
@@ -241,6 +252,8 @@ const UserPostHome = ({ navigation }) => {
       // Shuffle and select 10 random resources
       const randomResources = shuffleArray(filteredResources).slice(0, 10);
       setDietReco(randomResources);
+    } finally {
+      setLoading(false); 
     }
   }, []);  
 
@@ -281,7 +294,12 @@ const UserPostHome = ({ navigation }) => {
 
       <View style={[styles.container4, { marginBottom: 20 }]}>
         <Text style={[styles.text, { marginBottom: 20 }]}>Upcoming Appointments</Text>
-        {appointments.length === 0 ? (
+        {loading ? (
+        <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+          <Text>Loading posts...</Text>
+          <ActivityIndicator size="large" color="#E3C2D7" />
+        </View>
+      ) : appointments.length === 0 ? (
           <View style={[{width: 320, height: 40, padding: 5, borderRadius: 20, backgroundColor: '#E3C2D7', marginBottom: 20}]}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <View style = {[{marginLeft: 20, marginRight: 20}]}>
@@ -329,6 +347,12 @@ const UserPostHome = ({ navigation }) => {
       {dietReco.length > 0 && (
       <View style = {[styles.container4]}>
       <Text style={[styles.titleNote, { marginBottom: 20 }]}>Diet Recommendations For You</Text>
+        {loading ? (
+          <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+            <Text>Loading posts...</Text>
+            <ActivityIndicator size="large" color="#E3C2D7" />
+          </View>
+        ) : (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
           {dietReco.map((reco, index) => (
             <View key={index} style={{ marginBottom: 20 }}>
@@ -346,12 +370,19 @@ const UserPostHome = ({ navigation }) => {
             </View>
           ))}
         </ScrollView>
+        )}
       </View>
       )}
 
       {/* Dynamically get 10 recommended resources */}
       <View style = {[styles.container4]}>
         <Text style={[styles.titleNote, { marginBottom: 20 }]}>Suggested for you</Text>
+        {loading ? (
+          <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+            <Text>Loading posts...</Text>
+            <ActivityIndicator size="large" color="#E3C2D7" />
+          </View>
+        ) : (
         <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
           {resources.map(
@@ -377,6 +408,7 @@ const UserPostHome = ({ navigation }) => {
             )
           )}
         </ScrollView>
+        )}
       </View>
 
       <Pressable style={[styles.button, { alignSelf: 'center' }]} onPress={() => navigation.navigate("Resources")}>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Dimensions, Platform, StyleSheet, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Dimensions, Platform, StyleSheet, Image, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 import styles from '../components/styles';
 import { Feather, Ionicons } from '@expo/vector-icons';
@@ -24,8 +24,10 @@ const Resource = ({ navigation }) => {
   const [image, setImageUrl] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState(null);
   const [orderedCategories, setOrderedCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
+    setLoading(true);
     try {
       const [categoriesResponse, resourcesResponse, storedStatus, userSelections] = await Promise.all([
         axios.get(`${url}/categories`),
@@ -73,6 +75,8 @@ const Resource = ({ navigation }) => {
       }
     } catch (error) {
       console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false); 
     }
   }, []);
 
@@ -115,6 +119,16 @@ const Resource = ({ navigation }) => {
   const toggleModal = () => {
     setModalVisible(!isModalVisible);
   };
+
+  const extractWeekNumber = (title) => {
+    const match = title.match(/Week (\d+)(?:-(\d+))?/);
+    if (match) {
+      const start = parseInt(match[1], 10);
+      const end = match[2] ? parseInt(match[2], 10) : start;
+      return { start, end };
+    }
+    return { start: 0, end: 0 };
+  };
   
   const filteredResources = resources.filter(resource => {
     const activeCategory = orderedCategories[activeIndex]?.categoryName;
@@ -129,6 +143,19 @@ const Resource = ({ navigation }) => {
     } else {
       return matchesCategory && matchesSearch && matchesUserStatus && resource.category !== "Pregnancy Summary";
     }
+  })
+  .sort((a, b) => {
+    if (a.category === "Pregnancy Summary" && b.category === "Pregnancy Summary") {
+      const weekA = extractWeekNumber(a.title);
+      const weekB = extractWeekNumber(b.title);
+
+      // Sorting by start week, and if equal, sort by end week
+      if (weekA.start === weekB.start) {
+        return weekA.end - weekB.end;
+      }
+      return weekA.start - weekB.start;
+    }
+    return 0; // Maintain original order for non-Pregnancy Summary resources
   });
 
   const filteredCategories = selectedStatus === "During" ? orderedCategories : orderedCategories.filter(category => category.categoryName !== "Pregnancy Summary");
@@ -178,6 +205,12 @@ const Resource = ({ navigation }) => {
 
         {/* Resources */}
         <View style={[{ marginLeft: 20}, Platform.OS==="web"?{ width: screenWidth * 0.9}:{width:'100%'}]}>
+        {loading ? (
+        <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+          <Text>Loading posts...</Text>
+          <ActivityIndicator size="large" color="#E3C2D7" />
+        </View>
+        ) : (
           <ScrollView style={styles.container3}
             contentContainerStyle={Platform.OS==="web"? styles.resourceContainerWeb : styles.resourceContainerMobile}>
             {filteredResources.length > 0 ? filteredResources.map((resource, index) => {
@@ -207,6 +240,7 @@ const Resource = ({ navigation }) => {
               </View>
             )}
           </ScrollView>
+        )}
         </View>
 
         <ModalStyle  isVisible={isModalVisible} onClose={toggleModal} navigation={navigation} />

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { View, Text, ActivityIndicator } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -16,6 +17,7 @@ const Tab = createBottomTabNavigator();
 // Page Display
 export default function HomePage() {
   const [selectedStatus, setSelectedStatus] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Retrieve selected status from AsyncStorage
@@ -27,11 +29,22 @@ export default function HomePage() {
         }
       } catch (error) {
         console.error('Error retrieving selected status:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchSelectedStatus();
   }, []);
+  
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Loading...</Text>
+        <ActivityIndicator size="large" color="#D39FC0" />
+      </View>
+    );
+  }
   
   // Navigate to Home screen based on pregnancy stage
   const getHomeScreen = () => {

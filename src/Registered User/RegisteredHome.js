@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { View, Text, ActivityIndicator } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -18,6 +19,7 @@ const Tab = createBottomTabNavigator();
 // Page Display
 export default function RegisteredHome() {
   const [selectedStatus, setSelectedStatus] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Retrieve user info from the database
@@ -32,12 +34,23 @@ export default function RegisteredHome() {
         }
       } catch (error) {
         console.error('Error retrieving user info:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchUserInfo();
   }, []);
   
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Loading...</Text>
+        <ActivityIndicator size="large" color="#D39FC0" />
+      </View>
+    );
+  }
+
   // Navigate to Home screen based on pregnancy stage
   const getHomeScreen = () => {
     if (selectedStatus === "Pre")

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, TouchableHighlight, Modal, Pressable, Image, Platform, Alert, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, TouchableHighlight, Modal, Pressable, Image, Platform, Alert, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
 import { Feather, Entypo, AntDesign, MaterialIcons } from '@expo/vector-icons';
 import axios from 'axios';
 import RNPickerSelect from 'react-native-picker-select';
@@ -59,8 +59,10 @@ const UserForum = ({ navigation }) => {
   const [inputHeight, setInputHeight] = useState({});
   const [adminAds, setAdminAds] = useState([]);
   const scrollRef = useRef(null);
+  const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
+    setLoading(true);
     try {
       const forumPostsResponse = await axios.get(`${url}/getForumPosts`);
 
@@ -80,6 +82,8 @@ const UserForum = ({ navigation }) => {
       }
     } catch (error) {
       console.error('Error fetching forum posts:', error);
+    } finally {
+      setLoading(false); 
     }
   }, []);    
 
@@ -95,6 +99,7 @@ const UserForum = ({ navigation }) => {
 
   useEffect(() => {
     const fetchImage = async () => {
+      setLoading(true);
       try {
         const response = await axios.get(`${url}/getAdminEventAds`);
         if (response.data.status === 'ok') {
@@ -106,6 +111,8 @@ const UserForum = ({ navigation }) => {
         }
       } catch (error) {
         console.error('Error fetching images:', error);
+      } finally {
+        setLoading(false); 
       }
     };
   
@@ -113,6 +120,7 @@ const UserForum = ({ navigation }) => {
   }, []);
 
   const fetchComments = async (postID) => {
+    setLoading(true);
     try {
       const response = await axios.get(`${url}/getComments`, { params: { postID } });
       if (response.data.status === 'ok') {
@@ -126,6 +134,8 @@ const UserForum = ({ navigation }) => {
       }
     } catch (error) {
       console.error('Error fetching comments:', error);
+    } finally {
+      setLoading(false); 
     }
   };
 
@@ -392,7 +402,13 @@ const UserForum = ({ navigation }) => {
 
     {/* Posts + comments */}
     <View style={[styles.container3, {paddingHorizontal: 20}]}>
-    {sortedPosts.map((post, index) => {
+    {loading ? (
+      <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+        <Text>Loading posts...</Text>
+        <ActivityIndicator size="large" color="#E3C2D7" />
+      </View>
+    ) : (
+    sortedPosts.map((post, index) => {
     if (post.category === activeButton) {
       return (
       <View key={index} style={styles.forumPostContainer}>
@@ -509,7 +525,7 @@ const UserForum = ({ navigation }) => {
       );
     }
       return null;
-    })}
+    }))}
     </View>
 
     {/* Comment Modal */}

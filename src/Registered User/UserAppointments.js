@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, Pressable, ScrollView, Image, Platform, TouchableOpacity, StyleSheet, Dimensions, TouchableHighlight, Alert, Modal } from 'react-native';
+import { View, Text, Pressable, ScrollView, Image, Platform, TouchableOpacity, StyleSheet, Dimensions, TouchableHighlight, Alert, Modal, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../components/styles';
 import { storage } from '../../firebaseConfig';
@@ -31,8 +31,10 @@ const UserAppointments = ({ navigation }) => {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [specialistAds, setSpecialistAds] = useState([]);
   const scrollRef = useRef(null);
+  const [loading, setLoading] = useState(true);
 
   const fetchAppointments = useCallback(async () => {
+    setLoading(true);
     try {
       // Fetch appointments based on userEmail
       const response = await axios.get(`${url}/bookedAppt`, { params: { userEmail } });
@@ -73,11 +75,14 @@ const UserAppointments = ({ navigation }) => {
       setSpecialistDetails(detailsMap);
     } catch (error) {
       console.error('Error fetching appointments:', error);
+    } finally {
+      setLoading(false); 
     }
   }, [userEmail, activeButton]);  
 
   useEffect(() => {
     const fetchUserEmail = async () => {
+      setLoading(true);
       try {
         const storedEmail = await AsyncStorage.getItem('user');
         if (storedEmail) {
@@ -85,10 +90,13 @@ const UserAppointments = ({ navigation }) => {
         }
       } catch (error) {
         console.error('Error fetching user email:', error);
+      } finally {
+        setLoading(false); 
       }
     };
 
     const fetchImage = async () => {
+      setLoading(true);
       try {
         const response = await axios.get(`${url}/allSpecialistAds`);
         if (response.data.status === 'ok') {
@@ -100,15 +108,20 @@ const UserAppointments = ({ navigation }) => {
         }
       } catch (error) {
         console.error('Error fetching images:', error);
+      } finally {
+        setLoading(false); 
       }
     };
 
     const fetchErrorImage = async () => {
+      setLoading(true);
       try {
         const url = await storage.ref('miscellaneous/error.png').getDownloadURL();
         setImageUrl(url);
       } catch (error) {
         console.error('Error fetching image:', error);
+      } finally {
+        setLoading(false); 
       }
     };
 
@@ -133,21 +146,24 @@ const UserAppointments = ({ navigation }) => {
   };
 
   const sortAppointments = (appointments) => {
-    // Sort appointments by their date (Month YYYY)
-    const sortedAppointmentsByMonth = appointments.sort((a, b) => 
-      moment(a.date, 'MMMM YYYY').diff(moment(b.date, 'MMMM YYYY'))
-    );
-  
-    // Sort details within each appointment by date (YYYY-MM-DD)
-    const sortedAppointments = sortedAppointmentsByMonth.map(appointment => ({
+    // Sort details within each appointment by date and time
+    const sortedAppointments = appointments.map(appointment => ({
       ...appointment,
       details: appointment.details.sort((a, b) => 
-        moment(a.date, 'YYYY-MM-DD').diff(moment(b.date, 'YYYY-MM-DD'))
+        moment(`${a.date} ${a.time}`, 'YYYY-MM-DD HH:mm').diff(moment(`${b.date} ${b.time}`, 'YYYY-MM-DD HH:mm'))
       )
     }));
-  
-    return sortedAppointments;
-  };
+    
+    // Sort appointments by the earliest date and time in details
+    const sortedAppointmentsByDateAndTime = sortedAppointments.sort((a, b) => {
+      // Use the earliest date and time from the details of each appointment
+      const dateTimeA = moment(`${a.details[0].date} ${a.details[0].time}`, 'YYYY-MM-DD HH:mm');
+      const dateTimeB = moment(`${b.details[0].date} ${b.details[0].time}`, 'YYYY-MM-DD HH:mm');
+      return dateTimeA.diff(dateTimeB);
+    });
+    
+    return sortedAppointmentsByDateAndTime;
+  };  
   
   const handleMoreIconClick = (appointmentDetail) => {
     // Find the specialist email based on selected appointment
@@ -277,11 +293,16 @@ const UserAppointments = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {appointments.length === 0 ? (
-          <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20, marginBottom: 40 }}>
-            {image && <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />}
-            <Text style={[styles.formText, { fontStyle: 'italic' }]}> Oops! Nothing here yet </Text>
-          </View>
+        {loading ? (
+        <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+          <Text>Loading posts...</Text>
+          <ActivityIndicator size="large" color="#E3C2D7" />
+        </View>
+        ) : appointments.length === 0 ? (
+        <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20, marginBottom: 40 }}>
+          {image && <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />}
+          <Text style={[styles.formText, { fontStyle: 'italic' }]}>Oops! Nothing here yet</Text>
+        </View>
         ) : (
         <ScrollView contentContainerStyle={{ alignItems: 'center' }}>
           {appointments.map((appointment, index) => (
@@ -361,6 +382,9 @@ const UserAppointments = ({ navigation }) => {
             </View>
             {selectedAppointment && (
               <View>
+                <Text style={[styles.text, { marginBottom: 10 }]}>
+                  Specialist Name: {specialistDetails[selectedAppointment?.specialistEmail]?.firstName} {specialistDetails[selectedAppointment?.specialistEmail]?.lastName}
+                </Text>
                 <Text style={[styles.text, {marginBottom: 10}]}>Date: {formatDate(selectedAppointment.date)}</Text>
                 <Text style={[styles.text, {marginBottom: 10}]}>Time: {selectedAppointment.time}</Text>
                 {['Upcoming'].includes(selectedAppointment.status) && (

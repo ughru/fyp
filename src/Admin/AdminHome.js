@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback} from 'react';
-import { View, Text, Pressable, ScrollView, TouchableOpacity, Platform, TextInput, Alert, Modal, Image } from 'react-native';
+import { View, Text, Pressable, ScrollView, TouchableOpacity, Platform, TextInput, Alert, Modal, Image, ActivityIndicator } from 'react-native';
 import { Ionicons, MaterialIcons, FontAwesome5, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -44,8 +44,10 @@ const AdminHome = ({navigation}) => {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [filteredSpecialists, setFilteredSpecialists] = useState([]);
   const [imageUrl, setImageUrl] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const fetchAdminInfo = useCallback(async () => {
+    setLoading(true);
     try {
       const storedEmail = await AsyncStorage.getItem('user');
       if (storedEmail) {
@@ -57,10 +59,14 @@ const AdminHome = ({navigation}) => {
     } catch (error) {
       console.error('Error fetching user info:', error);
     }
+    finally {
+      setLoading(false); 
+    }
   }, []);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const usersResponse = await axios.get(`${url}/userinfo`);
         const specialistsResponse = await axios.get(`${url}/specialistinfo`);
@@ -69,6 +75,9 @@ const AdminHome = ({navigation}) => {
         setSpecialist(specialistsResponse.data.specialists || []);
       } catch (error) {
         console.error('Error retrieving data:', error);
+      }
+      finally {
+        setLoading(false); // Set loading to false after fetching data
       }
     };
 
@@ -91,11 +100,13 @@ const AdminHome = ({navigation}) => {
     fetchData();
     setCurrentDateFormatted();
     fetchImage();
+    handleCategoryButtonClick('All');
   }, [fetchAdminInfo]);
 
   useFocusEffect(
     useCallback(() => {
       fetchAdminInfo();
+      handleCategoryButtonClick('All');
     }, [fetchAdminInfo])
   );
 
@@ -190,6 +201,15 @@ const AdminHome = ({navigation}) => {
   };  
 
   const renderAll = () => {
+    if (loading) {
+      return (
+        <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+          <Text>Loading...</Text>
+          <ActivityIndicator size="large" color="#E3C2D7" />
+        </View>
+      );
+    }
+
     const allData= search ? [...filteredUsers, ...filteredSpecialists] : [...users, ...specialists];
     if (allData.length > 0) {
     return(

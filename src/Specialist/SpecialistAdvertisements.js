@@ -1,7 +1,7 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { View, Text, Pressable, ScrollView, Platform, TouchableOpacity, Alert, Modal, Image } from 'react-native';
+import { View, Text, Pressable, ScrollView, Platform, TouchableOpacity, Alert, Modal, Image, ActivityIndicator } from 'react-native';
 import styles from '../components/styles';
 import { AntDesign, Feather, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
@@ -17,6 +17,7 @@ const SpecialistAdvertisements = ({navigation}) => {
   const [specialistInfo, setSpecialistInfo] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const showAlert = (title, message) => {
     if (Platform.OS === 'web') {
@@ -29,6 +30,7 @@ const SpecialistAdvertisements = ({navigation}) => {
   };
   
   const fetchSpecialistAds = async () => {
+    setLoading(true);
     try {
       const response = await axios.get(`${url}/getSpecialistAds`);
       if (response.data) {
@@ -47,10 +49,13 @@ const SpecialistAdvertisements = ({navigation}) => {
       }
     } catch (error) {
       console.error('Error fetching specialist ads:', error);
+    } finally {
+      setLoading(false); 
     }
   };
 
   const fetchSpecialistInfo = async (email) => {
+    setLoading(true);
     try {
       const response = await axios.get(`${url}/specialistinfo`, { params: { email } });
       if (response.data) {
@@ -61,20 +66,26 @@ const SpecialistAdvertisements = ({navigation}) => {
     } catch (error) {
       console.error('Error fetching specialist info:', error);
       return null;
+    } finally {
+      setLoading(false); 
     }
   };
 
   useEffect(() => {
     const fetchImage = async () => {
+      setLoading(true);
       try {
        const url = await storage.ref('miscellaneous/error.png').getDownloadURL();
         setImageUrl(url);
       } catch (error) {
         console.error('Error fetching image:', error);
+      } finally {
+        setLoading(false); 
       }
     };
 
     const fetchCategories = async () => {
+      setLoading(true);
       try {
         const response = await axios.get(`${url}/getAllAdCategories`);
         if (response.data) {
@@ -84,6 +95,8 @@ const SpecialistAdvertisements = ({navigation}) => {
         }
       } catch (error) {
         console.error('Error fetching categories:', error);
+      } finally {
+        setLoading(false); 
       }
     };
 
@@ -136,6 +149,15 @@ const SpecialistAdvertisements = ({navigation}) => {
   };
 
   const renderSpecialistAds = () => {
+    if (loading) {
+      return (
+        <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+          <Text>Loading...</Text>
+          <ActivityIndicator size="large" color="#E3C2D7" />
+        </View>
+      );
+    }
+    
     // Filter ads based on the selected category
     const filteredAds = selectedCategory === 'All'
       ? specialistAds

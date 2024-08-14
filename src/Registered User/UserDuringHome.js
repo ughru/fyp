@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { View, Text, Pressable, ScrollView, TouchableOpacity, Image, Platform, StyleSheet} from 'react-native';
+import { View, Text, Pressable, ScrollView, TouchableOpacity, Image, Platform, StyleSheet, ActivityIndicator} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -31,9 +31,11 @@ const UserDuringHome = ({navigation}) => {
   const [q3Option, setQ3Option] = useState('');
   const [conceptionWeek, setConceptionWeek] = useState('');
   const [personalisationData, setPersonalisationData] = useState([]);
-  const [selections, setSelections] = useState({});
+  const [selections, setSelections] = useState({}); 
+  const [loading, setLoading] = useState(true);
 
   const fetchUserInfo = useCallback(async () => {
+    setLoading(true);
     try {
       const storedEmail = await AsyncStorage.getItem('user');
       if (storedEmail) {
@@ -44,10 +46,13 @@ const UserDuringHome = ({navigation}) => {
       }
     } catch (error) {
       console.error('Error fetching user info:', error);
+    } finally {
+      setLoading(false); 
     }
   }, []);
 
   const fetchPersonalisationAndResources = useCallback(async () => {
+    setLoading(true);
     try {
       // Fetch user email
       const storedEmail = await AsyncStorage.getItem('user');
@@ -125,10 +130,13 @@ const UserDuringHome = ({navigation}) => {
   
       // Set resources state
       setResources(resources);
+    } finally {
+      setLoading(false); 
     }
   }, [userInfo.status]);
 
   const dietRecos = useCallback(async () => {
+    setLoading(true);
     try {
       // Fetch the user email
       const storedEmail = await AsyncStorage.getItem('user');
@@ -176,16 +184,21 @@ const UserDuringHome = ({navigation}) => {
       // Shuffle and select 10 random resources
       const randomResources = shuffleArray(filteredResources).slice(0, 10);
       setDietReco(randomResources);
+    } finally {
+      setLoading(false); 
     }
   }, []);  
 
   useEffect(() => {
     const fetchImage = async () => {
+      setLoading(true);
       try {
         const url = await firebase.storage().ref('miscellaneous/illustration.PNG').getDownloadURL();
         setImageUrl(url);
       } catch (error) {
         console.error('Error fetching image:', error);
+      } finally {
+        setLoading(false); 
       }
     };
 
@@ -249,6 +262,7 @@ const UserDuringHome = ({navigation}) => {
         <Text style={[styles.textTitle, { marginTop: 20 }]}>Welcome, {userInfo.firstName}!</Text>
     </View>
 
+    
     <View style={[styles.container4, { marginBottom: 20}]}>
     <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 20}}>
       {imageUrl && <Image source={{ uri: imageUrl }} style={{ width: 98, height: 120}} />}
@@ -296,6 +310,12 @@ const UserDuringHome = ({navigation}) => {
     {dietReco.length > 0 && (
       <View style = {[styles.container4]}>
       <Text style={[styles.titleNote, { marginBottom: 20 }]}>Diet Recommendations For You</Text>
+      {loading ? (
+      <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+        <Text>Loading...</Text>
+        <ActivityIndicator size="large" color="#E3C2D7" />
+      </View>
+      ) : (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
           {dietReco.map((reco, index) => (
             <View key={index} style={{ marginBottom: 20 }}>
@@ -313,12 +333,19 @@ const UserDuringHome = ({navigation}) => {
             </View>
           ))}
         </ScrollView>
+      )}
       </View>
       )}
 
     {/* Dynamically get 10 recommended resources */}
     <View style = {[styles.container4]}>
       <Text style={[styles.titleNote, { marginBottom: 20 }]}>Suggested for you</Text>
+      {loading ? (
+      <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+        <Text>Loading...</Text>
+        <ActivityIndicator size="large" color="#E3C2D7" />
+      </View>
+      ) : (
       <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
         {resources.map(
@@ -341,11 +368,10 @@ const UserDuringHome = ({navigation}) => {
               {resource.title} 
             </Text>
             </View>
-          )
-        )}
+          ))}
       </ScrollView>
+      )}
     </View>
-
 
     <Pressable style={[styles.button, { alignSelf: 'center' }]} onPress={() => navigation.navigate("Resources")}>
       <Text style={styles.text}>See more</Text>

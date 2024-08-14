@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, Pressable, ScrollView, Platform, Alert } from 'react-native';
+import { View, Text, Pressable, ScrollView, Platform, Alert, ActivityIndicator } from 'react-native';
 import styles from '../components/styles';
 import Keyboard from '../components/Keyboard';
 import { AntDesign } from '@expo/vector-icons';
@@ -20,6 +20,7 @@ const CycleHistory = ({ navigation, route }) => {
   const [periodLogs, setPeriodLogs] = useState([]);
   const [ovulationDates, setOvulationDates] = useState([]);
   const [selectedDate, setSelectedDate] = useState(route.params?.date || new Date().toISOString().split('T')[0]);
+  const [loading, setLoading] = useState(true);
 
   const showAlert = (title, message) => {
     if (Platform.OS === 'web') {
@@ -30,6 +31,7 @@ const CycleHistory = ({ navigation, route }) => {
   };
 
   const fetchData = useCallback(async () => {
+    setLoading(true);
     try {
       const storedEmail = await AsyncStorage.getItem('user');
       if (!storedEmail) {
@@ -72,6 +74,8 @@ const CycleHistory = ({ navigation, route }) => {
       }
     } catch (error) {
       console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false); 
     }
   }, [selectedMonth]);
 
@@ -93,6 +97,7 @@ const CycleHistory = ({ navigation, route }) => {
 
   // display last period date (the start)
   const findLastPeriod = async (periodLogs) => {
+    setLoading(true);
     try {
         // Get the current month from today's date
         const today = new Date();
@@ -141,11 +146,14 @@ const CycleHistory = ({ navigation, route }) => {
     } catch (error) {
         console.error('Error finding last period:', error);
         setLastPeriod('-');
+    } finally {
+      setLoading(false); 
     }
   };
 
   // display cycle length + predict next period + ovulation
   const calculateCycleLength = (periodLogs) => {
+    setLoading(true);
     try {
         let currentMonthFirstDate = '';
         let previousMonthFirstDate = '';
@@ -199,10 +207,13 @@ const CycleHistory = ({ navigation, route }) => {
         setCycleLength('-');
         setPredictedPeriod('-');
         setOvulationDates({});
+    } finally {
+      setLoading(false); 
     }
   };
 
   const calculateOvulationDates = (periodLogs) => {
+    setLoading(true);
     try {
         const today = new Date();
         const currentMonthFirstDate = new Date(today.getFullYear(), today.getMonth(), 1); // First date of the current month
@@ -267,6 +278,8 @@ const CycleHistory = ({ navigation, route }) => {
     } catch (error) {
         console.error('Error calculating ovulation dates:', error);
         setOvulationDates({});
+    } finally {
+      setLoading(false); 
     }
   };
 

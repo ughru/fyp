@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Dimensions, Platform, StyleSheet, Image, Modal, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Dimensions, Platform, StyleSheet, Image, Modal, Alert, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 import styles from '../components/styles';
 import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
@@ -37,8 +37,10 @@ const AdminResource = ({ navigation }) => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [categoryError, setError1] = useState('');
   const [image, setImageUrl] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
+    setLoading(true);
     try {
         const [categoriesResponse, resourcesResponse] = await Promise.all([
           axios.get(`${url}/categories`),
@@ -48,16 +50,21 @@ const AdminResource = ({ navigation }) => {
         setResources(resourcesResponse.data.resources);
     } catch (error) {
       console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false); 
     }
   }, []);
 
   useEffect(() => {
     const fetchImage = async () => {
+      setLoading(true);
       try {
         const url = await storage.ref('miscellaneous/error.png').getDownloadURL();
         setImageUrl(url);
       } catch (error) {
         console.error('Error fetching image:', error);
+      } finally {
+        setLoading(false); 
       }
     };
 
@@ -204,11 +211,34 @@ const AdminResource = ({ navigation }) => {
     }
   };
 
+  const extractWeekNumber = (title) => {
+    const match = title.match(/Week (\d+)(?:-(\d+))?/);
+    if (match) {
+      const start = parseInt(match[1], 10);
+      const end = match[2] ? parseInt(match[2], 10) : start;
+      return { start, end };
+    }
+    return { start: 0, end: 0 };
+  };
+  
   const filteredResources = resources.filter(resource => {
     const activeCategory = categories[activeIndex]?.categoryName;
     const matchesCategory = activeCategory === "All" || resource.category === activeCategory;
     const matchesSearch = resource.title.toLowerCase().includes(search.toLowerCase());
     return matchesCategory && matchesSearch;
+    })
+  .sort((a, b) => {
+    if (a.category === "Pregnancy Summary" && b.category === "Pregnancy Summary") {
+      const weekA = extractWeekNumber(a.title);
+      const weekB = extractWeekNumber(b.title);
+
+      // Sorting by start week, and if equal, sort by end week
+      if (weekA.start === weekB.start) {
+        return weekA.end - weekB.end;
+      }
+      return weekA.start - weekB.start;
+    }
+    return 0; // Maintain original order for non-Pregnancy Summary resources
   });
 
   // display all categories without "All"
@@ -228,14 +258,48 @@ const AdminResource = ({ navigation }) => {
       `Are you sure you want to delete the category "${categoryName}"?`,
       async () => {
         try {
+          const holderCategory = 'Uncategorized'; // Define your holder category name
+
+          // Check if the holder category exists
+          const holderCategoryExists = categories.some(category => category.categoryName === holderCategory);
+
+          // Create the holder category if it doesn't exist
+          if (!holderCategoryExists) {
+            await axios.post(`${url}/addCategory`, { categoryName: holderCategory });
+          }
+
+          // Filter resources under the category to be deleted
+          const resourcesToMove = resources.filter(resource => resource.category === categoryName);
+
+          // Update each resource's category
+          for (const resource of resourcesToMove) {
+            await axios.put(`${url}/updateresource`, {
+              resourceID: resource.resourceID,
+              title: resource.title,
+              category: holderCategory,
+              status: resource.status,
+              weekNumber: resource.weekNumber,
+              description: resource.description,
+              specialistName: resource.specialistName,
+              imageUrl: resource.imageUrl,
+              bmi: resource.bmi
+            });
+          }
+
           // Proceed with category deletion
           await axios.delete(`${url}/deleteCategory`, { data: { categoryName } });
-          
-          // Update state to remove the deleted category
+
+          // Update state to remove the deleted category and reflect moved resources
           setCategories(categories.filter(category => category.categoryName !== categoryName));
-          
+          setResources(resources.map(resource => 
+            resource.category === categoryName 
+              ? { ...resource, category: holderCategory } 
+              : resource
+          ));
+            
           // Show success message
           showAlert('Success', 'Category deleted successfully');
+          fetchData();
         } catch (error) {
           console.error('Error deleting category:', error);
           // Show error message
@@ -309,6 +373,12 @@ const AdminResource = ({ navigation }) => {
 
       {/* Resources */}
       <View style={[{ left: 20}, Platform.OS==="web"?{ width: screenWidth * 0.9}:{width:'100%'}]}>
+      {loading ? (
+        <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+          <Text>Loading...</Text>
+          <ActivityIndicator size="large" color="#E3C2D7" />
+        </View>
+      ) : (
           <ScrollView style={styles.container3}
           contentContainerStyle={Platform.OS==="web"? styles.resourceContainerWeb : styles.resourceContainerMobile}>
           {filteredResources.length > 0 ? filteredResources.map((resource, index) => {
@@ -345,6 +415,7 @@ const AdminResource = ({ navigation }) => {
               </View>
             )}
           </ScrollView>
+      )}
       </View>
 
       {/* Add Category Modal */}

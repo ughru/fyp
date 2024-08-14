@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, ScrollView, Dimensions, Platform } from 'react-native';
+import { View, Text, Pressable, ScrollView, Dimensions, Platform, ActivityIndicator } from 'react-native';
 import HTMLView from 'react-native-htmlview';
 import styles from '../components/styles';
 import { AntDesign } from '@expo/vector-icons';
@@ -12,10 +12,12 @@ const SpecialistResourceInfo = ({ navigation, route }) => {
     const { resourceID } = route.params;
     const [resource, setResource] = useState(null);
     const [topHeight, setTopHeight] = useState(0);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         // Fetch resource info from backend API
         const fetchResources = async () => {
+            setLoading(true);
             try {
                 const response = await axios.get(`${url}/resource`);
                 const resources = response.data.resources;
@@ -25,6 +27,8 @@ const SpecialistResourceInfo = ({ navigation, route }) => {
                 setResource(matchedResource);
             } catch (error) {
                 console.error('Error fetching resources:', error);
+            } finally {
+                setLoading(false); 
             }
         };
 
@@ -63,7 +67,13 @@ const SpecialistResourceInfo = ({ navigation, route }) => {
                 </View>
             </View>
            <View style={{...styles.container4 , padding:20}}>
-                {resource && (
+           {loading ? (
+            <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+                <Text>Loading posts...</Text>
+                <ActivityIndicator size="large" color="#E3C2D7" />
+            </View>
+            ) : (
+            resource && (
                     <View>
                         {/* Title */}
                         <Text style={[styles.pageTitle, { marginBottom: 20 }]}>{resource.title}</Text>
@@ -115,7 +125,7 @@ const SpecialistResourceInfo = ({ navigation, route }) => {
                             value={resource.description} />
                         </View>
                     </View>
-                )}
+                ))}
             </View>
         </ScrollView>
     );

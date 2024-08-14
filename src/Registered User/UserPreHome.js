@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { View, Text, Pressable, ScrollView, TouchableOpacity, Platform, StyleSheet, Image } from 'react-native';
+import { View, Text, Pressable, ScrollView, TouchableOpacity, Platform, StyleSheet, Image, ActivityIndicator } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -28,8 +28,10 @@ const UserPreHome = ({ navigation }) => {
   const [dietReco, setDietReco] = useState([]);
   const [personalisation, setPersonalisation] = useState(null);
   const scrollRef = useRef(null);
+  const [loading, setLoading] = useState(true);
 
   const fetchUserInfo = useCallback(async () => {
+    setLoading(true);
     try {
         const storedEmail = await AsyncStorage.getItem('user');
         if (storedEmail) {
@@ -39,10 +41,13 @@ const UserPreHome = ({ navigation }) => {
         }
         }
     } catch (error) {
+    } finally {
+      setLoading(false); 
     }
   }, []);
 
   const fetchPersonalisationAndResources = useCallback(async () => {
+    setLoading(true);
     try {
       // Fetch user email
       const storedEmail = await AsyncStorage.getItem('user');
@@ -108,10 +113,13 @@ const UserPreHome = ({ navigation }) => {
   
       // Set resources state
       setResources(resources);
+    } finally {
+      setLoading(false); 
     }
   }, [userInfo.status]);
 
   const dietRecos = useCallback(async () => {
+    setLoading(true);
     try {
       // Fetch the user email
       const storedEmail = await AsyncStorage.getItem('user');
@@ -159,6 +167,8 @@ const UserPreHome = ({ navigation }) => {
       // Shuffle and select 10 random resources
       const randomResources = shuffleArray(filteredResources).slice(0, 10);
       setDietReco(randomResources);
+    } finally {
+      setLoading(false); 
     }
   }, []);  
 
@@ -228,6 +238,12 @@ const UserPreHome = ({ navigation }) => {
       {dietReco.length > 0 && (
       <View style = {[styles.container4]}>
       <Text style={[styles.titleNote, { marginBottom: 20 }]}>Diet Recommendations For You</Text>
+      {loading ? (
+          <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+            <Text>Loading posts...</Text>
+            <ActivityIndicator size="large" color="#E3C2D7" />
+          </View>
+        ) : (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
           {dietReco.map((reco, index) => (
             <View key={index} style={{ marginBottom: 20 }}>
@@ -245,11 +261,18 @@ const UserPreHome = ({ navigation }) => {
             </View>
           ))}
         </ScrollView>
+        )}
       </View>
       )}
 
       <View style = {[styles.container4]}>
         <Text style={[styles.titleNote, { marginBottom: 20 }]}>Suggested for you</Text>
+        {loading ? (
+          <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+            <Text>Loading posts...</Text>
+            <ActivityIndicator size="large" color="#E3C2D7" />
+          </View>
+        ) : (
         <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
           {resources.map(
@@ -275,6 +298,7 @@ const UserPreHome = ({ navigation }) => {
             )
           )}
         </ScrollView>
+        )}
       </View>
 
       <Pressable style={[styles.button, { alignSelf: 'center' }]} onPress={() => navigation.navigate("Resources")}>

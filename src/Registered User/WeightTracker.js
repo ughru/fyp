@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, Pressable, ScrollView, Platform, Image, TouchableOpacity, Alert, Modal, TextInput, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, Platform, Image, TouchableOpacity, Alert, Modal, TextInput, StyleSheet, ActivityIndicator } from 'react-native';
 import styles from '../components/styles';
 import Keyboard from '../components/Keyboard';
 import { AntDesign, Feather, MaterialIcons } from '@expo/vector-icons';
@@ -35,8 +35,10 @@ const WeightTracker = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState([]);
   const [healthDetails, setHealthDetails] = useState([]);
   const scrollRef = useRef(null);
+  const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
+    setLoading(true);
     try {
       const [resourcesResponse] = await Promise.all([
         axios.get(`${url}/resource`)
@@ -63,10 +65,13 @@ const WeightTracker = ({ navigation }) => {
       setResources(selectedResources);
     } catch (error) {
       console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false); 
     }
   }, [healthDetails.bmi]);
 
   const fetchUserInfo = useCallback(async () => {
+    setLoading(true);
     try {
       const storedEmail = await AsyncStorage.getItem('user');
       if (storedEmail) {
@@ -115,15 +120,20 @@ const WeightTracker = ({ navigation }) => {
       }
     } catch (error) {
       console.error('Error fetching user info:', error);
+    } finally {
+      setLoading(false); 
     }
   }, []);
 
   const fetchImage = useCallback(async () => {
+    setLoading(true);
     try {
       const url = await storage.ref('miscellaneous/error.png').getDownloadURL();
       setErrorImage(url);
     } catch (error) {
       console.error('Error fetching image:', error);
+    } finally {
+      setLoading(false); 
     }
   }, []);
 
@@ -331,6 +341,12 @@ const WeightTracker = ({ navigation }) => {
 
           {/* Health Details View */}
           <Text style={[styles.questionText, { marginBottom: 20 }]}> Health Details </Text>
+          {loading ? (
+          <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+              <Text>Loading posts...</Text>
+              <ActivityIndicator size="large" color="#E3C2D7" />
+          </View>
+          ) : (
           <View style={[styles.container4, { alignItems: 'center' }]}>
             <View style={{ flexDirection: 'row', width: '100%', alignItems: 'center', marginBottom: 20 }}>
               <Text style={[styles.text3]}> Height: </Text>
@@ -349,6 +365,7 @@ const WeightTracker = ({ navigation }) => {
               <Text style={[styles.text, { color: getCategoryColor(healthDetails.category) }]}>{healthDetails.category}</Text>
             </View>
           </View>
+         )}
 
           {/* Button */}
           <Pressable style={[styles.button, { marginBottom: 20 }]} onPress={() => navigation.navigate('CreateWeightLog')}>
@@ -360,6 +377,12 @@ const WeightTracker = ({ navigation }) => {
         {hasValidWeightLogs && (
         <View style={[styles.container4]}>
           <Text style={[styles.questionText]}>Diet Recommendations</Text>
+          {loading ? (
+          <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+              <Text>Loading posts...</Text>
+              <ActivityIndicator size="large" color="#E3C2D7" />
+          </View>
+          ) : (
           <ScrollView
             ref={scrollRef}
             horizontal
@@ -385,6 +408,7 @@ const WeightTracker = ({ navigation }) => {
               </View>
             ))}
           </ScrollView>
+          )}
         </View>
         )}
 
@@ -407,7 +431,13 @@ const WeightTracker = ({ navigation }) => {
           </View>
 
           {/* Weight Logs */}
-          {weightLogs.length > 0 ? (
+          {loading ? (
+          <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+              <Text>Loading posts...</Text>
+              <ActivityIndicator size="large" color="#E3C2D7" />
+          </View>
+          ) : (
+          weightLogs.length > 0 ? (
             weightLogs.map((log) => (
               log.record.map((record, index) => (
                 <View key={`${log._id}-${index}`} style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10, borderBottomWidth: 1, borderBottomColor: '#E3C2D7' }}>
@@ -432,7 +462,7 @@ const WeightTracker = ({ navigation }) => {
               {image && <Image source={{ uri: image }} style={{ width: 200, height: 200, marginBottom: 20 }} />}
               <Text style={[styles.formText, { fontStyle: 'italic' }]}> Oops! Nothing here yet </Text>
             </View>
-          )}
+          ))}
         </View>
 
         <Modal

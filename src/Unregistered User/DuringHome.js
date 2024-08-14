@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, Pressable, ScrollView, TouchableOpacity, Image, Platform, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, TouchableOpacity, Image, Platform, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import styles from '../components/styles';
 import { fetchResources } from '../components/manageResource';
@@ -24,6 +24,7 @@ const DuringHome = ({ navigation }) => {
   const [q5Option, setQ5Option] = useState('');
   const [conceptionWeek, setConceptionWeek] = useState('');
   const [dietReco, setDietReco] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const date = new Date();
@@ -35,15 +36,19 @@ const DuringHome = ({ navigation }) => {
     };
 
     const fetchImage = async () => {
+      setLoading(true);
       try {
         const url = await storage.ref('miscellaneous/illustration.PNG').getDownloadURL();
         setImageUrl(url);
       } catch (error) {
         console.error('Error fetching image:', error);
+      } finally {
+        setLoading(false); 
       }
     };
 
     const fetchSelections = async () => {
+      setLoading(true);
       try {
         const storedSelections = await AsyncStorage.getItem('userSelections');
         if (storedSelections !== null) {
@@ -57,10 +62,13 @@ const DuringHome = ({ navigation }) => {
         }
       } catch (error) {
         console.error('Error retrieving personalisation response:', error);
+      } finally {
+        setLoading(false); 
       }
     };
 
     const dietRecos = async () => {
+      setLoading(true);
       try {
         // Fetch resources from the backend
         const response = await axios.get(`${url}/resource`);
@@ -119,6 +127,8 @@ const DuringHome = ({ navigation }) => {
       } catch (error) {
         console.error('Error fetching diet recommendations:', error);
         setDietReco([]);
+      } finally {
+        setLoading(false); 
       }
     };    
 
@@ -202,6 +212,12 @@ const DuringHome = ({ navigation }) => {
       {dietReco.length > 0 && (
       <View style = {[styles.container4]}>
       <Text style={[styles.titleNote, { marginBottom: 20 }]}>Diet Recommendations For You</Text>
+      {loading ? (
+      <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+        <Text>Loading posts...</Text>
+        <ActivityIndicator size="large" color="#E3C2D7" />
+      </View>
+      ) : (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
           {dietReco.map((reco, index) => (
             <View key={index} style={{ marginBottom: 20 }}>
@@ -219,11 +235,18 @@ const DuringHome = ({ navigation }) => {
             </View>
           ))}
         </ScrollView>
+      )}
       </View>
       )}
 
       <View style = {[styles.container4]}>
         <Text style={[styles.titleNote, { marginBottom: 20 }]}>Suggested for you</Text>
+        {loading ? (
+        <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+          <Text>Loading posts...</Text>
+          <ActivityIndicator size="large" color="#E3C2D7" />
+        </View>
+        ) : (
         <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
            contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
           {resources.map(
@@ -249,6 +272,7 @@ const DuringHome = ({ navigation }) => {
             )
           )}
         </ScrollView>
+        )}
       </View>
 
       <Pressable style={[styles.button, { alignSelf: 'center' }]} onPress={() => navigation.navigate("Resources")}>

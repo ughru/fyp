@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, ScrollView, TouchableOpacity, TouchableHighlight, Modal, Pressable, Platform, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TouchableHighlight, Modal, Pressable, Platform, Alert, ActivityIndicator } from 'react-native';
 import { Feather, Entypo, AntDesign, MaterialIcons } from '@expo/vector-icons';
 import axios from 'axios';
 import RNPickerSelect from 'react-native-picker-select';
@@ -51,8 +51,10 @@ const AdminForum = ({ navigation }) => {
     const [userEmail, setEmail] = useState('');
     const [isCommentDropdownVisible, setCommentDropdownVisible] = useState(false);
     const [selectedComment, setSelectedComment] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     const fetchData = useCallback(async () => {
+      setLoading(true);
       try {
         const forumPostsResponse = await axios.get(`${url}/getForumPosts`);
 
@@ -72,6 +74,8 @@ const AdminForum = ({ navigation }) => {
         }
       } catch (error) {
         console.error('Error fetching forum posts:', error);
+      } finally {
+        setLoading(false); 
       }
     }, []);    
 
@@ -99,7 +103,7 @@ const AdminForum = ({ navigation }) => {
       }
     } catch (error) {
       console.error('Error fetching comments:', error);
-    }
+    } 
   };
 
   const sortForumPosts = (posts, order) => {
@@ -161,67 +165,67 @@ const AdminForum = ({ navigation }) => {
         );
       }
     }
-};
+  };
 
-const toggleCommentDropdown = (comment , forumpost) => {
-  setSelectedComment(comment);
-  setSelectedPost(forumpost);
-  setCommentDropdownVisible(!isCommentDropdownVisible);
-};
+  const toggleCommentDropdown = (comment , forumpost) => {
+    setSelectedComment(comment);
+    setSelectedPost(forumpost);
+    setCommentDropdownVisible(!isCommentDropdownVisible);
+  };
 
-const handleCommentSelection = (action) => {
-  setCommentDropdownVisible(false);
-  if (action === 'delete') {
-    if (Platform.OS === 'web') {
-      if (window.confirm('Are you sure you want to delete this comment?')) {
-        deleteComment(selectedPost.postID, selectedComment._id);
-      }
-    } else {
-      Alert.alert(
-        'Deletion of Comment',
-        'Are you sure you want to delete this comment?',
-        [
-            { text: 'Cancel'},
-            { text: 'Delete', onPress: () => deleteComment(selectedPost.postID, selectedComment._id)}
-        ],
-        { cancelable: false }
-      );
-    }
-  } 
-};
-
-const deleteComment = async (postID, commentID) => {
-  try {
-    const response = await axios.delete(`${url}/deleteComment`, { params: { postID, commentID } });
-
-    if (response.data.status === 'ok') {
-      showAlert('Success', 'Comment deleted successfully');
-      // Remove the deleted comment from visibleComments state
-      setVisibleComments(prevState => ({
-        ...prevState,
-        [postID]: prevState[postID].filter(comment => comment._id !== commentID),
-      }));
-      setCommentDropdownVisible(false);
-      
-      setForumPosts(forumPosts.map(post => {
-        if (post.postID === postID) {
-          post.commentCount -= 1;
+  const handleCommentSelection = (action) => {
+    setCommentDropdownVisible(false);
+    if (action === 'delete') {
+      if (Platform.OS === 'web') {
+        if (window.confirm('Are you sure you want to delete this comment?')) {
+          deleteComment(selectedPost.postID, selectedComment._id);
         }
-        return post;
-      }))
-    } else {
-      console.error('Failed to delete comment:', response.data.error);
+      } else {
+        Alert.alert(
+          'Deletion of Comment',
+          'Are you sure you want to delete this comment?',
+          [
+              { text: 'Cancel'},
+              { text: 'Delete', onPress: () => deleteComment(selectedPost.postID, selectedComment._id)}
+          ],
+          { cancelable: false }
+        );
+      }
+    } 
+  };
+
+  const deleteComment = async (postID, commentID) => {
+    try {
+      const response = await axios.delete(`${url}/deleteComment`, { params: { postID, commentID } });
+
+      if (response.data.status === 'ok') {
+        showAlert('Success', 'Comment deleted successfully');
+        // Remove the deleted comment from visibleComments state
+        setVisibleComments(prevState => ({
+          ...prevState,
+          [postID]: prevState[postID].filter(comment => comment._id !== commentID),
+        }));
+        setCommentDropdownVisible(false);
+        
+        setForumPosts(forumPosts.map(post => {
+          if (post.postID === postID) {
+            post.commentCount -= 1;
+          }
+          return post;
+        }))
+      } else {
+        console.error('Failed to delete comment:', response.data.error);
+        showAlert('Error', 'Failed to delete comment');
+      }
+    } catch (error) {
+      console.error('Error deleting comment:', error);
       showAlert('Error', 'Failed to delete comment');
     }
-  } catch (error) {
-    console.error('Error deleting comment:', error);
-    showAlert('Error', 'Failed to delete comment');
-  }
-};
+  };
 
-const handleCategoryButtonClick = (category) => {
-  setActiveButton(category);
-};
+  const handleCategoryButtonClick = (category) => {
+    setActiveButton(category);
+  };
 
   return (
   <Keyboard>
@@ -277,7 +281,13 @@ const handleCategoryButtonClick = (category) => {
 
       {/* Posts + comments */}
       <View style={[styles.container3, {paddingHorizontal: 20}]}>
-      {sortedPosts.map((post, index) => {
+      {loading ? (
+          <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+            <Text>Loading posts...</Text>
+            <ActivityIndicator size="large" color="#E3C2D7" />
+          </View>
+        ) : (
+      sortedPosts.map((post, index) => {
       if (post.category === activeButton) {
         return (
         <View key={index} style={styles.forumPostContainer}>
@@ -356,7 +366,8 @@ const handleCategoryButtonClick = (category) => {
         );
       }
         return null;
-      })}
+      })
+      )}
       </View>
 
       {/* Comment Modal */}

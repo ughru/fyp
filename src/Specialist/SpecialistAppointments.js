@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, Pressable, ScrollView, TextInput, Image, Platform, TouchableOpacity, TouchableHighlight, Modal, Alert } from 'react-native';
+import { View, Text, Pressable, ScrollView, TextInput, Image, Platform, TouchableOpacity, TouchableHighlight, Modal, Alert, ActivityIndicator } from 'react-native';
 import styles from '../components/styles';
 import { storage } from '../../firebaseConfig';
 import { AntDesign, MaterialCommunityIcons, MaterialIcons, Entypo, Ionicons, Feather} from '@expo/vector-icons';
@@ -21,6 +21,7 @@ const SpecialistAppointments = ({navigation}) => {
   const [viewModalVisible, setViewModalVisible] = useState(false);
   const [noteInput, setNoteInput] = useState('');
   const [inputHeight, setInputHeight] = useState(30);
+  const [loading, setLoading] = useState(true);
 
   const showAlert = (title, message) => {
     if (Platform.OS === 'web') {
@@ -33,6 +34,7 @@ const SpecialistAppointments = ({navigation}) => {
   };
   
   const fetchAppointments = useCallback(async () => {
+    setLoading(true);
     try {
       if (!userEmail) return; // Early return if userEmail is not set
   
@@ -73,11 +75,14 @@ const SpecialistAppointments = ({navigation}) => {
       setUserDetails(detailsMap);
     } catch (error) {
       console.error('Error fetching appointments:', error);
+    } finally {
+      setLoading(false); 
     }
   }, [userEmail, activeButton]);
 
   useEffect(() => {
     const fetchUserEmail = async () => {
+      setLoading(true);
       try {
         const storedEmail = await AsyncStorage.getItem('user');
         if (storedEmail) {
@@ -85,15 +90,20 @@ const SpecialistAppointments = ({navigation}) => {
         }
       } catch (error) {
         console.error('Error fetching user email:', error);
+      } finally {
+        setLoading(false); 
       }
     };
 
     const fetchImage = async () => {
+      setLoading(true);
       try {
         const url = await storage.ref('miscellaneous/error.png').getDownloadURL();
         setImageUrl(url);
       } catch (error) {
         console.error('Error fetching image:', error);
+      } finally {
+        setLoading(false); 
       }
     };
 
@@ -117,21 +127,24 @@ const SpecialistAppointments = ({navigation}) => {
   };
 
   const sortAppointments = (appointments) => {
-    // Sort appointments by their date (Month YYYY)
-    const sortedAppointmentsByMonth = appointments.sort((a, b) => 
-      moment(a.date, 'MMMM YYYY').diff(moment(b.date, 'MMMM YYYY'))
-    );
-  
-    // Sort details within each appointment by date (YYYY-MM-DD)
-    const sortedAppointments = sortedAppointmentsByMonth.map(appointment => ({
+    // Sort details within each appointment by date and time
+    const sortedAppointments = appointments.map(appointment => ({
       ...appointment,
       details: appointment.details.sort((a, b) => 
-        moment(a.date, 'YYYY-MM-DD').diff(moment(b.date, 'YYYY-MM-DD'))
+        moment(`${a.date} ${a.time}`, 'YYYY-MM-DD HH:mm').diff(moment(`${b.date} ${b.time}`, 'YYYY-MM-DD HH:mm'))
       )
     }));
-  
-    return sortedAppointments;
-  };
+    
+    // Sort appointments by the earliest date and time in details
+    const sortedAppointmentsByDateAndTime = sortedAppointments.sort((a, b) => {
+      // Use the earliest date and time from the details of each appointment
+      const dateTimeA = moment(`${a.details[0].date} ${a.details[0].time}`, 'YYYY-MM-DD HH:mm');
+      const dateTimeB = moment(`${b.details[0].date} ${b.details[0].time}`, 'YYYY-MM-DD HH:mm');
+      return dateTimeA.diff(dateTimeB);
+    });
+    
+    return sortedAppointmentsByDateAndTime;
+  };  
 
   const handleMoreIconClick = (appointmentDetail) => {
     // Find the specialist email based on selected appointment
@@ -272,7 +285,12 @@ const SpecialistAppointments = ({navigation}) => {
         </View>
       </View>
 
-      {appointments.length === 0 ? (
+      {loading ? (
+        <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+          <Text>Loading posts...</Text>
+          <ActivityIndicator size="large" color="#E3C2D7" />
+        </View>
+        ) : appointments.length === 0 ? (
           <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20, marginBottom: 40 }}>
             {image && <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />}
             <Text style={[styles.formText, { fontStyle: 'italic' }]}> Oops! Nothing here yet </Text>
@@ -350,6 +368,9 @@ const SpecialistAppointments = ({navigation}) => {
             </View>
             {selectedAppointment && (
               <View>
+                <Text style={[styles.text, { marginBottom: 10 }]}>
+                  Patient Name: {userDetails[selectedAppointment.userEmail]?.firstName} {userDetails[selectedAppointment.userEmail]?.lastName}
+                </Text>
                 <Text style={[styles.text, {marginBottom: 10}]}>Date: {formatDate(selectedAppointment.date)}</Text>
                 <Text style={[styles.text, {marginBottom: 10}]}>Time: {selectedAppointment.time}</Text>
                 {['Upcoming'].includes(selectedAppointment.status) && (

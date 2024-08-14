@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, Pressable, ScrollView, TouchableOpacity, Platform, Image, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, TouchableOpacity, Platform, Image, StyleSheet, ActivityIndicator } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import styles from '../components/styles';
 import { fetchResources } from '../components/manageResource';
@@ -19,6 +19,7 @@ const PostHome = ({ navigation }) => {
   const scrollRef = useRef();
   const [isModalVisible, setModalVisible] = useState(false);
   const [dietReco, setDietReco] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const date = new Date();
@@ -30,6 +31,7 @@ const PostHome = ({ navigation }) => {
     };
 
     const dietRecos = async () => {
+      setLoading(true);
       try {
         // Fetch resources from the backend
         const response = await axios.get(`${url}/resource`);
@@ -88,6 +90,8 @@ const PostHome = ({ navigation }) => {
       } catch (error) {
         console.error('Error fetching diet recommendations:', error);
         setDietReco([]);
+      } finally {
+        setLoading(false); 
       }
     };    
 
@@ -131,6 +135,12 @@ const PostHome = ({ navigation }) => {
       {dietReco.length > 0 && (
       <View style = {[styles.container4]}>
       <Text style={[styles.titleNote, { marginBottom: 20 }]}>Diet Recommendations For You</Text>
+      {loading ? (
+        <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+          <Text>Loading posts...</Text>
+          <ActivityIndicator size="large" color="#E3C2D7" />
+        </View>
+        ) : (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
           {dietReco.map((reco, index) => (
             <View key={index} style={{ marginBottom: 20 }}>
@@ -148,11 +158,18 @@ const PostHome = ({ navigation }) => {
             </View>
           ))}
         </ScrollView>
+        )}
       </View>
       )}
 
       <View style = {[styles.container4]}>
         <Text style={[styles.titleNote, { marginBottom: 20 }]}>Suggested for you</Text>
+        {loading ? (
+        <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+          <Text>Loading posts...</Text>
+          <ActivityIndicator size="large" color="#E3C2D7" />
+        </View>
+        ) : (
         <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}
            contentContainerStyle={{ gap: 20, paddingVertical: 10 }}>
           {resources.map(
@@ -178,6 +195,7 @@ const PostHome = ({ navigation }) => {
             )
           )}
         </ScrollView>
+        )}
       </View>
 
       <Pressable style={[styles.button, { alignSelf: 'center' }]} onPress={() => navigation.navigate("Resources")}>

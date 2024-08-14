@@ -1,7 +1,7 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { View, Text, Pressable, ScrollView, Platform, TouchableOpacity, Alert, Modal, Image } from 'react-native';
+import { View, Text, Pressable, ScrollView, Platform, TouchableOpacity, Alert, Modal, Image, ActivityIndicator } from 'react-native';
 import styles from '../components/styles';
 import { AntDesign, Feather, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
@@ -38,8 +38,10 @@ const AdminAdvertisements = ({navigation}) => {
   const [selectedAd, setSelectedAd] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
   const [activeButton, setActiveButton] = useState('Events');
+  const [loading, setLoading] = useState(true);
 
   const fetchAdminAds = async () => {
+    setLoading(true);
     try {
       const storedEmail = await AsyncStorage.getItem('user');
 
@@ -52,16 +54,22 @@ const AdminAdvertisements = ({navigation}) => {
         Alert.alert('Error', 'No email found in storage');
       }
     } catch (error) {
+    } finally {
+      setLoading(false); 
     }
   };
 
   useEffect(() => {
     const fetchImage = async () => {
+      setLoading(true);
       try {
        const url = await storage.ref('miscellaneous/error.png').getDownloadURL();
         setImageUrl(url);
       } catch (error) {
         console.error('Error fetching image:', error);
+      }
+      finally {
+        setLoading(false); 
       }
     };
 
@@ -109,6 +117,15 @@ const AdminAdvertisements = ({navigation}) => {
   };
 
   const renderAdminAds = () => {
+    if (loading) {
+      return (
+        <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+          <Text>Loading...</Text>
+          <ActivityIndicator size="large" color="#E3C2D7" />
+        </View>
+      );
+    }
+
     const filteredAds = adminAds.filter(ad => ad.type === activeButton);
 
     if (filteredAds.length > 0) {
@@ -124,7 +141,7 @@ const AdminAdvertisements = ({navigation}) => {
         </View>
 
         {/* List of Admin Advertisements */}
-        {adminAds.map((ad, index) => (
+        {filteredAds.map((ad, index) => (
           <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10, borderWidth: 1, borderColor: '#ddd' }}>
             <Text style={{ flex: 1 }}>{ad.userEmail}</Text>
             <Text style={{ flex: 1 }}>{ad.title}</Text>

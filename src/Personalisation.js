@@ -152,7 +152,7 @@ const Personalisation = ({navigation}) => {
       ]);
 
       filteredCategories = categoriesResponse.data.filter(category =>
-        category.categoryName !== "All" && category.categoryName !== "Pregnancy Summary"
+        category.categoryName !== "All" && category.categoryName !== "Pregnancy Summary" && category.categoryName !== "Uncategorized"
       );
 
       setCategories(filteredCategories);

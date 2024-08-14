@@ -286,36 +286,36 @@ const UserCreateAppointment = ({ navigation }) => {
             }
 
             if(valid){
-            const appointmentDetails = {
-                date: selectedDate,
-                time: selectedTime,
-                status: 'Upcoming',
-                userComments: userComments,
-                specialistNotes: ''
-            };
+                const appointmentDetails = {
+                    date: selectedDate,
+                    time: selectedTime,
+                    status: 'Upcoming',
+                    userComments: userComments,
+                    specialistNotes: ''
+                };
 
-            const response = await axios.post(`${url}/saveAppointment`, {
-                date: currentMonth,
-                userEmail,
-                specialistEmail: selectedSpecialist.email,
-                appointmentDetails
-            });
+                const response = await axios.post(`${url}/saveAppointment`, {
+                    date: currentMonth,
+                    userEmail,
+                    specialistEmail: selectedSpecialist.email,
+                    appointmentDetails
+                });
 
-            if (response.status === 200) {
-                showAlert('Success', 'Appointment booked successfully');
-                setShowAppointmentSelection(false);
-                setSelectedDate('');
-                setSelectedTime(null);
-                setUserComments('');
-                setShowAppointmentSelection(false);
-                setMarkedDates(existing);
+                if (response.status === 200) {
+                    showAlert('Success', 'Appointment booked successfully');
+                    setShowAppointmentSelection(false);
+                    setSelectedDate('');
+                    setSelectedTime(null);
+                    setUserComments('');
+                    setShowAppointmentSelection(false);
+                    setMarkedDates(existing);
 
-                // Refetch appointments to update calendar
-                fetchExistingAppointments(selectedSpecialist.email, currentMonth);
-                fetchBookedAppointments(selectedSpecialist.email, currentMonth);
-            } else {
-                showAlert('Error', 'Failed to book appointment');
-            }}
+                    // Refetch appointments to update calendar
+                    fetchExistingAppointments(selectedSpecialist.email, currentMonth);
+                    fetchBookedAppointments(selectedSpecialist.email, currentMonth);
+                } else {
+                    showAlert('Error', 'Failed to book appointment');
+                }}
         } catch (error) {
             showAlert('Error', 'Failed to book appointment');
         }
