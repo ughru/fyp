@@ -26,7 +26,19 @@ const showAlert = (title, message, onConfirm = () => {}, onCancel = () => {}) =>
         { text: 'OK', onPress: onConfirm }
       ]);
     }
-  };
+};
+
+function stripHTML(html) {
+    // Create a temporary div element to use browser's HTML parser
+    var div = document.createElement("div");
+    div.innerHTML = html;
+
+    // Get the text content from the div
+    var text = div.textContent || div.innerText || "";
+
+    // Normalize whitespace (replace multiple spaces with a single space and trim leading/trailing whitespace)
+    return text.replace(/\s+/g, ' ').trim();
+}
 
 const UserCreatePost = ({ navigation }) => {
     // values
@@ -75,7 +87,7 @@ const UserCreatePost = ({ navigation }) => {
             setError1('');
         }
 
-        if (!description.trim()) {
+        if (!stripHTML(description).trim()) {
             setError2('* Required field');
             valid = false;
         } else {

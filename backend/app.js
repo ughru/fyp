@@ -606,30 +606,55 @@ app.post('/addresource', async (req, res) => {
 
 // Update resource by ID
 app.put('/updateresource', async (req, res) => {
-  const { resourceID, title, category, status, weekNumber, description, specialistName, imageUrl, bmi } = req.body;
+  const { resourceID, title, category, status, weekNumber, description, specialistName, imageUrl, bmi, oldTitle } = req.body;
 
   try {
-    const updateData = { title, category, status, weekNumber, description, specialistName, imageUrl };
-    
-    // Include BMI if the category is 'Diet Recommendations'
-    if (category === 'Diet Recommendations') {
-      updateData.bmi = bmi;
+    // Validate the presence of required fields
+    if (!resourceID || !title || !category || !status || !weekNumber || !description) {
+      return res.status(400).send({ error: "Missing required fields" });
     }
 
-    const updatedResource = await Resource.findOneAndUpdate(
-      { resourceID },
+    // Check if the resource exists
+    const existingResource = await Resource.findById(resourceID);
+    if (!existingResource) {
+      return res.status(404).send({ error: "Resource not found" });
+    }
+
+    // Check if title is being changed and if a new title already exists
+    if (oldTitle !== title) {
+      const titleExists = await Resource.findOne({ title });
+      if (titleExists) {
+        return res.status(400).send({ error: "Resource with the same title already exists!" });
+      }
+    }
+
+    // Check if weekNumber exists for "Pregnancy Summary" category (excluding the current resource)
+    if (category === 'Pregnancy Summary') {
+      const existingWeekResource = await Resource.findOne({ category, weekNumber, _id: { $ne: resourceID } });
+      if (existingWeekResource) {
+        return res.status(400).send({ error: "Resource for this week already exists!" });
+      }
+    }
+
+    // Prepare update data
+    const updateData = { title,category,status,weekNumber,description,specialistName,imageUrl,
+      ...(category === 'Diet Recommendations' && { bmi: bmi || [] })};
+
+    // Perform the update
+    const updatedResource = await Resource.findByIdAndUpdate(
+      resourceID,
       updateData,
       { new: true } // Return the updated document
     );
 
     if (updatedResource) {
-      res.json({ status: 'ok', data: updatedResource });
+      res.send({ status: "ok", data: "Resource updated successfully.", resource: updatedResource });
     } else {
-      res.status(404).json({ status: 'error', message: 'Resource not found' });
+      res.status(404).send({ status: "error", data: "Resource not found." });
     }
   } catch (error) {
     console.error('Error updating resource:', error);
-    res.status(500).json({ status: 'error', message: 'Internal server error' });
+    res.status(500).send({ status: "error", data: error.message });
   }
 });
 

@@ -27,6 +27,18 @@ const showAlert = (title, message, onConfirm = () => {}) => {
     }
 };
 
+function stripHTML(html) {
+    // Create a temporary div element to use browser's HTML parser
+    var div = document.createElement("div");
+    div.innerHTML = html;
+
+    // Get the text content from the div
+    var text = div.textContent || div.innerText || "";
+
+    // Normalize whitespace (replace multiple spaces with a single space and trim leading/trailing whitespace)
+    return text.replace(/\s+/g, ' ').trim();
+}
+
 const CreateResource = ({ navigation }) => {
     // values
     const [title, setTitle] = useState('');
@@ -152,7 +164,7 @@ const CreateResource = ({ navigation }) => {
             valid = false;
         }
 
-        if (!description.trim()) {
+        if (!stripHTML(description).trim()) {
             setError4('* Required field');
             valid = false;
         } else {
@@ -162,6 +174,8 @@ const CreateResource = ({ navigation }) => {
         if (!imageUri) {
             setError5('* Image is required');
             valid = false;
+        } else {
+            setError5('');
         }
 
         if (selectedCategory === 'Pregnancy Summary' && !weekNumber.trim()) {
@@ -170,54 +184,53 @@ const CreateResource = ({ navigation }) => {
         } else {
             setError6('');
         }
-
-        if (valid) {
-            try {
-                let imageUrl = '';
-
-                if (imageUri) {
-                    const response = await fetch(imageUri);
-                    const blob = await response.blob();
-                    const filename = `${title}.${blob.type.split('/')[1]}`;
-                    const storageRef = storage.ref().child(`resource/${filename}`);
-                    await storageRef.put(blob);
-                    imageUrl = await storageRef.getDownloadURL();
-                }
-
-                const resourceData = {
-                    title,
-                    category: selectedCategory,
-                    status: selectedStatuses,
-                    weekNumber: selectedCategory === 'Pregnancy Summary' ? weekNumber : '-',
-                    description,
-                    specialistName: `${specialistInfo.firstName} ${specialistInfo.lastName}`,
-                    imageUrl,
-                    ...(selectedCategory === 'Diet Recommendations' && { bmi: selectedBmi })
-                };
-
-                const response = await axios.post(`${url}/addresource`, resourceData);
-
-                // Handle response and check if the resource already exists
-                if (response.data && response.data.error === "Resource with the same title already exists!") {
-                    setError1('* Resource with the same title already exists');
-                    return;
-                }
-
-                if (response.data && response.data.error === "Resource for this week already exists!") {
-                    setError6('* Resource with the same week already exists');
-                    return;
-                }
-
-                // Alert success and navigate back
-                showAlert('Success', 'Resource successfully created!', () => {
-                    navigation.goBack();
-                  });
-            } catch (error) {
-                console.error('Resource error:', error.message);
-
-                // Alert failure
-                showAlert('Failure', 'Resource was not created!');
+    
+        // Proceed to save the resource if all validations pass
+        try {
+            let imageUrl = '';
+    
+            if (imageUri) {
+                const response = await fetch(imageUri);
+                const blob = await response.blob();
+                const filename = `${title}.${blob.type.split('/')[1]}`;
+                const storageRef = storage.ref().child(`resource/${filename}`);
+                await storageRef.put(blob);
+                imageUrl = await storageRef.getDownloadURL();
             }
+    
+            const resourceData = {
+                title,
+                category: selectedCategory,
+                status: selectedStatuses,
+                weekNumber: selectedCategory === 'Pregnancy Summary' ? `Week ${weekNumber}` : '-',
+                description,
+                specialistName: `${specialistInfo.firstName} ${specialistInfo.lastName}`,
+                imageUrl,
+                ...(selectedCategory === 'Diet Recommendations' && { bmi: selectedBmi })
+            };
+    
+            const response = await axios.post(`${url}/addresource`, resourceData);
+
+            // Handle response and check if the resource already exists
+            if (response.data && response.data.error === "Resource with the same title already exists!") {
+                setError1('* Resource with the same title already exists');
+                return;
+            }
+
+            if (response.data && response.data.error === "Resource for this week already exists!") {
+                setError6('* Resource with the same week already exists');
+                return;
+            }
+    
+            // Alert success and navigate back
+            showAlert('Success', 'Resource successfully created!', () => {
+                navigation.goBack();
+            });
+        } catch (error) {
+            console.error('Resource error:', error.message);
+    
+            // Alert failure
+            showAlert('Failure', 'Resource was not created!');
         }
     };
 

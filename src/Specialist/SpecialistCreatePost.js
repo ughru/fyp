@@ -23,6 +23,18 @@ const showAlert = (title, message, onConfirm = () => {}) => {
     }
 };
 
+function stripHTML(html) {
+    // Create a temporary div element to use browser's HTML parser
+    var div = document.createElement("div");
+    div.innerHTML = html;
+
+    // Get the text content from the div
+    var text = div.textContent || div.innerText || "";
+
+    // Normalize whitespace (replace multiple spaces with a single space and trim leading/trailing whitespace)
+    return text.replace(/\s+/g, ' ').trim();
+}
+
 const SpecialistCreatePost = ({ navigation }) => {
     // values
     const [description, setDescription] = useState('');
@@ -57,13 +69,13 @@ const SpecialistCreatePost = ({ navigation }) => {
     const onSavePost = async () => {
         let valid = true;
 
-        if (!description.trim()) {
+        if (!stripHTML(description).trim()) {
             setError1('* Required field');
             valid = false;
         } else {
             setError1('');
         }
-
+        
         if (valid) {
             const postData = {
                 userEmail,

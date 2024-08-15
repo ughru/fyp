@@ -62,6 +62,9 @@ const AdminEditProfile = ({ navigation }) => {
         } else if (!/^[a-zA-Z ]+$/.test(userInfo.firstName)) {
             setError1('* Invalid First Name');
             valid = false;
+        } else if (userInfo.firstName[0] !== userInfo.firstName[0].toUpperCase()) {
+            setError1('* First letter must be uppercase');
+            valid = false;
         } else if (userInfo.firstName.length < 2) {
             setError1('* Minimum 2 characters');
             valid = false;
@@ -72,6 +75,9 @@ const AdminEditProfile = ({ navigation }) => {
         // Validate Last Name
         if (!userInfo.lastName.trim()) {
             setError2('* Required field');
+            valid = false;
+        } else if (userInfo.lastName[0] !== userInfo.lastName[0].toUpperCase()) {
+            setError2('* First letter must be uppercase');
             valid = false;
         } else if (!/^[a-zA-Z\-]+$/.test(userInfo.lastName)) {
             setError2('* Invalid Last Name');

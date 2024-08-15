@@ -24,6 +24,18 @@ const showAlert = (title, message, onPress) => {
     }
 };
 
+function stripHTML(html) {
+    // Create a temporary div element to use browser's HTML parser
+    var div = document.createElement("div");
+    div.innerHTML = html;
+
+    // Get the text content from the div
+    var text = div.textContent || div.innerText || "";
+
+    // Normalize whitespace (replace multiple spaces with a single space and trim leading/trailing whitespace)
+    return text.replace(/\s+/g, ' ').trim();
+}
+
 const UserUpdatePost = ({ navigation, route }) => {
     // values
     const { postID } = route.params;
@@ -91,7 +103,7 @@ const UserUpdatePost = ({ navigation, route }) => {
             setError1('');
         }
     
-        if (!description.trim()) {
+        if (!stripHTML(description).trim()) {
             setError2('* Required field');
             valid = false;
         } else {

@@ -27,6 +27,18 @@ const showAlert = (title, message, onConfirm = () => {}) => {
     }
 };
 
+function stripHTML(html) {
+    // Create a temporary div element to use browser's HTML parser
+    var div = document.createElement("div");
+    div.innerHTML = html;
+
+    // Get the text content from the div
+    var text = div.textContent || div.innerText || "";
+
+    // Normalize whitespace (replace multiple spaces with a single space and trim leading/trailing whitespace)
+    return text.replace(/\s+/g, ' ').trim();
+}
+
 const UpdateResource = ({ navigation, route }) => {
     // Values
     const { resourceID} = route.params;
@@ -46,12 +58,14 @@ const UpdateResource = ({ navigation, route }) => {
     const [descriptionError, setDescriptionError] = useState('');
     const [weekError, setWeekError] = useState('');
     const [bmiError, setBmiError] = useState('');
+    const [imageError, setImageError] = useState('');
 
     // Selected values
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [selectedStatuses, setSelectedStatuses] = useState([]);
     const [selectedBmi, setSelectedBmi] = useState([]);
     const [oldTitle, setOldTitle] = useState('');
+    const [oldImageUri, setOldImageUri] = useState('');
 
     const editor = useRef(null);
 
@@ -105,7 +119,7 @@ const UpdateResource = ({ navigation, route }) => {
                     setSelectedBmi(matchedResource.bmi || ''); // set selected bmi state
                     setDescription(matchedResource.description); // Set description state
                     setWeekNumber(matchedResource.weekNumber); // Set week number state
-                    setImageUri(matchedResource.imageUrl);
+                    setOldImageUri(matchedResource.imageUrl);
                     setOldTitle(matchedResource.title);
                 } 
             } catch (error) {
@@ -164,7 +178,7 @@ const UpdateResource = ({ navigation, route }) => {
             valid = false;
         }
 
-        if (!description.trim()) {
+        if (!stripHTML(description).trim()) {
             setDescriptionError('* Required field');
             valid = false;
         } else {
@@ -178,23 +192,34 @@ const UpdateResource = ({ navigation, route }) => {
             setWeekError('');
         }
 
+        if (!imageUri && oldImageUri === '') {
+            setImageError('* Image is required');
+            valid = false;
+        } else {
+            setImageError('');
+        }
+
         if (valid) {
             try {
                 let imageUrl = resource.imageUrl;
 
-                if (oldTitle !== title && resource.imageUrl) {
-                    const oldStorageRef = storage.refFromURL(resource.imageUrl);
-                    const oldImage = await oldStorageRef.getDownloadURL();
-                    const response = await fetch(oldImage);
-                    const blob = await response.blob();
-    
-                    const newFilename = `${title}.${blob.type.split('/')[1]}`;
-                    const newStorageRef = storage.ref().child(`resource/${newFilename}`);
-                    await newStorageRef.put(blob);
-                    imageUrl = await newStorageRef.getDownloadURL();
-    
-                    // Delete the old image
-                    await oldStorageRef.delete();
+                if (oldTitle !== title && imageUri || oldTitle !== title && (imageUri && oldImageUri !== imageUri) ||
+                    title && (imageUri && oldImageUri !== imageUri)) {
+                    // Delete old image if it exists
+                    if (resource.imageUrl) {
+                        const oldStorageRef = storage.refFromURL(resource.imageUrl);
+                        await oldStorageRef.delete();
+                    }
+        
+                    // Upload new image if provided
+                    if (imageUri) {
+                        const response = await fetch(imageUri);
+                        const blob = await response.blob();
+                        const filename = `${title}.${blob.type.split('/')[1]}`;
+                        const newStorageRef = storage.ref().child(`resource/${filename}`);
+                        await newStorageRef.put(blob);
+                        imageUrl = await newStorageRef.getDownloadURL();
+                    }
                 }
     
                 const resourceData = {
@@ -206,16 +231,29 @@ const UpdateResource = ({ navigation, route }) => {
                     description,
                     specialistName: `${specialistInfo.firstName} ${specialistInfo.lastName}`,
                     imageUrl,
-                    ...(selectedCategory === 'Diet Recommendations' && { bmi: selectedBmi })
+                    ...(selectedCategory === 'Diet Recommendations' && { bmi: selectedBmi }),
+                    oldTitle
                 };
     
-                await axios.put(`${url}/updateresource`, resourceData);
+                const response = await axios.put(`${url}/updateresource`, resourceData);
+                if (response.data.error) {
+                    // Handle error based on response from backend
+                    if (response.data.error === "Resource with the same title already exists!") {
+                        setTitleError('* Resource with the same title already exists');
+                        valid = false;
+                        return;
+                    } 
+                    
+                    if (response.data.error === "Resource for this week already exists!") {
+                        setWeekError('* Resource for this week already exists');
+                        valid = false;
+                        return;
+                    }
+                }
 
                 // Alert success and navigate back
                 showAlert('Success', 'Resource successfully updated!', () => navigation.goBack());
             } catch (error) {
-                console.error('Resource update error:', error);
-    
                 // Alert failure
                 showAlert('Failure', 'Resource was not updated!', () => navigation.goBack());
             }
@@ -290,12 +328,11 @@ const UpdateResource = ({ navigation, route }) => {
         {/* Form fields */}
         <View style={[styles.container4, { marginBottom: 20 }]}>
             <View style={{ marginBottom: 30 }}>
-                <Text style={[styles.text, { marginBottom: 10 }]}> Title </Text>
+                <Text style={[styles.text, { marginBottom: 10 }]}> Title {titleError ? <Text style={styles.error}>{titleError}</Text> : null} </Text>
                 <TextInput style={[styles.input3]} value={title} onChangeText={setTitle} /> 
-                {titleError ? <Text style={styles.error}>{titleError}</Text> : null}
             </View>
             <View style={{ marginBottom: 30 }}>
-                <Text style={[styles.text, { marginBottom: 10 }]}> Category </Text>
+                <Text style={[styles.text, { marginBottom: 10 }]}> Category {categoryError ? <Text style={styles.error}>{categoryError}</Text> : null} </Text>
                 <RNPickerSelect
                     onValueChange={(value) => {
                         setSelectedCategory(value)
@@ -305,12 +342,11 @@ const UpdateResource = ({ navigation, route }) => {
                     placeholder={{ label: 'Select a category', value: 'Select a category' }}
                     value={selectedCategory}
                 />
-                {categoryError ? <Text style={styles.error}>{categoryError}</Text> : null}
             </View>
 
             {/* Status selection buttons */}
             <View style={[styles.container4, { marginBottom: 20 }]}>
-                <Text style={[styles.text, { marginBottom: 20 }]}> Status </Text>
+                <Text style={[styles.text, { marginBottom: 20 }]}> Status  {statusError ? <Text style={styles.error}>{statusError}</Text> : null} </Text>
                 <View style={[styles.buttonPosition]}>
                 {selectedCategory !== 'Pregnancy Summary' ? (
                     <>
@@ -350,7 +386,6 @@ const UpdateResource = ({ navigation, route }) => {
                         </Pressable>
                     )}
                 </View>
-                {statusError ? <Text style={styles.error}>{statusError}</Text> : null}
             </View>
 
             {/* Week No View */}
@@ -382,7 +417,7 @@ const UpdateResource = ({ navigation, route }) => {
             )}
 
             <View style={[styles.container4, { marginBottom: 20 }]}>
-                <Text style={[styles.text, { marginBottom: 20 }]}> Description </Text>
+            <Text style={[styles.text, { marginBottom: 10 }]}> Description {descriptionError ? <Text style={styles.error}>{descriptionError}</Text> : null} </Text>
                 {Platform.OS === 'web' ? (
                     <div>
                     <WebQuillEditor value={description} onChange={(newDescription) => setDescription(newDescription)}/>
@@ -409,22 +444,21 @@ const UpdateResource = ({ navigation, route }) => {
                 </>
                 )
             }
-                {descriptionError ? <Text style={styles.error}>{descriptionError}</Text> : null}
             </View>
 
             {/* Image Upload */}
             <View>
-                <Text style={[styles.text, { marginBottom: 10 }]}> Image </Text>
+                <Text style={[styles.text, { marginBottom: 10 }]}> Image {imageError ? <Text style={styles.error}>{imageError}</Text> : null} </Text>
                 <Pressable style={[styles.imageUpload, {marginBottom: 10}]} onPress={pickImage}>
                     <Text style={styles.text}> Upload an image </Text>
                 </Pressable>
                 <Pressable style={[styles.imageUpload,{marginBottom: 20}]} onPress={takePhoto}>
                     <Text style={styles.text}> Take a photo </Text>
                 </Pressable>
-                {imageUri && (
+                {oldImageUri && (
                 <View>
                     <Image
-                        source={{ uri: imageUri }}
+                        source={{ uri: imageUri || oldImageUri }}
                         style={{ width: 300, height: 300, resizeMode: 'contain' }}
                     />
                     <Pressable style={[styles.imageUpload, { marginTop: 20 }]} onPress={removeImage}>

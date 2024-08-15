@@ -105,6 +105,7 @@ const AdminResource = ({ navigation }) => {
   };
 
   const openManageModal = () => {
+    setError1('');
     setModal2Visible(true);
   };
 
@@ -180,6 +181,13 @@ const AdminResource = ({ navigation }) => {
       valid = false;
     } else {
       setError1('');
+    }
+
+    // Check if the category already exists
+    const categoryExists = categories.some(category => category.categoryName.toLowerCase() === newCategory.toLowerCase());
+    if (categoryExists) {
+      setError1('* Category already exists');
+      valid = false;
     }
   
     // If validation passes, attempt to update category
