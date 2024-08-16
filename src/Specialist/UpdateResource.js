@@ -155,8 +155,16 @@ const UpdateResource = ({ navigation, route }) => {
         if (!title.trim()) {
             setTitleError('* Required field');
             valid = false;
+        } else if (oldTitle !== title) {
+            const titleExist = await axios.post(`${url}/checktitle`, {title: title.trim()});
+            if(titleExist.data.error){
+                valid = false;
+                setTitleError("* " + titleExist.data.error);
+            } else {
+                setTitleError('');   
+            }
         } else {
-            setTitleError('');
+            setTitleError(''); 
         }
 
         if (selectedCategory === 'Select a category') {
@@ -199,6 +207,10 @@ const UpdateResource = ({ navigation, route }) => {
             setImageError('');
         }
 
+        if(!valid){
+            return;
+        }
+
         if (valid) {
             try {
                 let imageUrl = resource.imageUrl;
@@ -232,23 +244,14 @@ const UpdateResource = ({ navigation, route }) => {
                     specialistName: `${specialistInfo.firstName} ${specialistInfo.lastName}`,
                     imageUrl,
                     ...(selectedCategory === 'Diet Recommendations' && { bmi: selectedBmi }),
-                    oldTitle
+                    oldTitle: oldTitle,
                 };
     
                 const response = await axios.put(`${url}/updateresource`, resourceData);
-                if (response.data.error) {
-                    // Handle error based on response from backend
-                    if (response.data.error === "Resource with the same title already exists!") {
-                        setTitleError('* Resource with the same title already exists');
-                        valid = false;
-                        return;
-                    } 
-                    
-                    if (response.data.error === "Resource for this week already exists!") {
-                        setWeekError('* Resource for this week already exists');
-                        valid = false;
-                        return;
-                    }
+
+                if (response.data && response.data.error === "Resource for this week already exists!") {
+                    setWeekError('* Resource with the same week already exists');
+                    return;
                 }
 
                 // Alert success and navigate back
@@ -301,21 +304,13 @@ const UpdateResource = ({ navigation, route }) => {
     };    
 
     const removeImage = async () => {
-        try {
-            // Determine which image URL to use
-            const imageUrlToDelete = imageUri || oldImageUri;
-    
-            if (imageUrlToDelete) {
-                // Delete the image from Firebase Storage
-                const storageRef = storage.refFromURL(imageUrlToDelete);
-                await storageRef.delete();
-    
-                // Clear the image URI state
-                setImageUri(null);
-                setOldImageUri("");
-            }
-        } catch (error) {
-            console.error('Error removing image:', error);
+        // Determine which image URL to use
+        const imageUrlToDelete = imageUri || oldImageUri;
+
+        if (imageUrlToDelete) {
+            // Clear the image URI state
+            setImageUri("");
+            setOldImageUri("");
         }
     };
 

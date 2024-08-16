@@ -139,7 +139,13 @@ const CreateResource = ({ navigation }) => {
             setError1('* Required field');
             valid = false;
         } else {
-            setError1('');
+            const checkTitle = await axios.post(`${url}/checktitle`, {title: title});
+            if(checkTitle.data.error) {
+                valid = false;
+                setError1("* " + checkTitle.data.error);
+            } else {
+                setError1('');
+            }
         }
 
         if (selectedCategory === 'Select a category') {
@@ -184,6 +190,10 @@ const CreateResource = ({ navigation }) => {
         } else {
             setError6('');
         }
+
+        if (!valid){
+            return;
+        }
     
         // Proceed to save the resource if all validations pass
         try {
@@ -210,12 +220,6 @@ const CreateResource = ({ navigation }) => {
             };
     
             const response = await axios.post(`${url}/addresource`, resourceData);
-
-            // Handle response and check if the resource already exists
-            if (response.data && response.data.error === "Resource with the same title already exists!") {
-                setError1('* Resource with the same title already exists');
-                return;
-            }
 
             if (response.data && response.data.error === "Resource for this week already exists!") {
                 setError6('* Resource with the same week already exists');

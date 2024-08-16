@@ -565,13 +565,6 @@ app.post('/addresource', async (req, res) => {
   const { title, category, status, weekNumber, description, specialistName, imageUrl, bmi } = req.body;
 
   try {
-    const existingResource = await Resource.findOne({ title });
-
-    // Check if title exists
-    if (existingResource) {
-      return res.send({ error: "Resource with the same title already exists!" });
-    }
-
     // Check if weekNumber exists for "Pregnancy Summary" category
     if (category === 'Pregnancy Summary') {
       const existingWeekResource = await Resource.findOne({ category, weekNumber });
@@ -615,14 +608,19 @@ app.put('/updateresource', async (req, res) => {
     }
 
     // Check if the resource exists
-    const existingResource = await Resource.findById(resourceID);
+    const existingResource = await Resource.findOne({resourceID: resourceID});
     if (!existingResource) {
       return res.status(404).send({ error: "Resource not found" });
     }
 
+    // Prepare update data
+    const updateData = { title,category,status,weekNumber,description,specialistName,imageUrl,
+      ...(category === 'Diet Recommendations' && { bmi: bmi || [] })};
+
+    
     // Check if title is being changed and if a new title already exists
     if (oldTitle !== title) {
-      const titleExists = await Resource.findOne({ title });
+      const titleExists = await Resource.findOne({ title: title });
       if (titleExists) {
         return res.status(400).send({ error: "Resource with the same title already exists!" });
       }
@@ -630,19 +628,15 @@ app.put('/updateresource', async (req, res) => {
 
     // Check if weekNumber exists for "Pregnancy Summary" category (excluding the current resource)
     if (category === 'Pregnancy Summary') {
-      const existingWeekResource = await Resource.findOne({ category, weekNumber, _id: { $ne: resourceID } });
+      const existingWeekResource = await Resource.findOne({ category, weekNumber});
       if (existingWeekResource) {
         return res.status(400).send({ error: "Resource for this week already exists!" });
       }
     }
 
-    // Prepare update data
-    const updateData = { title,category,status,weekNumber,description,specialistName,imageUrl,
-      ...(category === 'Diet Recommendations' && { bmi: bmi || [] })};
-
     // Perform the update
-    const updatedResource = await Resource.findByIdAndUpdate(
-      resourceID,
+    const updatedResource = await Resource.findOneAndUpdate(
+      {resourceID: resourceID},
       updateData,
       { new: true } // Return the updated document
     );
@@ -673,6 +667,23 @@ app.delete('/deleteresource', async (req, res) => {
   } catch (error) {
     console.error('Error deleting resource:', error);
     res.status(500).json({ status: 'error', message: 'Internal server error' });
+  }
+});
+
+app.post('/checktitle', async (req, res) => {
+  try {
+    const { title } = req.body;
+
+    // Find a resource with the same title
+    const existingResourceByTitle = await Resource.findOne({ title });
+
+    if (existingResourceByTitle) {
+      return res.json({ error: "Resource with the same title already exists!" });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+      res.status(500).send(err);
   }
 });
 
