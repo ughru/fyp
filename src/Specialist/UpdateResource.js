@@ -302,11 +302,17 @@ const UpdateResource = ({ navigation, route }) => {
 
     const removeImage = async () => {
         try {
-            if (imageUri && resource.imageUrl) {
+            // Determine which image URL to use
+            const imageUrlToDelete = imageUri || oldImageUri;
+    
+            if (imageUrlToDelete) {
                 // Delete the image from Firebase Storage
-                const storageRef = storage.refFromURL(resource.imageUrl);
+                const storageRef = storage.refFromURL(imageUrlToDelete);
                 await storageRef.delete();
+    
+                // Clear the image URI state
                 setImageUri(null);
+                setOldImageUri("");
             }
         } catch (error) {
             console.error('Error removing image:', error);
@@ -455,7 +461,7 @@ const UpdateResource = ({ navigation, route }) => {
                 <Pressable style={[styles.imageUpload,{marginBottom: 20}]} onPress={takePhoto}>
                     <Text style={styles.text}> Take a photo </Text>
                 </Pressable>
-                {oldImageUri && (
+                {(imageUri || oldImageUri) && (
                 <View>
                     <Image
                         source={{ uri: imageUri || oldImageUri }}

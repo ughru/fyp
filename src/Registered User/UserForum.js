@@ -120,7 +120,6 @@ const UserForum = ({ navigation }) => {
   }, []);
 
   const fetchComments = async (postID) => {
-    setLoading(true);
     try {
       const response = await axios.get(`${url}/getComments`, { params: { postID } });
       if (response.data.status === 'ok') {
@@ -134,8 +133,6 @@ const UserForum = ({ navigation }) => {
       }
     } catch (error) {
       console.error('Error fetching comments:', error);
-    } finally {
-      setLoading(false); 
     }
   };
 
