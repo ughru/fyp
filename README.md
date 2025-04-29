@@ -55,4 +55,4 @@ A pregnancy mobile application providing women with access to necessary informat
     
 ## Usage
 
-Please refer to the user manual: 
+Please refer to the user manual: https://docs.google.com/document/d/1O685XlgoZM6i4nxflHfuXWsUJQ8DscVtjJAeOVYqswI/edit?usp=sharing
